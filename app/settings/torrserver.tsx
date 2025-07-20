@@ -7,6 +7,7 @@ import * as Haptics from 'expo-haptics';
 
 const TorrServerScreen = () => {
   const [torrServerUrl, setTorrServerUrl] = useState('http://192.168.1.10:5665');
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const loadPreferences = async () => {
@@ -23,9 +24,10 @@ const TorrServerScreen = () => {
   }, []);
 
   const savePreferences = async () => {
+    setSaving(true);
     try {
       if (isHapticsSupported()) {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft); // Await this
       }
 
       if (!torrServerUrl.startsWith('http')) {
@@ -34,13 +36,15 @@ const TorrServerScreen = () => {
       }
 
       await AsyncStorage.setItem('torrserverbaseurl', torrServerUrl);
+
+      showAlert('Saved', 'TorrServer URL has been saved.');
     } catch (error) {
       console.error('Failed to save TorrServer URL:', error);
       showAlert('Error', 'Failed to save TorrServer URL.');
-      return;
     }
-
-    showAlert('Saved', 'TorrServer URL has been saved.');
+    finally {
+      setSaving(false)
+    }
   };
 
   const textInputStyle = styles.darkSearchInput;
@@ -50,7 +54,7 @@ const TorrServerScreen = () => {
       <StatusBar />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.searchInputContainer}>
-          <Text style={{ color: '#888', marginBottom: 10 }}>TorrServer Base URL:</Text>
+          <Text style={styles.baseUrlLabel}>TorrServer Base URL:</Text>
           <TextInput
             style={[styles.searchInput, textInputStyle]}
             value={torrServerUrl}
@@ -62,8 +66,8 @@ const TorrServerScreen = () => {
           />
         </View>
         <View style={styles.saveButton}>
-          <Pressable onPress={savePreferences}>
-            <Text style={styles.saveButtonText}>Save</Text>
+          <Pressable onPress={savePreferences} disabled={saving}>
+            <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save'}</Text>
           </Pressable>
         </View>
       </ScrollView>
@@ -89,7 +93,7 @@ const styles = StyleSheet.create({
   },
   searchInput: {
     height: 40,
-    borderRadius: 12,
+    borderRadius: 25,
     paddingLeft: 20,
     fontSize: 16,
   },
@@ -100,6 +104,10 @@ const styles = StyleSheet.create({
   darkSearchInput: {
     backgroundColor: '#1f1f1f',
     color: '#fff',
+  },
+  baseUrlLabel: {
+    color: '#ffffff',
+    marginBottom: 20
   },
   saveButton: {
     marginTop: 20,
