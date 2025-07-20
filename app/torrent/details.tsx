@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, ScrollView, StyleSheet, useWindowDimensions } from 'react-native';
+import { Image, Linking, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, StatusBar, Text, View } from '@/components/Themed';
 import PlayButton from '@/components/PlayButton';
@@ -153,13 +153,23 @@ const TorrentDetails = () => {
       </View>
 
       {torrentData.files && torrentData.files.length > 0 && (
-        <View style={[styles.cacheBox, { marginHorizontal: 20, marginTop: 10 }]}>
-          <Text style={styles.cacheTitle}>Files</Text>
-          {torrentData.files.map((file: any, index: number) => (
-            <Text key={index} style={styles.cacheText}>{file.path} ({(file.length / (1024 ** 2)).toFixed(2)} MB)</Text>
-          ))}
-        </View>
-      )}
+  <View style={[styles.cacheBox, { marginHorizontal: 20, marginTop: 10 }]}>
+    <Text style={styles.cacheTitle}>Files</Text>
+    {torrentData.files.map((file: any, index: number) => {
+      const encodedPath = encodeURIComponent(file.path);
+      const url = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play`;
+
+      return (
+        <TouchableOpacity key={index} onPress={() => Linking.openURL(url)}>
+          <Text style={styles.cacheText}>
+            {file.path} ({(file.length / (1024 ** 2)).toFixed(2)} MB)
+          </Text>
+        </TouchableOpacity>
+      );
+    })}
+  </View>
+)}
+
 
       <BottomSpacing space={100} />
     </ScrollView>
