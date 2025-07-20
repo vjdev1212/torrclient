@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
         borderRadius: 8,
     },
     posterTitle: {
-        marginTop: 4,
+        marginTop: 10,
         fontSize: 14,
         maxWidth: 100,
     },

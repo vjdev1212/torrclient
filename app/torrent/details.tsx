@@ -2,7 +2,6 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Image, Linking, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
 import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, StatusBar, Text, View } from '@/components/Themed';
-import PlayButton from '@/components/PlayButton';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
@@ -19,12 +18,6 @@ const TorrentDetails = () => {
   const isPortrait = height >= width;
   const isLargeScreen = width > 768 && !isPortrait;
   const ref = useRef<ScrollView | null>(null);
-
-  useFocusEffect(() => {
-    if (ref.current) {
-      ref.current.scrollTo({ y: 0, animated: true });
-    }
-  });
 
   useEffect(() => {
     let interval: any;
@@ -113,6 +106,19 @@ const TorrentDetails = () => {
     );
   }
 
+  const getFormattedCategory = (category: string) => {
+    if (!category) return '';
+    switch (category.toLowerCase()) {
+      case 'movie':
+        return 'Movie';
+      case 'tv':
+        return 'TV Show';
+      default:
+        return category.charAt(0).toUpperCase() + category.slice(1);
+    }
+  };
+
+
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={styles.container} ref={ref}>
       <StatusBar />
@@ -131,7 +137,7 @@ const TorrentDetails = () => {
         <View style={isLargeScreen ? styles.rightHalf : styles.fullWidth}>
           <Text style={[styles.title, { textAlign: 'center' }]}>{torrentData.title}</Text>
           <Text style={styles.metaText}>
-            {torrentData.category.charAt(0).toUpperCase() + torrentData.category.slice(1)} | {(torrentData.size / (1024 ** 3)).toFixed(2)} GB
+            {getFormattedCategory(torrentData.category)} | {(torrentData.size / (1024 ** 3)).toFixed(2)} GB
           </Text>
           {cacheData && (
             <View style={[styles.metaRow, { marginTop: 4 }]}>
@@ -153,23 +159,30 @@ const TorrentDetails = () => {
       </View>
 
       {torrentData.files && torrentData.files.length > 0 && (
-        <View style={[styles.cacheBox, { marginHorizontal: 20, marginTop: 10 }]}>
+        <View style={{ marginHorizontal: 10 }}>
           <Text style={styles.cacheTitle}>Files</Text>
-          {torrentData.files.map((file: any, index: number) => {
-            const encodedPath = encodeURIComponent(file.path);
-            const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play`;
-            const infuseUrl = `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`;
+          {torrentData.files
+            .filter((file: any) =>
+              /\.(mp4|mkv|webm|avi|mov|flv|wmv|m4v)$/i.test(file.path)
+            )
+            .map((file: any, index: number) => {
+              const encodedPath = encodeURIComponent(file.path);
+              const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play`;
+              const infuseUrl = `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`;
 
-            return (
-              <TouchableOpacity key={index} onPress={() => Linking.openURL(infuseUrl)}>
-                <Text style={styles.cacheText}>
-                  {file.path} ({(file.length / (1024 ** 2)).toFixed(2)} MB)
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+              return (
+                <View key={index} style={styles.cacheBox}>
+                  <TouchableOpacity onPress={() => Linking.openURL(infuseUrl)}>
+                    <Text style={styles.cacheText}>
+                      {file.path} ({(file.length / (1024 ** 2)).toFixed(2)} MB)
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              );
+            })}
         </View>
       )}
+
       <BottomSpacing space={100} />
     </ScrollView>
   );
@@ -226,8 +239,8 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   cacheBox: {
-    marginTop: 10,
-    marginHorizontal: 20,
+    marginHorizontal: 10,
+    marginVertical: 10,
     padding: 20,
     backgroundColor: '#101010',
     borderRadius: 8
@@ -235,7 +248,8 @@ const styles = StyleSheet.create({
   cacheTitle: {
     fontWeight: 'bold',
     fontSize: 16,
-    marginBottom: 5,
+    marginBottom: 10,
+    marginHorizontal: 20
   },
   cacheText: {
     fontSize: 14,
