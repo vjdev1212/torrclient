@@ -1,0 +1,81 @@
+import React from 'react';
+import { StyleSheet, Pressable, Linking, SafeAreaView, ScrollView } from 'react-native';
+import { Text, StatusBar } from '@/components/Themed';
+import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics'
+import { isHapticsSupported } from '@/utils/platform';
+
+const DonateScreen = () => {
+
+    const handleDonate = async () => {
+        if (isHapticsSupported()) {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+        }
+        const profileUsername = process.env.EXPO_PUBLIC_BUY_ME_COFFEE || '';
+        const buyMeACoffeeUrl = `https://www.buymeacoffee.com/${profileUsername}`;
+        Linking.openURL(buyMeACoffeeUrl).catch((err) =>
+            console.error('Failed to open URL:', err)
+        );
+    };
+
+    return (
+        <SafeAreaView style={styles.container}>
+            <StatusBar />
+            <ScrollView style={styles.donateContainer} showsVerticalScrollIndicator={false}>
+                <Text style={styles.title}>Liked the App!</Text>
+                <Text style={styles.subtitle}>
+                    If you find this app useful and want to support its continued development, consider buying me a coffee. Your support keeps this project alive and thriving!      </Text>
+
+                <Pressable style={styles.donateButton} onPress={handleDonate}>
+                    <Ionicons name="cafe-outline" size={24} color="#fff" style={styles.icon} />
+                    <Text style={styles.donateText}>Buy Me a Coffee</Text>
+                </Pressable>
+            </ScrollView>
+        </SafeAreaView>
+    );
+};
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        padding: 20,
+        width: '100%',
+        maxWidth: 780,
+        margin: 'auto',
+        marginTop: 30
+    },
+    donateContainer:{
+        marginHorizontal: 20,
+    },
+    title: {
+        fontSize: 24,
+        fontWeight: 'bold',
+        marginVertical: 10,
+        textAlign: 'center',
+    },
+    subtitle: {
+        fontSize: 16,
+        marginVertical: 20,
+        textAlign: 'center',
+    },
+    donateButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#535aff',
+        paddingVertical: 12,
+        paddingHorizontal: 30,
+        borderRadius: 8,
+        marginVertical: 20,
+        marginHorizontal: 'auto'
+    },
+    donateText: {
+        color: '#fff',
+        fontSize: 18,
+        marginLeft: 10,
+    },
+    icon: {
+        marginRight: 5,
+    },
+});
+
+export default DonateScreen;

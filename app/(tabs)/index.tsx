@@ -1,0 +1,37 @@
+import { SafeAreaView, ScrollView, StyleSheet } from 'react-native';
+import PosterList from '@/components/PosterList';
+import { CatalogUrl } from '@/constants/Tmdb';
+import { StatusBar, View } from '@/components/Themed';
+
+export default function HomeScreen() {
+
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.contentContainer}>
+          <PosterList apiUrl={CatalogUrl.trendingMovies} title='Movies - Trending' type='movie' />
+          <PosterList apiUrl={CatalogUrl.trendingSeries} title='Series - Trending' type='series' />
+          <PosterList apiUrl={CatalogUrl.popularMovies} title='Movies - Popular' type='movie' />
+          <PosterList apiUrl={CatalogUrl.popularSeries} title='Series - Popular' type='series' />
+          <PosterList apiUrl={CatalogUrl.topMovies} title='Movies - Top Rated' type='movie' />
+          <PosterList apiUrl={CatalogUrl.topSeries} title='Series - Top Rated' type='series' />
+          <PosterList apiUrl={CatalogUrl.nowPlayingMovies} title='Movies - Now Playing' type='movie' />
+          <PosterList apiUrl={CatalogUrl.onTheAirTv} title='Series - On the Air' type='series' />
+          <PosterList apiUrl={CatalogUrl.upcomingMovies} title='Movies - Upcoming' type='movie' />
+          <PosterList apiUrl={CatalogUrl.airingTodayTv} title='Series - Airing Today' type='series' />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    marginTop: 20,
+  },
+  contentContainer: {
+    marginTop: 30
+  }
+});
