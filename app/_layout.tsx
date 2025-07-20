@@ -85,7 +85,7 @@ function RootLayoutNav() {
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
         <Stack.Screen name="torrent/details" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />        
         <Stack.Screen name="stream/embed" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />       
-        <Stack.Screen name="settings/preferences" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
+        <Stack.Screen name="settings/torrserver" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
         <Stack.Screen name="settings/contact" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
         <Stack.Screen name="settings/donate" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
       </Stack>

@@ -1,15 +1,17 @@
 import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, Text } from '@/components/Themed';
 import TorrentGrid from '@/components/TorrentGrid';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { getTorrServerUrl } from '@/utils/TorrServer';
 
 const HomeScreen = () => {
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const baseUrl = process.env.EXPO_PUBLIC_TORRSERVER_URL;
 
   useEffect(() => {
     const fetchTorrents = async () => {
       try {
+        const baseUrl = await getTorrServerUrl();
         const response = await fetch(`${baseUrl}/torrents`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },

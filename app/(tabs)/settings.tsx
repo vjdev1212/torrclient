@@ -16,8 +16,7 @@ const SettingsScreen = () => {
   ];
 
   const preferencesList: { title: string, route: string, icon: keyof typeof Ionicons.glyphMap }[] = [
-    { title: 'Movie', route: '/settings/embed-movie', icon: 'film-outline' },
-    { title: 'TV', route: '/settings/embed-tv', icon: 'tv-outline' },
+    { title: 'TorrServer', route: '/settings/torrserver', icon: 'server-outline' },
   ];
 
   // SettingItem Component
@@ -45,7 +44,7 @@ const SettingsScreen = () => {
       <StatusBar />
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
         <View>
-          <Text style={styles.header}>Embed Settings</Text>
+          <Text style={styles.header}>General</Text>
           <View style={[styles.settingsGroup]}>
             {preferencesList.map((item, index) => (
               <SettingItem

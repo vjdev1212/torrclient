@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import TorrentGrid from '@/components/TorrentGrid';
+import { getTorrServerUrl } from '@/utils/TorrServer';
 
 const SearchScreen = () => {
   const [query, setQuery] = useState('');
@@ -14,11 +15,10 @@ const SearchScreen = () => {
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
   const [debounceTimeout, setDebounceTimeout] = useState<any>(null);
 
-  const baseUrl = process.env.EXPO_PUBLIC_TORRSERVER_URL;
-
   const fetchTorrents = async () => {
     setLoading(true);
     try {
+      const baseUrl = await getTorrServerUrl();
       const response = await fetch(`${baseUrl}/torrents`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

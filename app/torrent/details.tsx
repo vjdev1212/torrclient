@@ -1,18 +1,18 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Image, Linking, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
-import { router, useFocusEffect, useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, StatusBar, Text, View } from '@/components/Themed';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { Ionicons } from '@expo/vector-icons';
-
-const baseUrl = process.env.EXPO_PUBLIC_TORRSERVER_URL;
+import { getTorrServerUrl } from '@/utils/TorrServer';
 
 const TorrentDetails = () => {
   const { hash } = useLocalSearchParams();
   const [torrentData, setTorrentData] = useState<any>(null);
   const [cacheData, setCacheData] = useState<any>(null);
+  const [baseUrl, setBaseUrl] = useState<any>('');
   const [loading, setLoading] = useState(true);
   const { width, height } = useWindowDimensions();
   const isPortrait = height >= width;
@@ -22,7 +22,13 @@ const TorrentDetails = () => {
   useEffect(() => {
     let interval: any;
 
-    const fetchDetails = async () => {
+    const loadBaseUrl = async () => {
+      const url = await getTorrServerUrl();
+      setBaseUrl(url);
+      return url;
+    };
+
+    const fetchDetails = async (baseUrl: string) => {
       try {
         const torrentRes = await fetch(`${baseUrl}/torrents`, {
           method: 'POST',
@@ -56,7 +62,7 @@ const TorrentDetails = () => {
       }
     };
 
-    const fetchCache = async () => {
+    const fetchCache = async (baseUrl: string) => {
       try {
         const cacheRes = await fetch(`${baseUrl}/cache`, {
           method: 'POST',
@@ -64,30 +70,24 @@ const TorrentDetails = () => {
           body: JSON.stringify({ action: 'get', hash }),
         });
         const cacheResult = await cacheRes.json();
-        setCacheData(cacheResult);
+        setCacheData((prev: any) =>
+          JSON.stringify(prev) !== JSON.stringify(cacheResult) ? cacheResult : prev
+        );
       } catch (error) {
         console.error('Error fetching cache data:', error);
       }
     };
 
     if (hash) {
-      fetchDetails();
-      fetchCache();
-      interval = setInterval(fetchCache, 3000);
+      loadBaseUrl().then((url: any) => {
+        fetchDetails(url);
+        fetchCache(url);
+        interval = setInterval(() => fetchCache(url), 3000);
+      });
     }
 
     return () => clearInterval(interval);
   }, [hash]);
-
-  const handlePlayPress = async () => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-    }
-    router.push({
-      pathname: '/stream/embed',
-      params: { hash, type: 'movie', name: torrentData?.title },
-    });
-  };
 
   if (loading) {
     return (
@@ -118,6 +118,37 @@ const TorrentDetails = () => {
     }
   };
 
+  const videoFiles = torrentData.files.filter((file: any) =>
+    /\.(mp4|mkv|webm|avi|mov|flv|wmv|m4v)$/i.test(file.path)
+  );
+
+  const handleOpenInfuse = (file: any) => {
+    const encodedPath = encodeURIComponent(file.path);
+    const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play`;
+    const infuseUrl = `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`;
+    Linking.openURL(infuseUrl);
+  };
+
+  const CacheInfo = React.memo(({ cacheData }: { cacheData: any }) => {
+    if (!cacheData?.Torrent) return null;
+
+    return (
+      <View style={[styles.metaRow, { marginTop: 4 }]}>
+        <View style={styles.metaItem}>
+          <Ionicons name="download" size={16} color="#aaa" style={{ marginRight: 5 }} />
+          <Text style={styles.metaText}>{cacheData.Torrent.download_speed?.toFixed(2)} MB/s</Text>
+        </View>
+        <View style={styles.metaItem}>
+          <Ionicons name="people" size={16} color="#aaa" style={{ marginRight: 5 }} />
+          <Text style={styles.metaText}>{cacheData.Torrent.total_peers}</Text>
+        </View>
+        <View style={styles.metaItem}>
+          <Ionicons name="arrow-up-circle" size={16} color="#aaa" style={{ marginRight: 5 }} />
+          <Text style={styles.metaText}>{cacheData.Torrent.connected_seeders}</Text>
+        </View>
+      </View>
+    );
+  });
 
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={styles.container} ref={ref}>
@@ -139,47 +170,22 @@ const TorrentDetails = () => {
           <Text style={styles.metaText}>
             {getFormattedCategory(torrentData.category)} | {(torrentData.size / (1024 ** 3)).toFixed(2)} GB
           </Text>
-          {cacheData && (
-            <View style={[styles.metaRow, { marginTop: 4 }]}>
-              <View style={styles.metaItem}>
-                <Ionicons name="download" size={16} color="#aaa" style={{ marginRight: 5 }} />
-                <Text style={styles.metaText}>{cacheData.Torrent?.download_speed?.toFixed(2)} MB/s</Text>
-              </View>
-              <View style={styles.metaItem}>
-                <Ionicons name="people" size={16} color="#aaa" style={{ marginRight: 5 }} />
-                <Text style={styles.metaText}>{cacheData.Torrent?.total_peers}</Text>
-              </View>
-              <View style={styles.metaItem}>
-                <Ionicons name="arrow-up-circle" size={16} color="#aaa" style={{ marginRight: 5 }} />
-                <Text style={styles.metaText}>{cacheData.Torrent?.connected_seeders}</Text>
-              </View>
-            </View>
-          )}
+          {cacheData && <CacheInfo cacheData={cacheData} />}
         </View>
       </View>
 
-      {torrentData.files && torrentData.files.length > 0 && (
+      {videoFiles.length > 0 && (
         <View style={{ marginHorizontal: 10 }}>
           <Text style={styles.cacheTitle}>Files</Text>
-          {torrentData.files
-            .filter((file: any) =>
-              /\.(mp4|mkv|webm|avi|mov|flv|wmv|m4v)$/i.test(file.path)
-            )
-            .map((file: any, index: number) => {
-              const encodedPath = encodeURIComponent(file.path);
-              const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play`;
-              const infuseUrl = `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`;
-
-              return (
-                <View key={index} style={styles.cacheBox}>
-                  <TouchableOpacity onPress={() => Linking.openURL(infuseUrl)}>
-                    <Text style={styles.cacheText}>
-                      {file.path} ({(file.length / (1024 ** 2)).toFixed(2)} MB)
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              );
-            })}
+          {videoFiles.map((file: any, index: number) => (
+            <View key={index} style={styles.cacheBox}>
+              <TouchableOpacity onPress={() => handleOpenInfuse(file)}>
+                <Text style={styles.cacheText}>
+                  {file.path} ({(file.length / (1024 ** 2)).toFixed(2)} MB)
+                </Text>
+              </TouchableOpacity>
+            </View>
+          ))}
         </View>
       )}
 
