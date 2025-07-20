@@ -153,24 +153,23 @@ const TorrentDetails = () => {
       </View>
 
       {torrentData.files && torrentData.files.length > 0 && (
-  <View style={[styles.cacheBox, { marginHorizontal: 20, marginTop: 10 }]}>
-    <Text style={styles.cacheTitle}>Files</Text>
-    {torrentData.files.map((file: any, index: number) => {
-      const encodedPath = encodeURIComponent(file.path);
-      const url = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play`;
+        <View style={[styles.cacheBox, { marginHorizontal: 20, marginTop: 10 }]}>
+          <Text style={styles.cacheTitle}>Files</Text>
+          {torrentData.files.map((file: any, index: number) => {
+            const encodedPath = encodeURIComponent(file.path);
+            const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play`;
+            const infuseUrl = `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`;
 
-      return (
-        <TouchableOpacity key={index} onPress={() => Linking.openURL(url)}>
-          <Text style={styles.cacheText}>
-            {file.path} ({(file.length / (1024 ** 2)).toFixed(2)} MB)
-          </Text>
-        </TouchableOpacity>
-      );
-    })}
-  </View>
-)}
-
-
+            return (
+              <TouchableOpacity key={index} onPress={() => Linking.openURL(infuseUrl)}>
+                <Text style={styles.cacheText}>
+                  {file.path} ({(file.length / (1024 ** 2)).toFixed(2)} MB)
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+      )}
       <BottomSpacing space={100} />
     </ScrollView>
   );
