@@ -83,13 +83,8 @@ function RootLayoutNav() {
       <Stack>
         <Stack.Screen name="(tabs)" options={{ headerShown: false, title: 'Home' }} />
         <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="movie/details" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
-        <Stack.Screen name="movie/list" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
-        <Stack.Screen name="series/details" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
-        <Stack.Screen name="series/list" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
-        <Stack.Screen name="stream/embed" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
-        <Stack.Screen name="settings/embed-movie" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
-        <Stack.Screen name="settings/embed-tv" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
+        <Stack.Screen name="torrent/details" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />        
+        <Stack.Screen name="stream/embed" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />       
         <Stack.Screen name="settings/preferences" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
         <Stack.Screen name="settings/contact" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
         <Stack.Screen name="settings/donate" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />

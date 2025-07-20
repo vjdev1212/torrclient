@@ -1,37 +1,55 @@
-import { SafeAreaView, ScrollView, StyleSheet } from 'react-native';
-import PosterList from '@/components/PosterList';
-import { CatalogUrl } from '@/constants/Tmdb';
-import { StatusBar, View } from '@/components/Themed';
+import React, { useEffect, useState } from 'react';
+import { View, ActivityIndicator, Text } from '@/components/Themed';
+import TorrentGrid from '@/components/TorrentGrid';
 
-export default function HomeScreen() {
+const HomeScreen = () => {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const baseUrl = process.env.EXPO_PUBLIC_TORRSERVER_URL;
+
+  useEffect(() => {
+    const fetchTorrents = async () => {
+      try {
+        const response = await fetch(`${baseUrl}/torrents`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'list' }),
+        });
+
+        const torrents = await response.json();
+        const list = Array.isArray(torrents) ? torrents : Object.values(torrents || {});
+
+        const parsed = list.map((item: any) => ({
+          hash: item.hash,
+          title: item.title || 'Untitled',
+          poster: item.poster || 'https://via.placeholder.com/150x225?text=No+Image',
+          size: item.torrent_size,
+          category: item.category,
+        }));
+
+        setData(parsed);
+      } catch (error) {
+        console.error('Error fetching torrents:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTorrents();
+  }, []);
 
   return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar />
-      <ScrollView showsVerticalScrollIndicator={false}>
-        <View style={styles.contentContainer}>
-          <PosterList apiUrl={CatalogUrl.trendingMovies} title='Movies - Trending' type='movie' />
-          <PosterList apiUrl={CatalogUrl.trendingSeries} title='Series - Trending' type='series' />
-          <PosterList apiUrl={CatalogUrl.popularMovies} title='Movies - Popular' type='movie' />
-          <PosterList apiUrl={CatalogUrl.popularSeries} title='Series - Popular' type='series' />
-          <PosterList apiUrl={CatalogUrl.topMovies} title='Movies - Top Rated' type='movie' />
-          <PosterList apiUrl={CatalogUrl.topSeries} title='Series - Top Rated' type='series' />
-          <PosterList apiUrl={CatalogUrl.nowPlayingMovies} title='Movies - Now Playing' type='movie' />
-          <PosterList apiUrl={CatalogUrl.onTheAirTv} title='Series - On the Air' type='series' />
-          <PosterList apiUrl={CatalogUrl.upcomingMovies} title='Movies - Upcoming' type='movie' />
-          <PosterList apiUrl={CatalogUrl.airingTodayTv} title='Series - Airing Today' type='series' />
+    <View style={{ flex: 1, marginTop: 50 }}>
+      {loading ? (
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+          <ActivityIndicator size="large" color="#535aff" />
+          <Text style={{ marginTop: 10 }}>Loading...</Text>
         </View>
-      </ScrollView>
-    </SafeAreaView>
+      ) : (
+        <TorrentGrid list={data} />
+      )}
+    </View>
   );
-}
+};
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    marginTop: 20,
-  },
-  contentContainer: {
-    marginTop: 30
-  }
-});
+export default HomeScreen;
