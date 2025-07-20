@@ -6,6 +6,7 @@ import PlayButton from '@/components/PlayButton';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
+import { Ionicons } from '@expo/vector-icons';
 
 const baseUrl = process.env.EXPO_PUBLIC_TORRSERVER_URL;
 
@@ -128,19 +129,26 @@ const TorrentDetails = () => {
         </View>
 
         <View style={isLargeScreen ? styles.rightHalf : styles.fullWidth}>
-          <Text style={styles.title}>{torrentData.title}</Text>
-          <Text style={styles.category}>Category: {torrentData.category}</Text>
-          <Text style={styles.size}>Size: {(torrentData.size / (1024 ** 3)).toFixed(2)} GB</Text>
-
+          <Text style={[styles.title, { textAlign: 'center' }]}>{torrentData.title}</Text>
+          <Text style={styles.metaText}>
+            {torrentData.category.charAt(0).toUpperCase() + torrentData.category.slice(1)} | {(torrentData.size / (1024 ** 3)).toFixed(2)} GB
+          </Text>
           {cacheData && (
-            <View style={styles.cacheBox}>
-              <Text style={styles.cacheTitle}>Cache Info</Text>
-              <Text style={styles.cacheText}>Speed: {cacheData.Torrent?.download_speed?.toFixed(2)} MB/s</Text>
-              <Text style={styles.cacheText}>Peers: {cacheData.Torrent?.total_peers}</Text>
-              <Text style={styles.cacheText}>Seeders: {cacheData.Torrent?.connected_seeders}</Text>
+            <View style={[styles.metaRow, { marginTop: 4 }]}>
+              <View style={styles.metaItem}>
+                <Ionicons name="download" size={16} color="#aaa" style={{ marginRight: 5 }} />
+                <Text style={styles.metaText}>{cacheData.Torrent?.download_speed?.toFixed(2)} MB/s</Text>
+              </View>
+              <View style={styles.metaItem}>
+                <Ionicons name="people" size={16} color="#aaa" style={{ marginRight: 5 }} />
+                <Text style={styles.metaText}>{cacheData.Torrent?.total_peers}</Text>
+              </View>
+              <View style={styles.metaItem}>
+                <Ionicons name="arrow-up-circle" size={16} color="#aaa" style={{ marginRight: 5 }} />
+                <Text style={styles.metaText}>{cacheData.Torrent?.connected_seeders}</Text>
+              </View>
             </View>
           )}
-
         </View>
       </View>
 
@@ -191,14 +199,22 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     marginBottom: 10,
   },
-  category: {
-    fontSize: 16,
-    marginBottom: 5,
-  },
-  size: {
+  metaText: {
     fontSize: 14,
     color: '#aaa',
-    marginBottom: 10,
+    textAlign: 'center',
+    marginBottom: 5
+  },
+  metaRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+    alignSelf: 'center',
+  },
+  metaItem: {
+    flexDirection: 'row',
+    marginRight: 10,
+    justifyContent: 'center',
   },
   cacheBox: {
     marginTop: 10,
