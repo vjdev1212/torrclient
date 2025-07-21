@@ -214,9 +214,9 @@ const styles = StyleSheet.create({
   },
   categoryItem: {
     flex: 1,
-    marginHorizontal: 4,
+    marginHorizontal: 2,
     paddingVertical: 10,
-    borderRadius: 6,
+    borderRadius: 4,
     backgroundColor: '#101010',
     alignItems: 'center',
     borderWidth: 1,
