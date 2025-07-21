@@ -97,77 +97,80 @@ const AddTorrentScreen = () => {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.headerTitle}>Add new Torrent</Text>
-      <Text style={styles.label}>Magnet/Info Hash/Torrent URL</Text>
-      <TextInput
-        style={styles.input}
-        value={input}
-        onChangeText={setInput}
-        placeholder="Magnet, InfoHash, or .torrent URL"
-        autoCapitalize="none"
-        placeholderTextColor="#aaa"
-      />
+    <ScrollView contentContainerStyle={styles.scrollContainer}>
+      <View style={styles.centeredWrapper}>
+        <Text style={styles.headerTitle}>Add new Torrent</Text>
 
-      <Text style={styles.label}>Custom Title</Text>
-      <TextInput
-        style={styles.input}
-        value={title}
-        onChangeText={setTitle}
-        placeholder="Title"
-        placeholderTextColor="#aaa"
-      />
+        <Text style={styles.label}>Magnet/Info Hash/Torrent URL</Text>
+        <TextInput
+          style={styles.input}
+          value={input}
+          onChangeText={setInput}
+          placeholder="Magnet, InfoHash, or .torrent URL"
+          autoCapitalize="none"
+          placeholderTextColor="#aaa"
+        />
 
-      <Text style={styles.label}>Poster URL</Text>
-      <TextInput
-        style={styles.input}
-        value={poster}
-        onChangeText={setPoster}
-        placeholder="Poster URL"
-        autoCapitalize="none"
-        placeholderTextColor="#aaa"
-      />
+        <Text style={styles.label}>Custom Title</Text>
+        <TextInput
+          style={styles.input}
+          value={title}
+          onChangeText={setTitle}
+          placeholder="Title"
+          placeholderTextColor="#aaa"
+        />
 
-      {poster ? (
-        <Image source={{ uri: poster }} style={styles.previewImage} resizeMode="cover" />
-      ) : null}
+        <Text style={styles.label}>Poster URL</Text>
+        <TextInput
+          style={styles.input}
+          value={poster}
+          onChangeText={setPoster}
+          placeholder="Poster URL"
+          autoCapitalize="none"
+          placeholderTextColor="#aaa"
+        />
 
-      <Text style={styles.label}>Category</Text>
-      <View style={styles.categoryRow}>
-        {categories.map((c) => (
-          <TouchableOpacity
-            key={c.key}
-            style={[
-              styles.categoryItem,
-              category === c.key && styles.categorySelected,
-            ]}
-            onPress={() => {
-              setCategory(c.key as any);
-              if (isHapticsSupported()) Haptics.selectionAsync();
-            }}
-          >
-            <Text
+        {poster ? (
+          <Image source={{ uri: poster }} style={styles.previewImage} resizeMode="cover" />
+        ) : null}
+
+        <Text style={styles.label}>Category</Text>
+        <View style={styles.categoryRow}>
+          {categories.map((c) => (
+            <TouchableOpacity
+              key={c.key}
               style={[
-                styles.categoryText,
-                category === c.key && styles.categoryTextSelected,
+                styles.categoryItem,
+                category === c.key && styles.categorySelected,
               ]}
+              onPress={() => {
+                setCategory(c.key as any);
+                if (isHapticsSupported()) Haptics.selectionAsync();
+              }}
             >
-              {c.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+              <Text
+                style={[
+                  styles.categoryText,
+                  category === c.key && styles.categoryTextSelected,
+                ]}
+              >
+                {c.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
 
-      <TouchableOpacity
-        style={[styles.button, submitting && { opacity: 0.5 }]}
-        onPress={handleSubmit}
-        disabled={submitting}
-      >
-        <Text style={styles.buttonText}>
-          {submitting ? 'Submitting...' : 'Add Torrent'}
-        </Text>
-      </TouchableOpacity>
-      <BottomSpacing space={100} />
+        <TouchableOpacity
+          style={[styles.button, submitting && { opacity: 0.5 }]}
+          onPress={handleSubmit}
+          disabled={submitting}
+        >
+          <Text style={styles.buttonText}>
+            {submitting ? 'Submitting...' : 'Add Torrent'}
+          </Text>
+        </TouchableOpacity>
+        <BottomSpacing space={100} />
+      </View>
     </ScrollView>
   );
 };
@@ -178,8 +181,17 @@ const styles = StyleSheet.create({
   container: {
     padding: 20,
     marginTop: 50,
-    flex: 1,
-    maxWidth: 780
+    flex: 1
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    alignItems: 'center',
+    paddingTop: 50,
+    paddingHorizontal: 20,
+  },
+  centeredWrapper: {
+    width: '100%',
+    maxWidth: 780,
   },
   headerTitle: {
     textAlign: 'center',
@@ -235,9 +247,10 @@ const styles = StyleSheet.create({
   button: {
     marginTop: 30,
     backgroundColor: '#535aff',
-    paddingVertical: 14,
-    borderRadius: 25,
-    alignItems: 'center',    
+    paddingVertical: 10,
+    paddingHorizontal: 30,
+    borderRadius: 8,
+    alignSelf: 'center',
   },
   buttonText: {
     color: '#fff',
