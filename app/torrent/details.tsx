@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, Linking, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, Image, Linking, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, StatusBar, Text } from '@/components/Themed';
 import * as Haptics from 'expo-haptics';
@@ -132,39 +132,65 @@ const TorrentDetails = () => {
     Linking.openURL(streamUrl);
   };
 
-  const handleDrop = async () => {
-    try {
-      if (isHapticsSupported()) {
-        await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
-      }
-      await fetch(`${baseUrl}/torrents`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'drop', hash }),
-      });
-      alert('Torrent dropped successfully');
-    } catch (error) {
-      console.error('Drop failed:', error);
-      alert('Failed to drop torrent');
-    }
+  const handleDrop = () => {
+    Alert.alert(
+      'Confirm Drop',
+      'Are you sure you want to drop this torrent?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Drop',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (isHapticsSupported()) {
+                await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
+              }
+              await fetch(`${baseUrl}/torrents`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'drop', hash }),
+              });
+              alert('Torrent dropped successfully');
+            } catch (error) {
+              console.error('Drop failed:', error);
+              alert('Failed to drop torrent');
+            }
+          }
+        }
+      ]
+    );
   };
 
-  const handleWipe = async () => {
-    try {
-      if (isHapticsSupported()) {
-        await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
-      }
-      await fetch(`${baseUrl}/torrents`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'rem', hash }),
-      });
-      alert('Torrent Deleted successfully');
-      router.back();
-    } catch (error) {
-      console.error('Delete failed:', error);
-      alert('Failed to Delete torrent');
-    }
+  const handleWipe = () => {
+    Alert.alert(
+      'Confirm Delete',
+      'Are you sure you want to permanently delete this torrent?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              if (isHapticsSupported()) {
+                await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
+              }
+              await fetch(`${baseUrl}/torrents`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'rem', hash }),
+              });
+              alert('Torrent deleted successfully');
+              router.back();
+            } catch (error) {
+              console.error('Delete failed:', error);
+              alert('Failed to delete torrent');
+            }
+          }
+        }
+      ]
+    );
   };
 
 
