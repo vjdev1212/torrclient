@@ -122,11 +122,10 @@ const TorrentDetails = () => {
     /\.(mp4|mkv|webm|avi|mov|flv|wmv|m4v)$/i.test(file.path)
   );
 
-  const handleOpenInfuse = (file: any) => {
+  const handleFileLink = (file: any) => {
     const encodedPath = encodeURIComponent(file.path);
     const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play`;
-    const infuseUrl = `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`;
-    Linking.openURL(infuseUrl);
+    Linking.openURL(streamUrl);
   };
 
   const CacheInfo = React.memo(({ cacheData }: { cacheData: any }) => {
@@ -179,7 +178,7 @@ const TorrentDetails = () => {
           <Text style={styles.cacheTitle}>Files</Text>
           {videoFiles.map((file: any, index: number) => (
             <View key={index} style={styles.cacheBox}>
-              <TouchableOpacity onPress={() => handleOpenInfuse(file)}>
+              <TouchableOpacity onPress={() => handleFileLink(file)}>
                 <Text style={styles.cacheText}>
                   {file.path} ({(file.length / (1024 ** 2)).toFixed(2)} MB)
                 </Text>
