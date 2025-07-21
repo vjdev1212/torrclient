@@ -65,6 +65,7 @@ export default function TabLayout() {
     >
       {[
         { name: 'index', title: 'Home', icon: 'home' },
+        { name: 'add', title: 'Add', icon: 'plus-square-o' },
         { name: 'search', title: 'Search', icon: 'search' },
         { name: 'settings', title: 'Settings', icon: 'gear' },
       ].map(({ name, title, icon }) => (

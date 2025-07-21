@@ -1,12 +1,13 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, Linking, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions } from 'react-native';
+import { Image, Linking, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, StatusBar, Text, View } from '@/components/Themed';
+import { ActivityIndicator, StatusBar, Text } from '@/components/Themed';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { Ionicons } from '@expo/vector-icons';
 import { getTorrServerUrl } from '@/utils/TorrServer';
+import { ImpactFeedbackStyle } from 'expo-haptics';
 
 const TorrentDetails = () => {
   const { hash } = useLocalSearchParams();
@@ -122,11 +123,50 @@ const TorrentDetails = () => {
     /\.(mp4|mkv|webm|avi|mov|flv|wmv|m4v)$/i.test(file.path)
   );
 
-  const handleFileLink = (file: any) => {
+  const handleFileLink = async (file: any) => {
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
+    }
     const encodedPath = encodeURIComponent(file.path);
     const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play`;
     Linking.openURL(streamUrl);
   };
+
+  const handleDrop = async () => {
+    try {
+      if (isHapticsSupported()) {
+        await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
+      }
+      await fetch(`${baseUrl}/torrents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'drop', hash }),
+      });
+      alert('Torrent dropped successfully');
+    } catch (error) {
+      console.error('Drop failed:', error);
+      alert('Failed to drop torrent');
+    }
+  };
+
+  const handleWipe = async () => {
+    try {
+      if (isHapticsSupported()) {
+        await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
+      }
+      await fetch(`${baseUrl}/torrents`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'rem', hash }),
+      });
+      alert('Torrent Deleted successfully');
+      router.back();
+    } catch (error) {
+      console.error('Delete failed:', error);
+      alert('Failed to Delete torrent');
+    }
+  };
+
 
   const CacheInfo = React.memo(({ cacheData }: { cacheData: any }) => {
     if (!cacheData?.Torrent) return null;
@@ -173,6 +213,28 @@ const TorrentDetails = () => {
         </View>
       </View>
 
+      <View style={{ flexDirection: 'row', justifyContent: 'space-around', marginBottom: 20 }}>
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: '#535aff' }]}
+          onPress={handleDrop}
+        >
+          <View style={styles.buttonContent}>
+            <Ionicons name="remove-circle-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+            <Text style={styles.actionButtonText}>Drop</Text>
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.actionButton, { backgroundColor: '#e74c3c' }]}
+          onPress={handleWipe}
+        >
+          <View style={styles.buttonContent}>
+            <Ionicons name="trash-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
+            <Text style={styles.actionButtonText}>Delete</Text>
+          </View>
+        </TouchableOpacity>
+      </View>
+
       {videoFiles.length > 0 && (
         <View style={{ marginHorizontal: 10 }}>
           <Text style={styles.cacheTitle}>Files</Text>
@@ -187,7 +249,6 @@ const TorrentDetails = () => {
           ))}
         </View>
       )}
-
       <BottomSpacing space={100} />
     </ScrollView>
   );
@@ -228,7 +289,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     fontSize: 14,
-    color: '#aaa',
+    color: '#fafafa',
     textAlign: 'center',
     marginBottom: 5
   },
@@ -273,6 +334,20 @@ const styles = StyleSheet.create({
     fontSize: 18,
     textAlign: 'center',
   },
+  actionButton: {
+    paddingVertical: 12,
+    paddingHorizontal: 25,
+    borderRadius: 25
+  },
+  actionButtonText: {
+    color: '#fff',
+    fontSize: 16,
+  },
+  buttonContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  }
 });
 
 export default TorrentDetails;
