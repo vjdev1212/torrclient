@@ -104,7 +104,7 @@ const AddTorrentScreen = () => {
         style={styles.input}
         value={input}
         onChangeText={setInput}
-        placeholder="Enter magnet, hash, or .torrent URL"
+        placeholder="Magnet, InfoHash, or .torrent URL"
         autoCapitalize="none"
         placeholderTextColor="#aaa"
       />
@@ -114,7 +114,7 @@ const AddTorrentScreen = () => {
         style={styles.input}
         value={title}
         onChangeText={setTitle}
-        placeholder="Enter title"
+        placeholder="Title"
         placeholderTextColor="#aaa"
       />
 
@@ -123,7 +123,7 @@ const AddTorrentScreen = () => {
         style={styles.input}
         value={poster}
         onChangeText={setPoster}
-        placeholder="Enter poster URL"
+        placeholder="Poster URL"
         autoCapitalize="none"
         placeholderTextColor="#aaa"
       />
