@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-start',
     },
     posterContainer: {
-        padding: 5,
+        margin: 8,
     },
     posterImage: {
         borderRadius: 8,

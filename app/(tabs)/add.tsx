@@ -29,6 +29,7 @@ const AddTorrentScreen = () => {
   const [poster, setPoster] = useState('');
   const [category, setCategory] = useState<'movie' | 'tv' | 'music' | 'other'>('movie');
   const [submitting, setSubmitting] = useState(false);
+  const [imdbId, setImdbId] = useState('');
 
   const handleSubmit = async () => {
     let hash = '';
@@ -56,7 +57,7 @@ const AddTorrentScreen = () => {
         data: '',
         hash,
         link,
-        poster,
+        poster: poster || (imdbId ? `https://live.metahub.space/poster/medium/${imdbId}/img` : ''),
         save_to_db: true,
         title,
       };
@@ -76,6 +77,7 @@ const AddTorrentScreen = () => {
       setInput('');
       setTitle('');
       setPoster('');
+      setImdbId('');
       setCategory('movie');
       router.push("/(tabs)");
     } catch (err) {
@@ -114,6 +116,7 @@ const AddTorrentScreen = () => {
           placeholder="Magnet, InfoHash, or .torrent URL"
           autoCapitalize="none"
           placeholderTextColor="#aaa"
+          submitBehavior={'blurAndSubmit'}
         />
 
         <Text style={styles.label}>Custom Title</Text>
@@ -123,20 +126,40 @@ const AddTorrentScreen = () => {
           onChangeText={setTitle}
           placeholder="Title"
           placeholderTextColor="#aaa"
+          submitBehavior={'blurAndSubmit'}
+        />
+
+        <Text style={styles.label}>IMDB ID (optional)</Text>
+        <TextInput
+          style={styles.input}
+          value={imdbId}
+          onChangeText={setImdbId}
+          placeholder="tt0133093"
+          autoCapitalize="none"
+          placeholderTextColor="#aaa"
+          submitBehavior={'blurAndSubmit'}
         />
 
         <Text style={styles.label}>Poster URL</Text>
         <TextInput
           style={styles.input}
           value={poster}
-          onChangeText={setPoster}
+          onChangeText={(text) => {
+            setPoster(text);
+            if (text) setImdbId('');
+          }}
           placeholder="Poster URL"
           autoCapitalize="none"
           placeholderTextColor="#aaa"
+          submitBehavior={'blurAndSubmit'}
         />
 
-        {poster ? (
-          <Image source={{ uri: poster }} style={styles.previewImage} resizeMode="cover" />
+        {(poster || imdbId) ? (
+          <Image
+            source={{ uri: poster || `https://live.metahub.space/poster/medium/${imdbId}/img` }}
+            style={styles.previewImage}
+            resizeMode="cover"
+          />
         ) : null}
 
         <Text style={styles.label}>Category</Text>

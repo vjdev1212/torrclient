@@ -231,10 +231,10 @@ const TorrentDetails = () => {
                 },
                 body: JSON.stringify({ action: 'drop', hash }),
               });
-              alert('Torrent dropped successfully');
+              alert('Torrent has been dropped.');
             } catch (error) {
               console.error('Drop failed:', error);
-              alert('Failed to drop torrent');
+              alert('Failed to drop torrent.');
             }
           }
         }
@@ -265,11 +265,11 @@ const TorrentDetails = () => {
                 },
                 body: JSON.stringify({ action: 'rem', hash }),
               });
-              alert('Torrent deleted successfully');
+              alert('Torrent has been deleted.');
               router.back();
             } catch (error) {
               console.error('Delete failed:', error);
-              alert('Failed to delete torrent');
+              alert('Failed to delete torrent.');
             }
           }
         }
