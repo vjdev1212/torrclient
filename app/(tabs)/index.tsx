@@ -49,7 +49,7 @@ const HomeScreen = () => {
   );
 
   return (
-    <View style={{ flex: 1, marginTop: 50 }}>
+    <View style={{ flex: 1, marginTop: 30 }}>
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#535aff" />
