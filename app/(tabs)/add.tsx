@@ -30,6 +30,7 @@ const AddTorrentScreen = () => {
   const [category, setCategory] = useState<'movie' | 'tv' | 'music' | 'other'>('movie');
   const [submitting, setSubmitting] = useState(false);
   const [imdbId, setImdbId] = useState('');
+  
 
   const handleSubmit = async () => {
     let hash = '';
