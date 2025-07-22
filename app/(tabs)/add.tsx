@@ -13,6 +13,7 @@ import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
+import { useRouter } from 'expo-router';
 
 const categories = [
   { key: 'movie', label: 'Movie' },
@@ -21,24 +22,8 @@ const categories = [
   { key: 'other', label: 'Other' },
 ];
 
-const extractHash = (input: string): string => {
-  try {
-    if (/^[a-fA-F0-9]{40}$/.test(input)) {
-      return input.toLowerCase(); // plain hash
-    } else if (input.startsWith('magnet:')) {
-      const match = input.match(/xt=urn:btih:([a-fA-F0-9]{40})/);
-      return match?.[1]?.toLowerCase() || '';
-    } else if (input.startsWith('http') && input.endsWith('.torrent')) {
-      // You could optionally fetch the .torrent file and extract infoHash here
-      return ''; // requires server-side or advanced parsing
-    }
-  } catch (e) {
-    console.warn('Failed to extract hash:', e);
-  }
-  return '';
-};
-
 const AddTorrentScreen = () => {
+  const router = useRouter();
   const [input, setInput] = useState('');
   const [title, setTitle] = useState('');
   const [poster, setPoster] = useState('');
@@ -92,6 +77,7 @@ const AddTorrentScreen = () => {
       setTitle('');
       setPoster('');
       setCategory('movie');
+      router.push("/(tabs)");
     } catch (err) {
       console.error(err);
       Alert.alert('Error', 'Failed to add torrent.');
@@ -101,18 +87,18 @@ const AddTorrentScreen = () => {
   };
 
   const handleInputChange = (text: string) => {
-  setInput(text);
+    setInput(text);
 
-  // Only try to auto-fill if it's a magnet link
-  if (text.startsWith('magnet:')) {
-    const match = text.match(/dn=([^&]+)/);
-    const decodedTitle = match ? decodeURIComponent(match[1]) : '';
+    // Only try to auto-fill if it's a magnet link
+    if (text.startsWith('magnet:')) {
+      const match = text.match(/dn=([^&]+)/);
+      const decodedTitle = match ? decodeURIComponent(match[1]) : '';
 
-    if (decodedTitle && !title) {
-      setTitle(decodedTitle);
+      if (decodedTitle && !title) {
+        setTitle(decodedTitle);
+      }
     }
-  }
-};
+  };
 
 
   return (
