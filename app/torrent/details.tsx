@@ -3,7 +3,7 @@ import { Alert, Image, Linking, Platform, ScrollView, Share, StyleSheet, Touchab
 import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, StatusBar, Text } from '@/components/Themed';
 import * as Haptics from 'expo-haptics';
-import { isHapticsSupported } from '@/utils/platform';
+import { getOriginalPlatform, isHapticsSupported } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { Ionicons } from '@expo/vector-icons';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
@@ -143,7 +143,7 @@ const TorrentDetails = () => {
 
     const playerOptions: { label: string; url: string }[] = [];
 
-    if (Platform.OS === 'ios') {
+    if (getOriginalPlatform() === 'ios') {
       playerOptions.push({
         label: 'Infuse',
         url: `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`,
@@ -156,7 +156,7 @@ const TorrentDetails = () => {
         label: 'VLC',
         url: `vlc://${streamUrl}`,
       });
-    } else if (Platform.OS === 'android') {
+    } else if (getOriginalPlatform() === 'android') {
       playerOptions.push({
         label: 'VLC',
         url: `vlc://${streamUrl}`,
@@ -166,13 +166,10 @@ const TorrentDetails = () => {
         url: `intent:${streamUrl}#Intent;package=com.mxtech.videoplayer.ad;type=video/*;end`,
       });
     } else {
-      // Web fallback
-      try {
-        window.open(streamUrl, '_blank');
-        return;
-      } catch (e) {
-        console.error('Web open failed:', e);
-      }
+      playerOptions.push({
+        label: 'Open in New Window',
+        url: `${streamUrl}`,
+      });
     }
 
     playerOptions.push({ label: 'Share', url: 'share' });
