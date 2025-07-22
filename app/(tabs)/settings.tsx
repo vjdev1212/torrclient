@@ -62,10 +62,10 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     maxWidth: 780,
-    margin: 'auto'
+    margin: 'auto',
+    marginTop: 30
   },
   scrollViewContent: {
-    marginTop: 20,
     paddingBottom: 20,
   },
   header: {
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     fontSize: 17,
     paddingVertical: 5,
     paddingHorizontal: 5,
-    marginTop: 25,
+    marginTop: 20,
     marginLeft: 25,
   },
   settingsGroup: {

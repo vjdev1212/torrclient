@@ -4,6 +4,7 @@ import TorrentGrid from '@/components/TorrentGrid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { useFocusEffect } from 'expo-router';
+import { SafeAreaView, StyleSheet } from 'react-native';
 
 const HomeScreen = () => {
   const [data, setData] = useState<any[]>([]);
@@ -49,7 +50,7 @@ const HomeScreen = () => {
   );
 
   return (
-    <View style={{ flex: 1, marginTop: 30 }}>
+    <SafeAreaView style={styles.container}>
       {loading ? (
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
           <ActivityIndicator size="large" color="#535aff" />
@@ -58,8 +59,15 @@ const HomeScreen = () => {
       ) : (
         <TorrentGrid list={data} />
       )}
-    </View>
+    </SafeAreaView>
   );
 };
 
 export default HomeScreen;
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    marginTop: 30,
+  },
+});

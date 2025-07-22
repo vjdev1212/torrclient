@@ -8,6 +8,7 @@ import {
   Text,
   Alert,
   ScrollView,
+  SafeAreaView,
 } from 'react-native';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import * as Haptics from 'expo-haptics';
@@ -30,7 +31,7 @@ const AddTorrentScreen = () => {
   const [category, setCategory] = useState<'movie' | 'tv' | 'music' | 'other'>('movie');
   const [submitting, setSubmitting] = useState(false);
   const [imdbId, setImdbId] = useState('');
-  
+
 
   const handleSubmit = async () => {
     let hash = '';
@@ -105,102 +106,104 @@ const AddTorrentScreen = () => {
 
 
   return (
-    <ScrollView contentContainerStyle={styles.scrollContainer}>
-      <View style={styles.centeredWrapper}>
-        <Text style={styles.headerTitle}>Add new Torrent</Text>
+    <SafeAreaView style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.centeredWrapper}>
+          <Text style={styles.headerTitle}>Add new Torrent</Text>
 
-        <Text style={styles.label}>Magnet/Info Hash/Torrent URL</Text>
-        <TextInput
-          style={styles.input}
-          value={input}
-          onChangeText={handleInputChange}
-          placeholder="Magnet, InfoHash, or .torrent URL"
-          autoCapitalize="none"
-          placeholderTextColor="#aaa"
-          submitBehavior={'blurAndSubmit'}
-        />
-
-        <Text style={styles.label}>Custom Title</Text>
-        <TextInput
-          style={styles.input}
-          value={title}
-          onChangeText={setTitle}
-          placeholder="Title"
-          placeholderTextColor="#aaa"
-          submitBehavior={'blurAndSubmit'}
-        />
-
-        <Text style={styles.label}>IMDB ID (optional)</Text>
-        <TextInput
-          style={styles.input}
-          value={imdbId}
-          onChangeText={setImdbId}
-          placeholder="tt0133093"
-          autoCapitalize="none"
-          placeholderTextColor="#aaa"
-          submitBehavior={'blurAndSubmit'}
-        />
-
-        <Text style={styles.label}>Poster URL</Text>
-        <TextInput
-          style={styles.input}
-          value={poster}
-          onChangeText={(text) => {
-            setPoster(text);
-            if (text) setImdbId('');
-          }}
-          placeholder="Poster URL"
-          autoCapitalize="none"
-          placeholderTextColor="#aaa"
-          submitBehavior={'blurAndSubmit'}
-        />
-
-        {(poster || imdbId) ? (
-          <Image
-            source={{ uri: poster || `https://live.metahub.space/poster/medium/${imdbId}/img` }}
-            style={styles.previewImage}
-            resizeMode="cover"
+          <Text style={styles.label}>Magnet/Info Hash/Torrent URL</Text>
+          <TextInput
+            style={styles.input}
+            value={input}
+            onChangeText={handleInputChange}
+            placeholder="Magnet, InfoHash, or .torrent URL"
+            autoCapitalize="none"
+            placeholderTextColor="#aaa"
+            submitBehavior={'blurAndSubmit'}
           />
-        ) : null}
 
-        <Text style={styles.label}>Category</Text>
-        <View style={styles.categoryRow}>
-          {categories.map((c) => (
-            <TouchableOpacity
-              key={c.key}
-              style={[
-                styles.categoryItem,
-                category === c.key && styles.categorySelected,
-              ]}
-              onPress={() => {
-                setCategory(c.key as any);
-                if (isHapticsSupported()) Haptics.selectionAsync();
-              }}
-            >
-              <Text
+          <Text style={styles.label}>Custom Title</Text>
+          <TextInput
+            style={styles.input}
+            value={title}
+            onChangeText={setTitle}
+            placeholder="Title"
+            placeholderTextColor="#aaa"
+            submitBehavior={'blurAndSubmit'}
+          />
+
+          <Text style={styles.label}>IMDB ID (optional)</Text>
+          <TextInput
+            style={styles.input}
+            value={imdbId}
+            onChangeText={setImdbId}
+            placeholder="tt0133093"
+            autoCapitalize="none"
+            placeholderTextColor="#aaa"
+            submitBehavior={'blurAndSubmit'}
+          />
+
+          <Text style={styles.label}>Poster URL</Text>
+          <TextInput
+            style={styles.input}
+            value={poster}
+            onChangeText={(text) => {
+              setPoster(text);
+              if (text) setImdbId('');
+            }}
+            placeholder="Poster URL"
+            autoCapitalize="none"
+            placeholderTextColor="#aaa"
+            submitBehavior={'blurAndSubmit'}
+          />
+
+          {(poster || imdbId) ? (
+            <Image
+              source={{ uri: poster || `https://live.metahub.space/poster/medium/${imdbId}/img` }}
+              style={styles.previewImage}
+              resizeMode="cover"
+            />
+          ) : null}
+
+          <Text style={styles.label}>Category</Text>
+          <View style={styles.categoryRow}>
+            {categories.map((c) => (
+              <TouchableOpacity
+                key={c.key}
                 style={[
-                  styles.categoryText,
-                  category === c.key && styles.categoryTextSelected,
+                  styles.categoryItem,
+                  category === c.key && styles.categorySelected,
                 ]}
+                onPress={() => {
+                  setCategory(c.key as any);
+                  if (isHapticsSupported()) Haptics.selectionAsync();
+                }}
               >
-                {c.label}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </View>
+                <Text
+                  style={[
+                    styles.categoryText,
+                    category === c.key && styles.categoryTextSelected,
+                  ]}
+                >
+                  {c.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
 
-        <TouchableOpacity
-          style={[styles.button, submitting && { opacity: 0.5 }]}
-          onPress={handleSubmit}
-          disabled={submitting}
-        >
-          <Text style={styles.buttonText}>
-            {submitting ? 'Submitting...' : 'Add Torrent'}
-          </Text>
-        </TouchableOpacity>
-        <BottomSpacing space={100} />
-      </View>
-    </ScrollView>
+          <TouchableOpacity
+            style={[styles.button, submitting && { opacity: 0.5 }]}
+            onPress={handleSubmit}
+            disabled={submitting}
+          >
+            <Text style={styles.buttonText}>
+              {submitting ? 'Submitting...' : 'Add Torrent'}
+            </Text>
+          </TouchableOpacity>
+          <BottomSpacing space={100} />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 
@@ -208,14 +211,13 @@ export default AddTorrentScreen;
 
 const styles = StyleSheet.create({
   container: {
-    padding: 20,
-    marginTop: 50,
+    marginTop: 30,
     flex: 1
   },
   scrollContainer: {
     flexGrow: 1,
     alignItems: 'center',
-    paddingTop: 50,
+    paddingVertical: 20,
     paddingHorizontal: 20,
   },
   centeredWrapper: {

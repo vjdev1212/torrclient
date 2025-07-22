@@ -33,7 +33,7 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
     const getNumColumns = () => {
         if (width < 600) return isPortrait ? 3 : 5;  // Mobile
         if (width < 1024) return 5;                  // Tablet
-        return isPortrait ? 5 : 7;                   // Laptop/Desktop
+        return isPortrait ? 5 : 8;                   // Laptop/Desktop
     };
 
     const numColumns = getNumColumns();
@@ -118,7 +118,6 @@ const styles = StyleSheet.create({
     posterTitle: {
         marginTop: 10,
         fontSize: 14,
-        textAlign: 'center',
     },
     centeredContainer: {
         flex: 1,
