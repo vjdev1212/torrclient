@@ -9,7 +9,7 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import { getTorrServerUrl } from '@/utils/TorrServer';
+import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
@@ -76,9 +76,13 @@ const AddTorrentScreen = () => {
         title,
       };
 
+      const authHeader = await getTorrServerAuthHeader();
       const response = await fetch(`${baseUrl}/torrents`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authHeader || {}),
+        },
         body: JSON.stringify(payload),
       });
 

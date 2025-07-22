@@ -17,3 +17,25 @@ export const setTorrServerUrl = async (url: string): Promise<void> => {
     console.error('Error saving TorrServer URL:', error);
   }
 };
+
+export const getTorrServerAuthHeader = async (): Promise<{ Authorization: string } | null> => {
+  try {
+    const enabled = await AsyncStorage.getItem('torrserverauthenabled');
+    if (enabled !== 'true') return null;
+
+    const username = await AsyncStorage.getItem('torrserverusername');
+    const password = await AsyncStorage.getItem('torrserverpassword');
+
+    if (!username || !password) return null;
+
+    const credentials = `${username}:${password}`;
+    const encoded = Buffer.from(credentials).toString('base64');
+
+    return {
+      Authorization: `Basic ${encoded}`,
+    };
+  } catch (error) {
+    console.error('Error getting TorrServer Auth Header:', error);
+    return null;
+  }
+};

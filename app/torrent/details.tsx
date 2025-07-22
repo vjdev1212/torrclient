@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { Ionicons } from '@expo/vector-icons';
-import { getTorrServerUrl } from '@/utils/TorrServer';
+import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 
 const TorrentDetails = () => {
@@ -31,9 +31,13 @@ const TorrentDetails = () => {
 
     const fetchDetails = async (baseUrl: string) => {
       try {
+        const authHeader = await getTorrServerAuthHeader();
         const torrentRes = await fetch(`${baseUrl}/torrents`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authHeader || {})
+          },
           body: JSON.stringify({ action: 'get', hash }),
         });
 
@@ -65,9 +69,13 @@ const TorrentDetails = () => {
 
     const fetchCache = async (baseUrl: string) => {
       try {
+        const authHeader = await getTorrServerAuthHeader();
         const cacheRes = await fetch(`${baseUrl}/cache`, {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          headers: {
+            'Content-Type': 'application/json',
+            ...(authHeader || {})
+          },
           body: JSON.stringify({ action: 'get', hash }),
         });
         const cacheResult = await cacheRes.json();
@@ -146,9 +154,13 @@ const TorrentDetails = () => {
               if (isHapticsSupported()) {
                 await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
               }
+              const authHeader = await getTorrServerAuthHeader();
               await fetch(`${baseUrl}/torrents`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(authHeader || {})
+                },
                 body: JSON.stringify({ action: 'drop', hash }),
               });
               alert('Torrent dropped successfully');
@@ -176,9 +188,13 @@ const TorrentDetails = () => {
               if (isHapticsSupported()) {
                 await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
               }
+              const authHeader = await getTorrServerAuthHeader();
               await fetch(`${baseUrl}/torrents`, {
                 method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
+                headers: {
+                  'Content-Type': 'application/json',
+                  ...(authHeader || {})
+                },
                 body: JSON.stringify({ action: 'rem', hash }),
               });
               alert('Torrent deleted successfully');

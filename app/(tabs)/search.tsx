@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import TorrentGrid from '@/components/TorrentGrid';
-import { getTorrServerUrl } from '@/utils/TorrServer';
+import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 
 const SearchScreen = () => {
   const [query, setQuery] = useState('');
@@ -18,10 +18,14 @@ const SearchScreen = () => {
   const fetchTorrents = async () => {
     setLoading(true);
     try {
+      const authHeader = await getTorrServerAuthHeader();
       const baseUrl = await getTorrServerUrl();
       const response = await fetch(`${baseUrl}/torrents`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authHeader || {})
+        },
         body: JSON.stringify({ action: 'list' }),
       });
 

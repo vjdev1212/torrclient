@@ -2,7 +2,7 @@ import React, { useCallback, useEffect, useState } from 'react';
 import { View, ActivityIndicator, Text } from '@/components/Themed';
 import TorrentGrid from '@/components/TorrentGrid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { getTorrServerUrl } from '@/utils/TorrServer';
+import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { useFocusEffect } from 'expo-router';
 
 const HomeScreen = () => {
@@ -15,9 +15,13 @@ const HomeScreen = () => {
         setLoading(true);
         try {
           const baseUrl = await getTorrServerUrl();
+          const authHeader = await getTorrServerAuthHeader();
           const response = await fetch(`${baseUrl}/torrents`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: {
+              'Content-Type': 'application/json',
+              ...(authHeader || {}),
+            },
             body: JSON.stringify({ action: 'list' }),
           });
 
@@ -43,7 +47,7 @@ const HomeScreen = () => {
       fetchTorrents();
     }, [])
   );
-  
+
   return (
     <View style={{ flex: 1, marginTop: 50 }}>
       {loading ? (
