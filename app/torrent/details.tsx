@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, Image, Linking, Platform, ScrollView, Share, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, StatusBar, Text } from '@/components/Themed';
 import * as Haptics from 'expo-haptics';
@@ -8,8 +8,10 @@ import BottomSpacing from '@/components/BottomSpacing';
 import { Ionicons } from '@expo/vector-icons';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { ImpactFeedbackStyle } from 'expo-haptics';
+import { useActionSheet } from '@expo/react-native-action-sheet';
 
 const TorrentDetails = () => {
+  const { showActionSheetWithOptions } = useActionSheet();
   const { hash } = useLocalSearchParams();
   const [torrentData, setTorrentData] = useState<any>(null);
   const [cacheData, setCacheData] = useState<any>(null);
@@ -133,11 +135,77 @@ const TorrentDetails = () => {
 
   const handleFileLink = async (file: any) => {
     if (isHapticsSupported()) {
-      await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
     }
+
     const encodedPath = encodeURIComponent(file.path);
     const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play`;
-    Linking.openURL(streamUrl);
+
+    const playerOptions: { label: string; url: string }[] = [];
+
+    if (Platform.OS === 'ios') {
+      playerOptions.push({
+        label: 'Infuse',
+        url: `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`,
+      });
+      playerOptions.push({
+        label: 'Vidhub',
+        url: `open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}`,
+      });
+      playerOptions.push({
+        label: 'VLC',
+        url: `vlc://${streamUrl}`,
+      });
+    } else if (Platform.OS === 'android') {
+      playerOptions.push({
+        label: 'VLC',
+        url: `vlc://${streamUrl}`,
+      });
+      playerOptions.push({
+        label: 'MX Player',
+        url: `intent:${streamUrl}#Intent;package=com.mxtech.videoplayer.ad;type=video/*;end`,
+      });
+    } else {
+      // Web fallback
+      try {
+        window.open(streamUrl, '_blank');
+        return;
+      } catch (e) {
+        console.error('Web open failed:', e);
+      }
+    }
+
+    playerOptions.push({ label: 'Share', url: 'share' });
+    playerOptions.push({ label: 'Cancel', url: 'cancel' });
+
+    const options = playerOptions.map(opt => opt.label);
+    const cancelButtonIndex = options.length - 1;
+
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex,
+        title: 'Open with...',
+      },
+      async (selectedIndex: any) => {
+        const selected = playerOptions[selectedIndex];
+        if (!selected || selected.url === 'cancel') return;
+
+        if (selected.url === 'share') {
+          try {
+            await Share.share({
+              message: streamUrl,
+              url: streamUrl,
+              title: 'Open Stream',
+            });
+          } catch {
+            Alert.alert('Unable to share', 'Please copy and open the stream manually.');
+          }
+          return;
+        }
+
+        Linking.openURL(selected.url);
+      });
   };
 
   const handleDrop = () => {

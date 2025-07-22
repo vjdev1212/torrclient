@@ -3,8 +3,9 @@ import { DarkTheme, Theme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
+import React, { useEffect } from 'react';
 import 'react-native-reanimated';
+import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -76,19 +77,20 @@ function RootLayoutNav() {
   };
 
   const theme = DarkTheme;
-  const tintColor ='#ffffff';
+  const tintColor = '#ffffff';
 
   return (
-    <ThemeProvider value={theme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false, title: 'Home' }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-        <Stack.Screen name="torrent/details" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />        
-        <Stack.Screen name="stream/embed" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />       
-        <Stack.Screen name="settings/torrserver" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
-        <Stack.Screen name="settings/contact" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
-        <Stack.Screen name="settings/donate" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
-      </Stack>
-    </ThemeProvider>
+    <ActionSheetProvider>
+      <ThemeProvider value={theme}>
+        <Stack>
+          <Stack.Screen name="(tabs)" options={{ headerShown: false, title: 'Home' }} />
+          <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+          <Stack.Screen name="torrent/details" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
+          <Stack.Screen name="settings/torrserver" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
+          <Stack.Screen name="settings/contact" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
+          <Stack.Screen name="settings/donate" options={{ headerShown: true, headerTransparent: true, headerTitle: '', headerTintColor: tintColor }} />
+        </Stack>
+      </ThemeProvider>
+    </ActionSheetProvider>
   );
 }
