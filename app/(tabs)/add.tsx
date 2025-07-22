@@ -249,7 +249,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#535aff',
     paddingVertical: 10,
     paddingHorizontal: 30,
-    borderRadius: 8,
+    borderRadius: 25,
     alignSelf: 'center',
   },
   buttonText: {
