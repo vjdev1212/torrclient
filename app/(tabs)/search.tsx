@@ -148,8 +148,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
   },
   searchResultsContainer: {
-    marginVertical: 20,
-    marginHorizontal: 10,
+    marginVertical: 20
   },
   centeredContainer: {
     flex: 1,
