@@ -1,5 +1,14 @@
 import React, { useEffect, useState } from 'react';
-import { SafeAreaView, ScrollView, StyleSheet, TextInput, Text, View, Pressable } from 'react-native';
+import {
+  SafeAreaView,
+  ScrollView,
+  StyleSheet,
+  TextInput,
+  Text,
+  View,
+  Pressable,
+  Switch,
+} from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from '@/components/Themed';
 import { isHapticsSupported, showAlert } from '@/utils/platform';
@@ -7,17 +16,25 @@ import * as Haptics from 'expo-haptics';
 
 const TorrServerScreen = () => {
   const [torrServerUrl, setTorrServerUrl] = useState('http://192.168.1.10:5665');
+  const [authEnabled, setAuthEnabled] = useState(false);
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     const loadPreferences = async () => {
       try {
         const storedUrl = await AsyncStorage.getItem('torrserverbaseurl');
-        if (storedUrl) {
-          setTorrServerUrl(storedUrl);
-        }
+        const storedAuthEnabled = await AsyncStorage.getItem('torrserverauthenabled');
+        const storedUsername = await AsyncStorage.getItem('torrserverusername');
+        const storedPassword = await AsyncStorage.getItem('torrserverpassword');
+
+        if (storedUrl) setTorrServerUrl(storedUrl);
+        if (storedAuthEnabled === 'true') setAuthEnabled(true);
+        if (storedUsername) setUsername(storedUsername);
+        if (storedPassword) setPassword(storedPassword);
       } catch (error) {
-        console.error('Failed to load TorrServer URL:', error);
+        console.error('Failed to load preferences:', error);
       }
     };
     loadPreferences();
@@ -27,7 +44,7 @@ const TorrServerScreen = () => {
     setSaving(true);
     try {
       if (isHapticsSupported()) {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft); // Await this
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
       }
 
       if (!torrServerUrl.startsWith('http')) {
@@ -36,14 +53,22 @@ const TorrServerScreen = () => {
       }
 
       await AsyncStorage.setItem('torrserverbaseurl', torrServerUrl);
+      await AsyncStorage.setItem('torrserverauthenabled', authEnabled ? 'true' : 'false');
 
-      showAlert('Saved', 'TorrServer URL has been saved.');
+      if (authEnabled) {
+        await AsyncStorage.setItem('torrserverusername', username);
+        await AsyncStorage.setItem('torrserverpassword', password);
+      } else {
+        await AsyncStorage.removeItem('torrserverusername');
+        await AsyncStorage.removeItem('torrserverpassword');
+      }
+
+      showAlert('Saved', 'TorrServer configuration saved.');
     } catch (error) {
-      console.error('Failed to save TorrServer URL:', error);
-      showAlert('Error', 'Failed to save TorrServer URL.');
-    }
-    finally {
-      setSaving(false)
+      console.error('Failed to save preferences:', error);
+      showAlert('Error', 'Failed to save configuration.');
+    } finally {
+      setSaving(false);
     }
   };
 
@@ -54,17 +79,57 @@ const TorrServerScreen = () => {
       <StatusBar />
       <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
         <View style={styles.searchInputContainer}>
-          <Text style={styles.baseUrlLabel}>TorrServer Base URL:</Text>
+          <Text style={styles.label}>TorrServer Base URL:</Text>
           <TextInput
             style={[styles.searchInput, textInputStyle]}
             value={torrServerUrl}
-            onChangeText={(text) => setTorrServerUrl(text)}
+            onChangeText={setTorrServerUrl}
             autoCapitalize="none"
             autoCorrect={false}
             placeholder="https://example.com"
-            placeholderTextColor="#666"
+            placeholderTextColor="#aaa"
           />
         </View>
+
+        <View style={styles.authToggleContainer}>
+          <Text style={styles.label}>Enable Authentication</Text>
+          <Switch
+            value={authEnabled}
+            onValueChange={setAuthEnabled}
+            thumbColor={authEnabled ? '#535aff' : '#999'}
+            trackColor={{ false: '#444', true: '#ccc' }}
+          />
+        </View>
+
+        {authEnabled && (
+          <>
+            <View style={styles.searchInputContainer}>
+              <Text style={styles.label}>Username</Text>
+              <TextInput
+                style={[styles.searchInput, textInputStyle]}
+                value={username}
+                onChangeText={setUsername}
+                autoCapitalize="none"
+                placeholder="admin"
+                placeholderTextColor="#aaa"
+              />
+            </View>
+
+            <View style={styles.searchInputContainer}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput
+                style={[styles.searchInput, textInputStyle]}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoCapitalize="none"
+                placeholder="********"
+                placeholderTextColor="#aaa"
+              />
+            </View>
+          </>
+        )}
+
         <View style={styles.saveButton}>
           <Pressable onPress={savePreferences} disabled={saving}>
             <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save'}</Text>
@@ -87,7 +152,7 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   searchInputContainer: {
-    marginBottom: 30,
+    marginBottom: 20,
     paddingHorizontal: 10,
     width: '100%',
   },
@@ -105,9 +170,16 @@ const styles = StyleSheet.create({
     backgroundColor: '#1f1f1f',
     color: '#fff',
   },
-  baseUrlLabel: {
+  label: {
     color: '#ffffff',
-    marginBottom: 20
+    marginBottom: 10,
+  },
+  authToggleContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 20,
+    paddingHorizontal: 10,
   },
   saveButton: {
     marginTop: 20,
