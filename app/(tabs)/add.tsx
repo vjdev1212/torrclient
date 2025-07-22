@@ -100,6 +100,21 @@ const AddTorrentScreen = () => {
     }
   };
 
+  const handleInputChange = (text: string) => {
+  setInput(text);
+
+  // Only try to auto-fill if it's a magnet link
+  if (text.startsWith('magnet:')) {
+    const match = text.match(/dn=([^&]+)/);
+    const decodedTitle = match ? decodeURIComponent(match[1]) : '';
+
+    if (decodedTitle && !title) {
+      setTitle(decodedTitle);
+    }
+  }
+};
+
+
   return (
     <ScrollView contentContainerStyle={styles.scrollContainer}>
       <View style={styles.centeredWrapper}>
@@ -109,7 +124,7 @@ const AddTorrentScreen = () => {
         <TextInput
           style={styles.input}
           value={input}
-          onChangeText={setInput}
+          onChangeText={handleInputChange}
           placeholder="Magnet, InfoHash, or .torrent URL"
           autoCapitalize="none"
           placeholderTextColor="#aaa"
