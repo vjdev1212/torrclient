@@ -167,7 +167,7 @@ const TorrentDetails = () => {
       });
     } else {
       playerOptions.push({
-        label: 'Open in New Window',
+        label: 'New Window',
         url: `${streamUrl}`,
       });
     }
@@ -183,6 +183,9 @@ const TorrentDetails = () => {
         options,
         cancelButtonIndex,
         title: 'Open with...',
+        textStyle: { color: '#aaa' },
+        titleTextStyle: { color: '#535aff' },
+        containerStyle: { backgroundColor: '#101010' }
       },
       async (selectedIndex: any) => {
         const selected = playerOptions[selectedIndex];
