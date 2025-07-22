@@ -116,7 +116,7 @@ const AddTorrentScreen = () => {
             style={styles.input}
             value={input}
             onChangeText={handleInputChange}
-            placeholder="Magnet, InfoHash, or .torrent URL"
+            placeholder="magnet:?xt=urn:btih:d78492e6550.."
             autoCapitalize="none"
             placeholderTextColor="#aaa"
             submitBehavior={'blurAndSubmit'}
@@ -127,7 +127,7 @@ const AddTorrentScreen = () => {
             style={styles.input}
             value={title}
             onChangeText={setTitle}
-            placeholder="Title"
+            placeholder="How to Train Your Dragon"
             placeholderTextColor="#aaa"
             submitBehavior={'blurAndSubmit'}
           />
