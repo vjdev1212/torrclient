@@ -4,11 +4,45 @@ import TorrentGrid from '@/components/TorrentGrid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { useFocusEffect } from 'expo-router';
-import { SafeAreaView, StyleSheet } from 'react-native';
+import { SafeAreaView, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import * as Haptics from 'expo-haptics';
+import { isHapticsSupported } from '@/utils/platform';
 
 const HomeScreen = () => {
   const [data, setData] = useState<any[]>([]);
+  const [filteredData, setFilteredData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selectedCategory, setSelectedCategory] = useState('All');
+
+  const categories = ['All', 'Movies', 'TV', 'Other'];
+
+  const handleCategoryPress = async (category: string) => {
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    
+    setSelectedCategory(category);
+    
+    if (category === 'All') {
+      setFilteredData(data);
+    } else {
+      const filtered = data.filter((item: any) => {
+        const itemCategory = item.category?.toLowerCase() || 'other';
+        
+        switch (category) {
+          case 'Movies':
+            return itemCategory === 'movie';
+          case 'TV':
+            return itemCategory === 'tv';
+          case 'Other':
+            return itemCategory !== 'movie' && itemCategory !== 'tv';
+          default:
+            return true;
+        }
+      });
+      setFilteredData(filtered);
+    }
+  };
 
   useFocusEffect(
     useCallback(() => {
@@ -38,6 +72,27 @@ const HomeScreen = () => {
           }));
 
           setData(parsed);
+          
+          // Apply current filter to new data
+          if (selectedCategory === 'All') {
+            setFilteredData(parsed);
+          } else {
+            const filtered = parsed.filter((item: any) => {
+              const itemCategory = item.category?.toLowerCase() || 'other';
+              
+              switch (selectedCategory) {
+                case 'Movies':
+                  return itemCategory === 'movie';
+                case 'TV':
+                  return itemCategory === 'tv';
+                case 'Other':
+                  return itemCategory !== 'movie' && itemCategory !== 'tv';
+                default:
+                  return true;
+              }
+            });
+            setFilteredData(filtered);
+          }
         } catch (error) {
           console.error('Error fetching torrents:', error);
         } finally {
@@ -46,18 +101,46 @@ const HomeScreen = () => {
       };
 
       fetchTorrents();
-    }, [])
+    }, [selectedCategory])
   );
 
   return (
     <SafeAreaView style={styles.container}>
+      {/* Category Filter Buttons */}
+      <View style={styles.filterContainer}>
+        <ScrollView 
+          horizontal 
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.filterScrollContent}
+        >
+          {categories.map((category) => (
+            <TouchableOpacity
+              key={category}
+              style={[
+                styles.filterButton,
+                selectedCategory === category && styles.filterButtonActive
+              ]}
+              onPress={() => handleCategoryPress(category)}
+            >
+              <Text style={[
+                styles.filterButtonText,
+                selectedCategory === category && styles.filterButtonTextActive
+              ]}>
+                {category}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </View>
+
+      {/* Content */}
       {loading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={styles.centeredContainer}>
           <ActivityIndicator size="large" color="#535aff" />
-          <Text style={{ marginTop: 10 }}>Loading...</Text>
+          <Text style={styles.loadingText}>Loading...</Text>
         </View>
       ) : (
-        <TorrentGrid list={data} />
+        <TorrentGrid list={filteredData} />
       )}
     </SafeAreaView>
   );
@@ -69,5 +152,42 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     marginTop: 30,
+  },
+  filterContainer: {
+    paddingVertical: 15,
+  },
+  filterScrollContent: {
+    paddingHorizontal: 20,
+    gap: 12,
+  },
+  filterButton: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    backgroundColor: '#101010',
+    minWidth: 70,
+    alignItems: 'center',
+  },
+  filterButtonActive: {
+    backgroundColor: '#535aff',
+  },
+  filterButtonText: {
+    fontSize: 14,
+    fontWeight: '500',
+    color: '#ccc',
+  },
+  filterButtonTextActive: {
+    color: '#fff',
+    fontWeight: '500',
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20,
+  },
+  loadingText: {
+    marginTop: 10,
+    fontSize: 16,
   },
 });
