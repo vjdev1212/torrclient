@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
     ScrollView,
     Image,
@@ -6,6 +6,7 @@ import {
     Pressable,
     useWindowDimensions,
     View as RNView,
+    Keyboard,
 } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { useRouter } from 'expo-router';
@@ -27,21 +28,47 @@ interface TorrentGridProps {
 const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
     const router = useRouter();
     const { width, height } = useWindowDimensions();
-    const isPortrait = height >= width;
+    const [keyboardVisible, setKeyboardVisible] = useState(false);
+    const [staticDimensions, setStaticDimensions] = useState({ width, height });
+
+    // Track keyboard visibility and maintain static dimensions
+    useEffect(() => {
+        const keyboardDidShowListener = Keyboard.addListener('keyboardDidShow', () => {
+            setKeyboardVisible(true);
+        });
+        const keyboardDidHideListener = Keyboard.addListener('keyboardDidHide', () => {
+            setKeyboardVisible(false);
+        });
+
+        // Update static dimensions only when keyboard is not visible
+        if (!keyboardVisible) {
+            setStaticDimensions({ width, height });
+        }
+
+        return () => {
+            keyboardDidShowListener?.remove();
+            keyboardDidHideListener?.remove();
+        };
+    }, [width, height, keyboardVisible]);
+
+    // Use static dimensions for calculations to prevent shrinking
+    const calculationWidth = keyboardVisible ? staticDimensions.width : width;
+    const calculationHeight = keyboardVisible ? staticDimensions.height : height;
+    const isPortrait = calculationHeight >= calculationWidth;
 
     // Determine fixed number of columns
     const getNumColumns = () => {
-        if (width < 600) return isPortrait ? 3 : 5;  // Mobile
-        if (width < 1024) return 5;                  // Tablet
-        return isPortrait ? 5 : 8;                   // Laptop/Desktop
+        if (calculationWidth < 600) return isPortrait ? 3 : 5;  // Mobile
+        if (calculationWidth < 1024) return 5;                  // Tablet
+        return isPortrait ? 5 : 8;                              // Laptop/Desktop
     };
 
     const numColumns = getNumColumns();
     const itemSpacing = 16; // 8px margin on both sides
     const totalSpacing = itemSpacing * (numColumns + 1);
 
-    // Adjust poster width to always fit screen width
-    const posterWidth = (width - totalSpacing) / numColumns;
+    // Adjust poster width to always fit screen width (using static dimensions)
+    const posterWidth = (calculationWidth - totalSpacing) / numColumns;
     const posterHeight = posterWidth * 1.5;
 
     const TorrentItem = ({ item }: { item: Torrent }) => {
@@ -87,7 +114,11 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
     }
 
     return (
-        <ScrollView contentContainerStyle={styles.scrollViewContent} showsVerticalScrollIndicator={false}>
+        <ScrollView 
+            contentContainerStyle={styles.scrollViewContent} 
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+        >
             <RNView style={styles.moviesGrid}>
                 {list.map((item, index) => (
                     <TorrentItem key={index.toString()} item={item} />
@@ -113,7 +144,7 @@ const styles = StyleSheet.create({
     },
     posterImage: {
         borderRadius: 8,
-        backgroundColor: '#ccc',
+        backgroundColor: '#101010',
     },
     posterTitle: {
         marginTop: 10,

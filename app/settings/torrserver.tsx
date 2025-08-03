@@ -4,13 +4,11 @@ import {
   ScrollView,
   StyleSheet,
   TextInput,
-  Text,
-  View,
   Pressable,
   Switch,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { StatusBar } from '@/components/Themed';
+import { StatusBar, Text, View } from '@/components/Themed';
 import { isHapticsSupported, showAlert } from '@/utils/platform';
 import * as Haptics from 'expo-haptics';
 

@@ -17,6 +17,7 @@ const TorrentDetails = () => {
   const [cacheData, setCacheData] = useState<any>(null);
   const [baseUrl, setBaseUrl] = useState<any>('');
   const [loading, setLoading] = useState(true);
+  const [cacheLoading, setCacheLoading] = useState(true); // Separate loading state for cache
   const { width, height } = useWindowDimensions();
   const isPortrait = height >= width;
   const isLargeScreen = width > 768 && !isPortrait;
@@ -86,14 +87,21 @@ const TorrentDetails = () => {
         );
       } catch (error) {
         console.error('Error fetching cache data:', error);
+      } finally {
+        setCacheLoading(false); // Set cache loading to false after first fetch
       }
     };
 
     if (hash) {
       loadBaseUrl().then((url: any) => {
-        fetchDetails(url);
-        fetchCache(url);
-        interval = setInterval(() => fetchCache(url), 3000);
+        // Fetch both simultaneously instead of sequentially
+        Promise.all([
+          fetchDetails(url),
+          fetchCache(url)
+        ]).then(() => {
+          // Start polling after initial fetch
+          interval = setInterval(() => fetchCache(url), 3000);
+        });
       });
     }
 
@@ -183,9 +191,11 @@ const TorrentDetails = () => {
         options,
         cancelButtonIndex,
         title: 'Open with...',
-        textStyle: { color: '#aaa' },
-        titleTextStyle: { color: '#535aff' },
-        containerStyle: { backgroundColor: '#101010' }
+        textStyle: { color: '#fff' },
+        titleTextStyle: { color: '#007aff' },
+        containerStyle: { backgroundColor: '#101010' },
+        cancelButtonTintColor: '#ff4757',
+        userInterfaceStyle: 'dark'
       },
       async (selectedIndex: any) => {
         const selected = playerOptions[selectedIndex];
@@ -285,9 +295,56 @@ const TorrentDetails = () => {
     return `${value.toFixed(2)} ${units[i]}`;
   }
 
+  const CacheInfo = React.memo(({ cacheData, cacheLoading }: { cacheData: any, cacheLoading: boolean }) => {
+    // Show loading state for cache info
+    if (cacheLoading) {
+      return (
+        <View>
+          <Text style={[styles.cacheTitle, { marginHorizontal: 25 }]}>Torrent Details</Text>
+          <View style={styles.metaTable}>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Category:</Text>
+              <Text style={styles.metaValue}>{getFormattedCategory(torrentData.category)}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Size:</Text>
+              <Text style={styles.metaValue}>{formatBytes(torrentData.size)}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Status:</Text>
+              <ActivityIndicator size="small" color="#535aff" />
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Loading cache data...</Text>
+              <Text style={styles.metaValue}></Text>
+            </View>
+          </View>
+        </View>
+      );
+    }
 
-  const CacheInfo = React.memo(({ cacheData }: { cacheData: any }) => {
-    if (!cacheData?.Torrent) return null;
+    // Show placeholder if no cache data available
+    if (!cacheData?.Torrent) {
+      return (
+        <View>
+          <Text style={[styles.cacheTitle, { marginHorizontal: 25 }]}>Torrent Details</Text>
+          <View style={styles.metaTable}>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Category:</Text>
+              <Text style={styles.metaValue}>{getFormattedCategory(torrentData.category)}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Size:</Text>
+              <Text style={styles.metaValue}>{formatBytes(torrentData.size)}</Text>
+            </View>
+            <View style={styles.metaRow}>
+              <Text style={styles.metaLabel}>Status:</Text>
+              <Text style={styles.metaValue}>Loading...</Text>
+            </View>
+          </View>
+        </View>
+      );
+    }
 
     return (
       <View>
@@ -323,11 +380,11 @@ const TorrentDetails = () => {
           </View>
           <View style={styles.metaRow}>
             <Text style={styles.metaLabel}>Bytes Read:</Text>
-            <Text style={styles.metaValue}>{formatBytes(cacheData.Torrent?.bytes_read)}/s</Text>
+            <Text style={styles.metaValue}>{formatBytes(cacheData.Torrent?.bytes_read || 0)}</Text>
           </View>
           <View style={styles.metaRow}>
             <Text style={styles.metaLabel}>Bytes Written:</Text>
-            <Text style={styles.metaValue}>{formatBytes(cacheData.Torrent?.bytes_written)}/s</Text>
+            <Text style={styles.metaValue}>{formatBytes(cacheData.Torrent?.bytes_written || 0)}</Text>
           </View>
           <View style={styles.metaRow}>
             <Text style={styles.metaLabel}>Active Peers:</Text>
@@ -359,15 +416,15 @@ const TorrentDetails = () => {
 
         <View style={isLargeScreen ? styles.rightHalf : styles.fullWidth}>
           <Text style={[styles.title, { textAlign: 'center' }]}>{torrentData.title}</Text>
-          {cacheData && <CacheInfo cacheData={cacheData} />}
+          <CacheInfo cacheData={cacheData} cacheLoading={cacheLoading} />
 
           {videoFiles.length > 0 && (
-            <View style={{ marginHorizontal: 10 }}>
+            <View style={styles.filesContainer}>
               <Text style={styles.cacheTitle}>Files</Text>
               {videoFiles.map((file: any, index: number) => (
                 <View key={index} style={styles.cacheBox}>
                   <TouchableOpacity onPress={() => handleFileLink(file)}>
-                    <Text style={styles.cacheText}>
+                    <Text style={styles.cacheText} numberOfLines={10} ellipsizeMode="middle">
                       {file.path} ({(file.length / (1024 ** 2)).toFixed(2)} MB)
                     </Text>
                   </TouchableOpacity>
@@ -412,10 +469,12 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-start',
   },
   portraitPosterImage: {
-    width: '100%',
-    margin: 'auto',
+    width: '90%',
     aspectRatio: 3 / 4,
     alignSelf: 'center',
+    borderRadius: 8,
+    resizeMode: 'contain',
+    marginVertical: 20,
   },
   landscapePosterImage: {
     width: '75%',
@@ -440,7 +499,7 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 30,
-    fontWeight: 'bold',
+    fontWeight: '500',
     paddingHorizontal: 15,
     marginTop: 10,
     marginBottom: 25,
@@ -482,10 +541,14 @@ const styles = StyleSheet.create({
     padding: 20,
     backgroundColor: '#101010',
     borderRadius: 8,
-    alignSelf: 'center',
+    maxWidth: '100%',
+  },
+  filesContainer: {
+    marginHorizontal: 10,
+    maxWidth: '100%',
   },
   cacheTitle: {
-    fontWeight: 'bold',
+    fontWeight: '500',
     fontSize: 16,
     marginBottom: 10,
     marginHorizontal: 20
@@ -493,6 +556,8 @@ const styles = StyleSheet.create({
   cacheText: {
     fontSize: 14,
     marginBottom: 2,
+    flexWrap: 'wrap',
+    flexShrink: 1,
   },
   activityIndicator: {
     marginBottom: 10,

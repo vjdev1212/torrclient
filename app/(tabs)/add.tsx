@@ -1,11 +1,9 @@
 import React, { useState } from 'react';
 import {
-  View,
   TextInput,
   StyleSheet,
   TouchableOpacity,
   Image,
-  Text,
   Alert,
   ScrollView,
   SafeAreaView,
@@ -15,6 +13,7 @@ import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { useRouter } from 'expo-router';
+import { Text, View } from '@/components/Themed';
 
 const categories = [
   { key: 'movie', label: 'Movie' },
