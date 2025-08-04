@@ -267,74 +267,84 @@ const TorrentDetails = () => {
     );
   };
 
-  const handleDrop = () => {    
-    Alert.alert(
-      'Confirm Drop',
-      'Are you sure you want to drop this torrent?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Drop',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              if (isHapticsSupported()) {
-                await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
-              }
-              const authHeader = await getTorrServerAuthHeader();
-              await fetch(`${baseUrl}/torrents`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  ...(authHeader || {})
-                },
-                body: JSON.stringify({ action: 'drop', hash }),
-              });
-              alert('Torrent has been dropped.');
-            } catch (error) {
-              console.error('Drop failed:', error);
-              alert('Failed to drop torrent.');
-            }
-          }
-        }
-      ]
-    );
+  const confirmAction = async (
+    title: string,
+    message: string,
+    confirmText: string
+  ): Promise<boolean> => {
+    if (Platform.OS === 'web') {
+      return window.confirm(`${title}\n\n${message}`);
+    }
+
+    return new Promise((resolve) => {
+      Alert.alert(
+        title,
+        message,
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+          { text: confirmText, style: 'destructive', onPress: () => resolve(true) },
+        ]
+      );
+    });
   };
 
-  const handleWipe = () => {
-    Alert.alert(
+  const handleDrop = async () => {
+    const confirmed = await confirmAction(
+      'Confirm Drop',
+      'Are you sure you want to drop this torrent?',
+      'Drop'
+    );
+    if (!confirmed) return;
+
+    try {
+      if (isHapticsSupported()) {
+        await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
+      }
+      const authHeader = await getTorrServerAuthHeader();
+      await fetch(`${baseUrl}/torrents`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authHeader || {}),
+        },
+        body: JSON.stringify({ action: 'drop', hash }),
+      });
+      alert('Torrent has been dropped.');
+    } catch (error) {
+      console.error('Drop failed:', error);
+      alert('Failed to drop torrent.');
+    }
+  };
+
+  const handleWipe = async () => {
+    const confirmed = await confirmAction(
       'Confirm Delete',
       'Are you sure you want to permanently delete this torrent?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              if (isHapticsSupported()) {
-                await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
-              }
-              const authHeader = await getTorrServerAuthHeader();
-              await fetch(`${baseUrl}/torrents`, {
-                method: 'POST',
-                headers: {
-                  'Content-Type': 'application/json',
-                  ...(authHeader || {})
-                },
-                body: JSON.stringify({ action: 'rem', hash }),
-              });
-              alert('Torrent has been deleted.');
-              router.back();
-            } catch (error) {
-              console.error('Delete failed:', error);
-              alert('Failed to delete torrent.');
-            }
-          }
-        }
-      ]
+      'Delete'
     );
+    if (!confirmed) return;
+
+    try {
+      if (isHapticsSupported()) {
+        await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
+      }
+      const authHeader = await getTorrServerAuthHeader();
+      await fetch(`${baseUrl}/torrents`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authHeader || {}),
+        },
+        body: JSON.stringify({ action: 'rem', hash }),
+      });
+      alert('Torrent has been deleted.');
+      router.back();
+    } catch (error) {
+      console.error('Delete failed:', error);
+      alert('Failed to delete torrent.');
+    }
   };
+
 
   const formatBytes = (bytes: number) => {
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
