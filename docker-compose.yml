@@ -38,4 +38,5 @@ services:
 
 networks:
   torrclient:
+    name: torrclient
     driver: bridge
