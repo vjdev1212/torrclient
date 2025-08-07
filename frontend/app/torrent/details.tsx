@@ -147,125 +147,119 @@ const TorrentDetails = () => {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
     }
 
-    // Step 1: Ask Preload or Play
-    const preloadOptions = ['Preload', 'Play', 'Cancel'];
-    const cancelButtonIndex = 2;
+    // Trigger the first action sheet
+    setTimeout(() => {
+      showPreloadOrPlaySheet(file);
+    }, 100);
+  };
+
+  const showPreloadOrPlaySheet = (file: any) => {
+    const options = ['Preload', 'Play', 'Cancel'];
 
     showActionSheetWithOptions(
       {
-        options: preloadOptions,
-        cancelButtonIndex,
+        options,
+        cancelButtonIndex: 2,
         title: 'Choose Action',
         textStyle: { color: '#fff' },
         titleTextStyle: { color: '#007aff' },
         containerStyle: { backgroundColor: '#101010' },
         cancelButtonTintColor: '#ff4757',
-        userInterfaceStyle: 'dark'
+        userInterfaceStyle: 'dark',
       },
-      async (selectedIndex: any) => {
-        if (selectedIndex === 0) {
-          // --- Preload ---
+      async (index) => {
+        const encodedPath = encodeURIComponent(file.path);
+        const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}`;
+
+        if (index === 0) {
+          // Preload
           try {
-            const preloadUrl = `${baseUrl}/stream?link=${hash}&index=${file.id}&preload`;
+            const preloadUrl = `${streamUrl}&preload`;
             const authHeader = await getTorrServerAuthHeader();
             await fetch(preloadUrl, {
               method: 'GET',
-              headers: {
-                ...(authHeader || {})
-              }
+              headers: { ...(authHeader || {}) },
             });
             Alert.alert('Preload started', 'Torrent file is now preloading.');
-          } catch (err) {
+          } catch {
             Alert.alert('Preload failed', 'Unable to start preload.');
           }
-          return;
         }
 
-        if (selectedIndex === 1) {
-          // --- Play ---
-          const encodedPath = encodeURIComponent(file.path);
-          const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play`;
-
-          const playerOptions: { label: string; url: string }[] = [];
-
-          if (getOriginalPlatform() === 'ios') {
-            playerOptions.push({
-              label: 'Infuse',
-              url: `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`,
-            });
-            playerOptions.push({
-              label: 'Vidhub',
-              url: `open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}`,
-            });
-            playerOptions.push({
-              label: 'VLC',
-              url: `vlc://${streamUrl}`,
-            });
-          } else if (getOriginalPlatform() === 'android') {
-            playerOptions.push({
-              label: 'VLC',
-              url: `vlc://${streamUrl}`,
-            });
-            playerOptions.push({
-              label: 'MX Player',
-              url: `intent:${streamUrl}#Intent;package=com.mxtech.videoplayer.ad;type=video/*;end`,
-            });
-          } else {
-            playerOptions.push({
-              label: 'New Window',
-              url: `${streamUrl}`,
-            });
-          }
-
-          // Extra options
-          playerOptions.push({ label: 'Copy Link', url: 'copy' });
-          playerOptions.push({ label: 'Share', url: 'share' });
-          playerOptions.push({ label: 'Cancel', url: 'cancel' });
-
-          const options = playerOptions.map(opt => opt.label);
-          const cancelButtonIndex2 = options.length - 1;
-
-          showActionSheetWithOptions(
-            {
-              options,
-              cancelButtonIndex: cancelButtonIndex2,
-              title: 'Open with...',
-              textStyle: { color: '#fff' },
-              titleTextStyle: { color: '#007aff' },
-              containerStyle: { backgroundColor: '#101010' },
-              cancelButtonTintColor: '#ff4757',
-              userInterfaceStyle: 'dark'
-            },
-            async (selectedIndex2: any) => {
-              const selected = playerOptions[selectedIndex2];
-              if (!selected || selected.url === 'cancel') return;
-
-              if (selected.url === 'copy') {
-                await Clipboard.setStringAsync(streamUrl);
-                Alert.alert('Copied', 'Stream link copied to clipboard.');
-                return;
-              }
-
-              if (selected.url === 'share') {
-                try {
-                  await Share.share({
-                    message: streamUrl,
-                    url: streamUrl,
-                    title: 'Open Stream',
-                  });
-                } catch {
-                  Alert.alert('Unable to share', 'Please copy and open the stream manually.');
-                }
-                return;
-              }
-
-              Linking.openURL(selected.url);
-            }
-          );
+        if (index === 1) {
+          // Play
+          setTimeout(() => {
+            showPlayerSelection(streamUrl);
+          }, 300);
         }
       }
     );
   };
+
+  const showPlayerSelection = (streamUrl: string) => {
+    const playerOptions: { label: string; url: string }[] = [];
+
+    if (getOriginalPlatform() === 'ios') {
+      playerOptions.push(
+        { label: 'Infuse', url: `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}` },
+        { label: 'Vidhub', url: `open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}` },
+        { label: 'VLC', url: `vlc://${streamUrl}` }
+      );
+    } else if (getOriginalPlatform() === 'android') {
+      playerOptions.push(
+        { label: 'VLC', url: `vlc://${streamUrl}` },
+        {
+          label: 'MX Player',
+          url: `intent:${streamUrl}#Intent;package=com.mxtech.videoplayer.ad;type=video/*;end`,
+        }
+      );
+    } else {
+      playerOptions.push({ label: 'New Window', url: streamUrl });
+    }
+
+    playerOptions.push(
+      { label: 'Copy Link', url: 'copy' },
+      { label: 'Share', url: 'share' },
+      { label: 'Cancel', url: 'cancel' }
+    );
+
+    const options = playerOptions.map((p) => p.label);
+
+    showActionSheetWithOptions(
+      {
+        options,
+        cancelButtonIndex: options.length - 1,
+        title: 'Open with...',
+        textStyle: { color: '#fff' },
+        titleTextStyle: { color: '#007aff' },
+        containerStyle: { backgroundColor: '#101010' },
+        cancelButtonTintColor: '#ff4757',
+        userInterfaceStyle: 'dark',
+      },
+      async (selectedIndex) => {
+        const selected = playerOptions[selectedIndex as any];
+        if (!selected || selected.url === 'cancel') return;
+
+        if (selected.url === 'copy') {
+          await Clipboard.setStringAsync(streamUrl);
+          Alert.alert('Copied', 'Stream link copied to clipboard.');
+          return;
+        }
+
+        if (selected.url === 'share') {
+          try {
+            await Share.share({ message: streamUrl, url: streamUrl, title: 'Open Stream' });
+          } catch {
+            Alert.alert('Unable to share', 'Please copy and open the stream manually.');
+          }
+          return;
+        }
+
+        Linking.openURL(selected.url);
+      }
+    );
+  };
+
 
   const confirmAction = async (
     title: string,
