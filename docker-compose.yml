@@ -5,7 +5,7 @@ services:
     image: ghcr.io/yourok/torrserver
     container_name: torrserver
     environment:
-      - TS_PORT=5665
+      - TS_PORT=4554
       - TS_DONTKILL=1
       - TS_HTTPAUTH=0
       - TS_CONF_PATH=/opt/ts/config
@@ -14,7 +14,7 @@ services:
       - ./CACHE:/opt/ts/torrents
       - ./CONFIG:/opt/ts/config
     ports:
-      - "5665:5665"
+      - "4554:4554"
     networks:
       - torrclient
     restart: unless-stopped
@@ -31,7 +31,7 @@ services:
       - torrserver
     restart: unless-stopped
     environment:
-      - TORRSERVER_PORT=5665
+      - TORRSERVER_PORT=4554
       - TORRSERVER_AUTHENABLED=false
       - TORRSERVER_USERNAME=admin # Change if auth is enabled
       - TORRSERVER_PASSWORD=secret # Change if auth is enabled
