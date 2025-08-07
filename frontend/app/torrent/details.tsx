@@ -189,7 +189,8 @@ const TorrentDetails = () => {
         if (index === 1) {
           // Play
           setTimeout(() => {
-            showPlayerSelection(streamUrl);
+            const playUrl = `${streamUrl}&play`;
+            showPlayerSelection(playUrl);
           }, 300);
         }
       }
