@@ -189,7 +189,8 @@ const TorrentDetails = () => {
         if (index === 1) {
           // Play
           setTimeout(() => {
-            const playUrl = `${streamUrl}&play`;
+            const playUrl = `${window.location.origin}/${streamUrl}&play`;
+            console.log('PlayUrl',playUrl)
             showPlayerSelection(playUrl);
           }, 300);
         }
