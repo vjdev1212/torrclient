@@ -5,7 +5,7 @@ services:
     image: ghcr.io/yourok/torrserver
     container_name: torrserver
     environment:
-      - TS_PORT=8090
+      - TS_PORT=5665
       - TS_DONTKILL=1
       - TS_HTTPAUTH=0
       - TS_CONF_PATH=/opt/ts/config
@@ -14,25 +14,26 @@ services:
       - ./CACHE:/opt/ts/torrents
       - ./CONFIG:/opt/ts/config
     ports:
-      - "8090:8090"
+      - "5665:5665"
     networks:
       - torrclient
     restart: unless-stopped
 
   torrclient:
+    image: jarvisnexus/torrclient-server
     build: ./server
     container_name: torrclient
     volumes:
       - ./frontend/dist:/app/dist
     ports:
-      - "80:3000"
+      - "3443:3000"
     networks:
       - torrclient
     depends_on:
       - torrserver
     restart: unless-stopped
     environment:
-      - TORRSERVER_PORT=8090
+      - TORRSERVER_PORT=5665
       - TORRSERVER_AUTHENABLED=false
       - TORRSERVER_USERNAME=admin # Change if auth is enabled
       - TORRSERVER_PASSWORD=secret # Change if auth is enabled
