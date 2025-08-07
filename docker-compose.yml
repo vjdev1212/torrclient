@@ -23,8 +23,6 @@ services:
     image: jarvisnexus/torrclient-server
     build: ./server
     container_name: torrclient
-    volumes:
-      - ./frontend/dist:/app/dist
     ports:
       - "3443:3000"
     networks:

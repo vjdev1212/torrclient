@@ -29,7 +29,7 @@ if (TORRSERVER_AUTHENABLED && TORRSERVER_USERNAME && TORRSERVER_PASSWORD) {
 }
 
 // Serve frontend (PWA)
-app.use(serve(path.join(__dirname, 'dist')));
+app.use(serve(path.join(__dirname, 'public')));
 
 // Proxy requests to TorrServer
 app.use(
