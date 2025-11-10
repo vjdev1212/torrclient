@@ -63,8 +63,9 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
     };
 
     const numColumns = getNumColumns();
-    const itemSpacing = 16; // 8px margin on both sides
-    const totalSpacing = itemSpacing * (numColumns + 1);
+    const itemSpacing = 12; // Tighter, more modern spacing
+    const horizontalPadding = 20;
+    const totalSpacing = itemSpacing * (numColumns - 1) + (horizontalPadding * 2);
 
     // Adjust poster width to always fit screen width (using static dimensions)
     const posterWidth = (calculationWidth - totalSpacing) / numColumns;
@@ -89,38 +90,57 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
 
         return (
             <Pressable
-                style={[styles.posterContainer, { width: posterWidth, marginHorizontal: itemSpacing / 2.2 }]}
+                style={[styles.card, { width: posterWidth }]}
                 onPress={handlePress}
+                android_ripple={{ color: 'rgba(83, 90, 255, 0.2)' }}
             >
-                <Image
-                    source={{ uri: posterUri }}
-                    style={[styles.posterImage, { width: posterWidth, height: posterHeight }]}
-                    resizeMode="cover"
-                />
-                <Text numberOfLines={1} style={[styles.posterTitle, { width: posterWidth }]}>
-                    {item.title}
-                </Text>
+                {({ pressed }) => (
+                    <>
+                        <View style={[
+                            styles.imageWrapper,
+                            { width: posterWidth, height: posterHeight },
+                            pressed && styles.imagePressed
+                        ]}>
+                            <Image
+                                source={{ uri: posterUri }}
+                                style={styles.posterImage}
+                                resizeMode="cover"
+                            />
+                            {/* Subtle overlay for depth */}
+                            <View style={styles.imageOverlay} />
+                        </View>
+                        <Text 
+                            numberOfLines={2} 
+                            style={[styles.title, { width: posterWidth }]}
+                        >
+                            {item.title}
+                        </Text>
+                    </>
+                )}
             </Pressable>
         );
     };
 
     if (!list || list.length === 0) {
         return (
-            <View style={styles.centeredContainer}>
-                <Text style={styles.centeredText}>No torrents available.</Text>
+            <View style={styles.emptyContainer}>
+                <Text style={styles.emptyText}>No torrents available</Text>
             </View>
         );
     }
 
     return (
         <ScrollView 
-            contentContainerStyle={styles.scrollViewContent} 
+            contentContainerStyle={[
+                styles.scrollContent,
+                { paddingHorizontal: horizontalPadding }
+            ]} 
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
         >
-            <View style={styles.moviesGrid}>
+            <View style={[styles.grid, { gap: itemSpacing }]}>
                 {list.map((item, index) => (
-                    <TorrentItem key={index.toString()} item={item} />
+                    <TorrentItem key={item.hash || index.toString()} item={item} />
                 ))}
             </View>
         </ScrollView>
@@ -128,37 +148,55 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
 };
 
 const styles = StyleSheet.create({
-    scrollViewContent: {
-        paddingVertical: 20,
-        paddingHorizontal: 10,
+    scrollContent: {
+        paddingTop: 8,
+        paddingBottom: 24,
     },
-    moviesGrid: {
+    grid: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         justifyContent: 'flex-start',
+        backgroundColor: 'transparent',
     },
-    posterContainer: {
-        marginVertical: 8,
-        alignItems: 'center',
+    card: {
+        marginBottom: 20,
+    },
+    imageWrapper: {
+        borderRadius: 12,
+        overflow: 'hidden',
+        backgroundColor: '#1a1a1a',
+        position: 'relative',
     },
     posterImage: {
-        borderRadius: 8,
-        backgroundColor: '#101010',
+        width: '100%',
+        height: '100%',
     },
-    posterTitle: {
-        marginTop: 10,
-        fontSize: 14,
+    imageOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: 'rgba(0, 0, 0, 0.05)',
     },
-    centeredContainer: {
+    imagePressed: {
+        opacity: 0.7,
+        transform: [{ scale: 0.98 }],
+    },
+    title: {
+        marginTop: 8,
+        fontSize: 13,
+        fontWeight: '500',
+        color: '#fff',
+        lineHeight: 18,
+    },
+    emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        padding: 20,
+        paddingVertical: 60,
+        backgroundColor: 'transparent',
     },
-    centeredText: {
-        fontSize: 18,
-        textAlign: 'center',
-        color: '#888',
+    emptyText: {
+        fontSize: 16,
+        color: '#666',
+        fontWeight: '400',
     },
 });
 

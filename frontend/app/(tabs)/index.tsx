@@ -20,15 +20,15 @@ const HomeScreen = () => {
     if (isHapticsSupported()) {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
-    
+
     setSelectedCategory(category);
-    
+
     if (category === 'All') {
       setFilteredData(data);
     } else {
       const filtered = data.filter((item: any) => {
         const itemCategory = item.category?.toLowerCase() || 'other';
-        
+
         switch (category) {
           case 'Movies':
             return itemCategory === 'movie';
@@ -72,14 +72,14 @@ const HomeScreen = () => {
           }));
 
           setData(parsed);
-          
+
           // Apply current filter to new data
           if (selectedCategory === 'All') {
             setFilteredData(parsed);
           } else {
             const filtered = parsed.filter((item: any) => {
               const itemCategory = item.category?.toLowerCase() || 'other';
-              
+
               switch (selectedCategory) {
                 case 'Movies':
                   return itemCategory === 'movie';
@@ -105,11 +105,19 @@ const HomeScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      {/* Category Filter Buttons */}
-      <View style={styles.filterContainer}>
-        <ScrollView 
-          horizontal 
+    <SafeAreaView style={styles.container} edges={['top']}>
+      {/* Header Section */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Library</Text>
+        <Text style={styles.headerSubtitle}>
+          {filteredData.length} {filteredData.length === 1 ? 'item' : 'items'}
+        </Text>
+      </View>
+
+      {/* Category Filter Chips */}
+      <View style={styles.filterSection}>
+        <ScrollView
+          horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.filterScrollContent}
         >
@@ -117,14 +125,15 @@ const HomeScreen = () => {
             <TouchableOpacity
               key={category}
               style={[
-                styles.filterButton,
-                selectedCategory === category && styles.filterButtonActive
+                styles.chip,
+                selectedCategory === category && styles.chipActive
               ]}
               onPress={() => handleCategoryPress(category)}
+              activeOpacity={0.7}
             >
               <Text style={[
-                styles.filterButtonText,
-                selectedCategory === category && styles.filterButtonTextActive
+                styles.chipText,
+                selectedCategory === category && styles.chipTextActive
               ]}>
                 {category}
               </Text>
@@ -135,9 +144,16 @@ const HomeScreen = () => {
 
       {/* Content */}
       {loading ? (
-        <View style={styles.centeredContainer}>
+        <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color="#535aff" />
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={styles.loadingText}>Loading your library...</Text>
+        </View>
+      ) : filteredData.length === 0 ? (
+        <View style={styles.emptyContainer}>
+          <Text style={styles.emptyTitle}>No items found</Text>
+          <Text style={styles.emptySubtitle}>
+            Try selecting a different category
+          </Text>
         </View>
       ) : (
         <TorrentGrid list={filteredData} />
@@ -151,43 +167,82 @@ export default HomeScreen;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 30,
+    backgroundColor: '#000',
   },
-  filterContainer: {
-    paddingVertical: 15,
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 16,
+    backgroundColor: 'transparent',
+  },
+  headerTitle: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: -0.5,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: '#999',
+    marginTop: 4,
+    fontWeight: '400',
+  },
+  filterSection: {
+    paddingBottom: 20,
+    backgroundColor: 'transparent',
   },
   filterScrollContent: {
     paddingHorizontal: 20,
-    gap: 12,
+    gap: 10,
   },
-  filterButton: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 25,
-    backgroundColor: '#101010',
-    minWidth: 70,
-    alignItems: 'center',
+  chip: {
+    paddingHorizontal: 18,
+    paddingVertical: 9,
+    borderRadius: 20,
+    backgroundColor: '#1a1a1a',
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
   },
-  filterButtonActive: {
+  chipActive: {
     backgroundColor: '#535aff',
+    borderColor: '#535aff',
   },
-  filterButtonText: {
+  chipText: {
     fontSize: 14,
-    fontWeight: '500',
-    color: '#ccc',
+    fontWeight: '600',
+    color: '#888',
   },
-  filterButtonTextActive: {
+  chipTextActive: {
     color: '#fff',
-    fontWeight: '500',
   },
-  centeredContainer: {
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    backgroundColor: 'transparent',
   },
   loadingText: {
-    marginTop: 10,
-    fontSize: 16,
+    marginTop: 16,
+    fontSize: 15,
+    color: '#999',
+    fontWeight: '400',
+  },
+  emptyContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+    backgroundColor: 'transparent',
+  },
+  emptyTitle: {
+    fontSize: 20,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 15,
+    color: '#999',
+    textAlign: 'center',
   },
 });
