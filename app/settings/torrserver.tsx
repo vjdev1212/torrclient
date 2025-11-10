@@ -8,89 +8,201 @@ import {
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar, Text, View } from '@/components/Themed';
-import { isHapticsSupported, showAlert } from '@/utils/platform';
+import { confirmAction, isHapticsSupported, showAlert } from '@/utils/platform';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 
+interface ServerConfig {
+  id: string;
+  name: string;
+  url: string;
+  authEnabled: boolean;
+  username: string;
+  password: string;
+}
+
 const TorrServerScreen = () => {
-  const [torrServerUrl, setTorrServerUrl] = useState('http://192.168.1.10:5665');
-  const [authEnabled, setAuthEnabled] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const [servers, setServers] = useState<ServerConfig[]>([]);
+  const [activeServerId, setActiveServerId] = useState<string>('');
   const [saving, setSaving] = useState(false);
-  const [showPassword, setShowPassword] = useState(false);
+  const [expandedServerId, setExpandedServerId] = useState<string>('');
 
   useEffect(() => {
-    const loadPreferences = async () => {
-      try {
-        const storedUrl = await AsyncStorage.getItem('torrserverbaseurl');
-        const storedAuthEnabled = await AsyncStorage.getItem('torrserverauthenabled');
-        const storedUsername = await AsyncStorage.getItem('torrserverusername');
-        const storedPassword = await AsyncStorage.getItem('torrserverpassword');
-
-        if (storedUrl) setTorrServerUrl(storedUrl);
-        if (storedAuthEnabled === 'true') setAuthEnabled(true);
-        if (storedUsername) setUsername(storedUsername);
-        if (storedPassword) setPassword(storedPassword);
-      } catch (error) {
-        console.error('Failed to load preferences:', error);
-      }
-    };
-    loadPreferences();
+    loadServerConfigs();
   }, []);
 
-  const savePreferences = async () => {
+  const loadServerConfigs = async () => {
+    try {
+      const serversJson = await AsyncStorage.getItem('torrserverConfigs');
+      const activeId = await AsyncStorage.getItem('torrserverActiveId');
+
+      if (serversJson) {
+        const loadedServers = JSON.parse(serversJson);
+        setServers(loadedServers);
+        setActiveServerId(activeId || (loadedServers[0]?.id || ''));
+        setExpandedServerId(activeId || (loadedServers[0]?.id || ''));
+      } else {
+        // Create default server
+        const defaultServer: ServerConfig = {
+          id: Date.now().toString(),
+          name: 'Primary Server',
+          url: 'http://192.168.1.10:5665',
+          authEnabled: false,
+          username: '',
+          password: '',
+        };
+        setServers([defaultServer]);
+        setActiveServerId(defaultServer.id);
+        setExpandedServerId(defaultServer.id);
+      }
+    } catch (error) {
+      console.error('Failed to load server configs:', error);
+    }
+  };
+
+  const saveServerConfigs = async () => {
     setSaving(true);
     try {
       if (isHapticsSupported()) {
         await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
       }
 
-      if (!torrServerUrl.startsWith('http')) {
-        showAlert('Invalid URL', 'Please enter a valid TorrServer base URL (http/https).');
-        setSaving(false);
-        return;
+      // Validate all servers
+      for (const server of servers) {
+        if (!server.url.startsWith('http')) {
+          showAlert('Invalid URL', `Server "${server.name}" has an invalid URL (must start with http/https).`);
+          setSaving(false);
+          return;
+        }
+        if (server.authEnabled && (!server.username || !server.password)) {
+          showAlert('Missing Credentials', `Server "${server.name}" has authentication enabled but missing username or password.`);
+          setSaving(false);
+          return;
+        }
       }
 
-      await AsyncStorage.setItem('torrserverbaseurl', torrServerUrl);
-      await AsyncStorage.setItem('torrserverauthenabled', authEnabled ? 'true' : 'false');
+      await AsyncStorage.setItem('torrserverConfigs', JSON.stringify(servers));
+      await AsyncStorage.setItem('torrserverActiveId', activeServerId);
 
-      if (authEnabled) {
-        await AsyncStorage.setItem('torrserverusername', username);
-        await AsyncStorage.setItem('torrserverpassword', password);
-      } else {
-        await AsyncStorage.removeItem('torrserverusername');
-        await AsyncStorage.removeItem('torrserverpassword');
-      }
-
-      showAlert('Saved', 'TorrServer configuration saved.');
+      showAlert('Saved', 'Server configurations saved successfully.');
     } catch (error) {
-      console.error('Failed to save preferences:', error);
-      showAlert('Error', 'Failed to save configuration.');
+      console.error('Failed to save server configs:', error);
+      showAlert('Error', 'Failed to save configurations.');
     } finally {
       setSaving(false);
     }
   };
 
-  return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <StatusBar />
+  const addServer = () => {
+    const newServer: ServerConfig = {
+      id: Date.now().toString(),
+      name: `Server ${servers.length + 1}`,
+      url: 'http://',
+      authEnabled: false,
+      username: '',
+      password: '',
+    };
+    setServers([...servers, newServer]);
+    setExpandedServerId(newServer.id);
+  };
 
-      {/* Header */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>TorrServer</Text>
-        <Text style={styles.headerSubtitle}>Configure your server connection</Text>
-      </View>
+  const deleteServer = async (id: string) => {
+    if (servers.length === 1) {
+      showAlert('Cannot Delete', 'You must have at least one server configured.');
+      return;
+    }
 
-      <ScrollView
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.content}
-      >
-        {/* Server Configuration Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>SERVER</Text>
-          <View style={styles.card}>
+    const confirmed = await confirmAction(
+      'Delete Server',
+      'Are you sure you want to delete this server configuration?',
+      'Delete'
+    );
+    if (!confirmed) return;
+
+    const newServers = servers.filter(s => s.id !== id);
+    setServers(newServers);
+
+    if (activeServerId === id) {
+      setActiveServerId(newServers[0].id);
+    }
+    if (expandedServerId === id) {
+      setExpandedServerId(newServers[0].id);
+    }
+  };
+
+  const updateServer = (id: string, updates: Partial<ServerConfig>) => {
+    setServers(servers.map(s => s.id === id ? { ...s, ...updates } : s));
+  };
+
+  const toggleExpanded = (id: string) => {
+    setExpandedServerId(expandedServerId === id ? '' : id);
+  };
+
+  const renderServer = (server: ServerConfig) => {
+    const isActive = server.id === activeServerId;
+    const isExpanded = server.id === expandedServerId;
+
+    return (
+      <View key={server.id} style={styles.serverCard}>
+        {/* Server Header */}
+        <Pressable
+          onPress={() => toggleExpanded(server.id)}
+          style={styles.serverHeader}
+        >
+          <View style={styles.serverHeaderLeft}>
+            <Pressable
+              onPress={() => setActiveServerId(server.id)}
+              style={styles.radioButton}
+            >
+              <View style={[styles.radioOuter, isActive && styles.radioOuterActive]}>
+                {isActive && <View style={styles.radioInner} />}
+              </View>
+            </Pressable>
+            <View style={styles.serverInfo}>
+              <Text style={styles.serverName}>{server.name}</Text>
+              <Text style={styles.serverUrl} numberOfLines={1}>
+                {server.url || 'Not configured'}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.serverHeaderRight}>
+            {isActive && (
+              <View style={styles.activeBadge}>
+                <Text style={styles.activeBadgeText}>Active</Text>
+              </View>
+            )}
+            <Ionicons
+              name={isExpanded ? "chevron-up" : "chevron-down"}
+              size={20}
+              color="#888"
+            />
+          </View>
+        </Pressable>
+
+        {/* Expanded Server Config */}
+        {isExpanded && (
+          <View style={styles.serverDetails}>
+            <View style={styles.separator} />
+
+            {/* Server Name */}
+            <View style={styles.inputWrapper}>
+              <View style={styles.labelRow}>
+                <Ionicons name="pricetag-outline" size={18} color="#535aff" style={styles.labelIcon} />
+                <Text style={styles.label}>Server Name</Text>
+              </View>
+              <TextInput
+                style={styles.input}
+                value={server.name}
+                onChangeText={(text) => updateServer(server.id, { name: text })}
+                placeholder="My Server"
+                placeholderTextColor="#666"
+              />
+            </View>
+
+            <View style={styles.separator} />
+
+            {/* Server URL */}
             <View style={styles.inputWrapper}>
               <View style={styles.labelRow}>
                 <Ionicons name="server-outline" size={18} color="#535aff" style={styles.labelIcon} />
@@ -98,47 +210,45 @@ const TorrServerScreen = () => {
               </View>
               <TextInput
                 style={styles.input}
-                value={torrServerUrl}
-                onChangeText={setTorrServerUrl}
+                value={server.url}
+                onChangeText={(text) => updateServer(server.id, { url: text })}
                 autoCapitalize="none"
                 autoCorrect={false}
                 placeholder="http://192.168.1.10:5665"
                 placeholderTextColor="#666"
               />
             </View>
-          </View>
-        </View>
 
-        {/* Authentication Section */}
-        <View style={styles.section}>
-          <Text style={styles.sectionHeader}>AUTHENTICATION</Text>
-          <View style={styles.card}>
+            <View style={styles.separator} />
+
+            {/* Authentication Toggle */}
             <View style={styles.toggleWrapper}>
               <View style={styles.toggleLeft}>
                 <View style={styles.toggleIconContainer}>
                   <Ionicons
-                    name={authEnabled ? "lock-closed" : "lock-open-outline"}
+                    name={server.authEnabled ? "lock-closed" : "lock-open-outline"}
                     size={20}
                     color="#535aff"
                   />
                 </View>
                 <View>
-                  <Text style={styles.toggleLabel}>Enable Authentication</Text>
+                  <Text style={styles.toggleLabel}>Authentication</Text>
                   <Text style={styles.toggleDescription}>
-                    {authEnabled ? 'Authentication is enabled' : 'No authentication required'}
+                    {server.authEnabled ? 'Enabled' : 'Disabled'}
                   </Text>
                 </View>
               </View>
               <Switch
-                value={authEnabled}
-                onValueChange={setAuthEnabled}
-                thumbColor={authEnabled ? '#535aff' : '#666'}
+                value={server.authEnabled}
+                onValueChange={(value) => updateServer(server.id, { authEnabled: value })}
+                thumbColor={server.authEnabled ? '#535aff' : '#666'}
                 trackColor={{ false: '#2a2a2a', true: 'rgba(83, 90, 255, 0.3)' }}
                 ios_backgroundColor="#2a2a2a"
               />
             </View>
 
-            {authEnabled && (
+            {/* Auth Credentials */}
+            {server.authEnabled && (
               <>
                 <View style={styles.separator} />
 
@@ -149,8 +259,8 @@ const TorrServerScreen = () => {
                   </View>
                   <TextInput
                     style={styles.input}
-                    value={username}
-                    onChangeText={setUsername}
+                    value={server.username}
+                    onChangeText={(text) => updateServer(server.id, { username: text })}
                     autoCapitalize="none"
                     placeholder="Enter username"
                     placeholderTextColor="#666"
@@ -164,36 +274,63 @@ const TorrServerScreen = () => {
                     <Ionicons name="key-outline" size={18} color="#535aff" style={styles.labelIcon} />
                     <Text style={styles.label}>Password</Text>
                   </View>
-                  <View style={styles.passwordContainer}>
-                    <TextInput
-                      style={[styles.input, styles.passwordInput]}
-                      value={password}
-                      onChangeText={setPassword}
-                      secureTextEntry={!showPassword}
-                      autoCapitalize="none"
-                      placeholder="Enter password"
-                      placeholderTextColor="#666"
-                    />
-                    <Pressable
-                      onPress={() => setShowPassword(!showPassword)}
-                      style={styles.eyeIcon}
-                    >
-                      <Ionicons
-                        name={showPassword ? "eye-off-outline" : "eye-outline"}
-                        size={20}
-                        color="#666"
-                      />
-                    </Pressable>
-                  </View>
+                  <PasswordInput
+                    value={server.password}
+                    onChangeText={(text) => updateServer(server.id, { password: text })}
+                  />
                 </View>
               </>
             )}
+
+            {/* Delete Button */}
+            {servers.length > 1 && (
+              <>
+                <View style={styles.separator} />
+                <Pressable
+                  onPress={() => deleteServer(server.id)}
+                  style={styles.deleteButton}
+                >
+                  <Ionicons name="trash-outline" size={18} color="#ff4444" />
+                  <Text style={styles.deleteButtonText}>Delete Server</Text>
+                </Pressable>
+              </>
+            )}
           </View>
+        )}
+      </View>
+    );
+  };
+
+  return (
+    <SafeAreaView style={styles.container} edges={['top']}>
+      <StatusBar />
+
+      {/* Header */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>TorrServer</Text>
+        <Text style={styles.headerSubtitle}>Manage your server connections</Text>
+      </View>
+
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+      >
+        {/* Servers Section */}
+        <View style={styles.section}>
+          <View style={styles.sectionHeaderRow}>
+            <Text style={styles.sectionHeader}>SERVERS ({servers.length})</Text>
+            <Pressable onPress={addServer} style={styles.addButton}>
+              <Ionicons name="add-circle-outline" size={20} color="#535aff" />
+              <Text style={styles.addButtonText}>Add Server</Text>
+            </Pressable>
+          </View>
+
+          {servers.map(renderServer)}
         </View>
 
         {/* Save Button */}
         <Pressable
-          onPress={savePreferences}
+          onPress={saveServerConfigs}
           disabled={saving}
           style={({ pressed }) => [
             styles.saveButton,
@@ -208,7 +345,7 @@ const TorrServerScreen = () => {
             style={styles.saveButtonIcon}
           />
           <Text style={styles.saveButtonText}>
-            {saving ? 'Saving...' : 'Save Configuration'}
+            {saving ? 'Saving...' : 'Save All Configurations'}
           </Text>
         </Pressable>
 
@@ -216,11 +353,39 @@ const TorrServerScreen = () => {
         <View style={styles.infoCard}>
           <Ionicons name="information-circle-outline" size={20} color="#535aff" />
           <Text style={styles.infoText}>
-            Make sure your TorrServer is running and accessible from this device.
+            Select an active server by tapping the radio button. Expand each server to configure its settings.
           </Text>
         </View>
       </ScrollView>
     </SafeAreaView>
+  );
+};
+
+const PasswordInput = ({ value, onChangeText }: { value: string; onChangeText: (text: string) => void }) => {
+  const [showPassword, setShowPassword] = useState(false);
+
+  return (
+    <View style={styles.passwordContainer}>
+      <TextInput
+        style={[styles.input, styles.passwordInput]}
+        value={value}
+        onChangeText={onChangeText}
+        secureTextEntry={!showPassword}
+        autoCapitalize="none"
+        placeholder="Enter password"
+        placeholderTextColor="#666"
+      />
+      <Pressable
+        onPress={() => setShowPassword(!showPassword)}
+        style={styles.eyeIcon}
+      >
+        <Ionicons
+          name={showPassword ? "eye-off-outline" : "eye-outline"}
+          size={20}
+          color="#666"
+        />
+      </Pressable>
+    </View>
   );
 };
 
@@ -246,7 +411,7 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 15,
     color: '#888',
-    fontWeight: 500,
+    fontWeight: '500',
   },
   content: {
     paddingHorizontal: 20,
@@ -255,20 +420,101 @@ const styles = StyleSheet.create({
   section: {
     marginBottom: 28,
   },
-  sectionHeader: {
-    fontSize: 13,
-    fontWeight: 500,
-    color: '#888',
-    letterSpacing: 0.5,
+  sectionHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
     marginBottom: 12,
     paddingHorizontal: 4,
   },
-  card: {
+  sectionHeader: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#888',
+    letterSpacing: 0.5,
+  },
+  addButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  addButtonText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#535aff',
+  },
+  serverCard: {
     backgroundColor: '#1f1f1f',
     borderRadius: 16,
     borderWidth: 1,
     borderColor: '#2a2a2a',
+    marginBottom: 12,
     overflow: 'hidden',
+  },
+  serverHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 16,
+  },
+  serverHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
+  },
+  radioButton: {
+    marginRight: 12,
+  },
+  radioOuter: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
+    borderWidth: 2,
+    borderColor: '#666',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  radioOuterActive: {
+    borderColor: '#535aff',
+  },
+  radioInner: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: '#535aff',
+  },
+  serverInfo: {
+    flex: 1,
+  },
+  serverName: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 2,
+  },
+  serverUrl: {
+    fontSize: 13,
+    color: '#888',
+  },
+  serverHeaderRight: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  activeBadge: {
+    backgroundColor: 'rgba(83, 90, 255, 0.2)',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 8,
+  },
+  activeBadgeText: {
+    fontSize: 12,
+    fontWeight: '600',
+    color: '#535aff',
+  },
+  serverDetails: {
+    backgroundColor: '#1a1a1a',
   },
   inputWrapper: {
     padding: 16,
@@ -283,7 +529,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: 500,
+    fontWeight: '600',
     color: '#fff',
   },
   input: {
@@ -331,7 +577,7 @@ const styles = StyleSheet.create({
   },
   toggleLabel: {
     fontSize: 15,
-    fontWeight: 500,
+    fontWeight: '500',
     color: '#fff',
     marginBottom: 2,
   },
@@ -342,6 +588,18 @@ const styles = StyleSheet.create({
   separator: {
     height: 1,
     backgroundColor: '#2a2a2a',
+  },
+  deleteButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 16,
+    gap: 8,
+  },
+  deleteButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#ff4444',
   },
   saveButton: {
     backgroundColor: '#535aff',
@@ -366,7 +624,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: 500,
+    fontWeight: '600',
   },
   infoCard: {
     flexDirection: 'row',

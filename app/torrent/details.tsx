@@ -3,7 +3,7 @@ import { Alert, Image, Linking, Platform, ScrollView, Share, StyleSheet, Touchab
 import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, StatusBar, Text } from '@/components/Themed';
 import * as Haptics from 'expo-haptics';
-import { getOriginalPlatform, isHapticsSupported } from '@/utils/platform';
+import { getOriginalPlatform, isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { Ionicons } from '@expo/vector-icons';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
@@ -176,9 +176,9 @@ const TorrentDetails = () => {
               method: 'GET',
               headers: { ...(authHeader || {}) },
             });
-            Alert.alert('Preload started', 'Torrent file is now preloading.');
+            showAlert('Preload started', 'Torrent file is now preloading.');
           } catch {
-            Alert.alert('Preload failed', 'Unable to start preload.');
+            showAlert('Preload failed', 'Unable to start preload.');
           }
         }
 
@@ -239,7 +239,7 @@ const TorrentDetails = () => {
 
         if (selected.url === 'copy') {
           await Clipboard.setStringAsync(streamUrl);
-          Alert.alert('Copied', 'Stream link copied to clipboard.');
+          showAlert('Copied', 'Stream link copied to clipboard.');
           return;
         }
 
@@ -247,7 +247,7 @@ const TorrentDetails = () => {
           try {
             await Share.share({ message: streamUrl, url: streamUrl, title: 'Open Stream' });
           } catch {
-            Alert.alert('Unable to share', 'Please copy and open the stream manually.');
+            showAlert('Unable to share', 'Please copy and open the stream manually.');
           }
           return;
         }

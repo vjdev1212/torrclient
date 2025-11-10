@@ -4,14 +4,13 @@ import {
   StyleSheet,
   TouchableOpacity,
   Image,
-  Alert,
   ScrollView,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import * as Haptics from 'expo-haptics';
-import { isHapticsSupported } from '@/utils/platform';
+import { isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { useRouter } from 'expo-router';
 import { Text, View } from '@/components/Themed';
@@ -44,7 +43,7 @@ const AddTorrentScreen = () => {
     }
 
     if (!title || (!link && !hash)) {
-      Alert.alert('Missing fields', 'Please enter a title and a valid magnet link or info hash.');
+      showAlert('Missing fields', 'Please enter a title and a valid magnet link or info hash.');
       return;
     }
 
@@ -75,7 +74,7 @@ const AddTorrentScreen = () => {
       });
 
       const result = await response.json();
-      Alert.alert('Success', 'Torrent added successfully.');
+      showAlert('Success', 'Torrent added successfully.');
       setInput('');
       setTitle('');
       setPoster('');
@@ -84,7 +83,7 @@ const AddTorrentScreen = () => {
       router.push("/(tabs)");
     } catch (err) {
       console.error(err);
-      Alert.alert('Error', 'Failed to add torrent.');
+      showAlert('Error', 'Failed to add torrent.');
     } finally {
       setSubmitting(false);
     }
