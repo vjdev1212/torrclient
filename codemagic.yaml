@@ -1,22 +1,361 @@
 workflows:
-  expo-build:
-    name: Expo EAS Build (Signed IPA for iOS, APK for Android)
+  torrclient-ios-build:
+    name: Torrclient iOS Build
     environment:
+      node: latest
+      xcode: latest
       groups:
-        - expo-env-vars
+        - EXPO
     scripts:
       - name: Install dependencies
+        script: npm install --force
+      
+      - name: Install Expo CLI
+        script: npm install -g @expo/cli@latest --force
+      
+      - name: Check Expo CLI version
+        script: npx expo --version
+      
+      - name: Extract app version from app.json
         script: |
-          echo "Setting up Node.js..."
-          nvm install $NODE_VERSION
-          npm install
-      - name: Install EAS CLI
+          if [ -f "app.json" ]; then
+            APP_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.version")
+            APP_NAME=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.name.replace(/[^a-zA-Z0-9]/g, '')")
+            
+            echo "📱 App Name: $APP_NAME"
+            echo "📋 Version: $APP_VERSION"
+            echo "APP_VERSION=$APP_VERSION" >> $CM_ENV
+            echo "APP_NAME=$APP_NAME" >> $CM_ENV
+          else
+            echo "⚠️  app.json not found, using default values"
+            echo "APP_VERSION=1.0.0" >> $CM_ENV
+            echo "APP_NAME=Torrclient" >> $CM_ENV
+          fi
+      
+      - name: Clean and generate iOS project
         script: |
-          npm install -g eas-cli
-      - name: Build Expo project using EAS Build
+          rm -rf ios android
+          npx expo prebuild --platform ios
+      
+      - name: Install iOS dependencies
         script: |
-          eas build --platform ios --profile development --non-interactive
-          eas build --platform android --profile development --non-interactive
+          cd ios
+          pod install
+      
+      - name: Build with Xcode (unsigned)
+        script: |
+          cd ios
+          WORKSPACE=$(find . -name "*.xcworkspace" -maxdepth 1 | head -1)
+          if [ -z "$WORKSPACE" ]; then
+            echo "❌ No .xcworkspace found"
+            exit 1
+          fi
+          
+          SCHEME_NAME=$(basename "$WORKSPACE" .xcworkspace)
+          echo "📱 Building scheme: $SCHEME_NAME"
+          
+          xcodebuild -workspace "$WORKSPACE" \
+            -scheme "$SCHEME_NAME" \
+            -configuration Release \
+            -destination generic/platform=iOS \
+            -archivePath "build/$SCHEME_NAME.xcarchive" \
+            archive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM=""
+
+          mkdir -p "build/Payload"
+          cp -r "build/$SCHEME_NAME.xcarchive/Products/Applications/"*.app "build/Payload/"
+
+          APP_BUNDLE=$(ls "build/Payload/" | head -1)
+          BASE_NAME="${APP_BUNDLE%.app}"
+
+          echo "📱 App bundle: $APP_BUNDLE"
+
+          # Create versioned IPA name
+          IPA_NAME="${APP_NAME}_v${APP_VERSION}"
+          
+          echo "📦 IPA name: $IPA_NAME"
+
+          EXECUTABLE=$(plutil -extract CFBundleExecutable raw "build/Payload/$APP_BUNDLE/Info.plist" 2>/dev/null || echo "$BASE_NAME")
+          if [ ! -f "build/Payload/$APP_BUNDLE/$EXECUTABLE" ]; then
+            echo "⚠️  Warning: Executable $EXECUTABLE not found"
+          else
+            echo "✅ Executable found: $EXECUTABLE"
+          fi
+
+          cd build
+          zip -r "$IPA_NAME.ipa" Payload/
+
+          if [ -f "$IPA_NAME.ipa" ]; then
+            echo "✅ IPA created successfully: $IPA_NAME.ipa"
+            echo "📊 IPA size: $(ls -lh "$IPA_NAME.ipa" | awk '{print $5}')"
+            echo "🏷️  Full version info: $APP_NAME v$APP_VERSION"
+            
+            # Create a symlink with a simple name for easier access
+            ln -sf "$IPA_NAME.ipa" "latest.ipa"
+            echo "🔗 Symlink created: latest.ipa -> $IPA_NAME.ipa"
+          else
+            echo "❌ Failed to create IPA"
+            exit 1
+          fi
+    
     artifacts:
-      - ./dist/*.ipa
-      - ./dist/*.apk
+      - ios/build/*.ipa
+      - ios/build/**/*.xcarchive
+
+  torrclient-ios-dev:
+    name: Torrclient iOS Development Build
+    environment:
+      node: latest
+      xcode: latest
+      groups:
+        - EXPO
+    scripts:
+      - name: Install dependencies
+        script: npm install --force
+
+      - name: Install Expo CLI
+        script: npm install -g @expo/cli@latest --force
+
+      - name: Extract app version from app.json
+        script: |
+          if [ -f "app.json" ]; then
+            APP_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.version")
+            APP_NAME=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.name.replace(/[^a-zA-Z0-9]/g, '')")
+            echo "📱 App Name: $APP_NAME"
+            echo "📋 Version: $APP_VERSION"
+            echo "APP_VERSION=$APP_VERSION" >> $CM_ENV
+            echo "APP_NAME=$APP_NAME" >> $CM_ENV
+          else
+            echo "⚠️  app.json not found, using defaults"
+            echo "APP_VERSION=1.0.0" >> $CM_ENV
+            echo "APP_NAME=Torrclient" >> $CM_ENV
+          fi
+
+      - name: Clean and generate iOS project
+        script: |
+          rm -rf ios android
+          npx expo prebuild --platform ios
+
+      - name: Install iOS dependencies
+        script: |
+          cd ios
+          pod install
+
+      - name: Build with Xcode (Debug, unsigned)
+        script: |
+          cd ios
+          WORKSPACE=$(find . -name "*.xcworkspace" -maxdepth 1 | head -1)
+          SCHEME_NAME=$(basename "$WORKSPACE" .xcworkspace)
+
+          echo "📱 Building development scheme: $SCHEME_NAME"
+
+          xcodebuild -workspace "$WORKSPACE" \
+            -scheme "$SCHEME_NAME" \
+            -configuration Debug \
+            -destination generic/platform=iOS \
+            -archivePath "build/$SCHEME_NAME-dev.xcarchive" \
+            archive \
+            CODE_SIGN_IDENTITY="" \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGNING_ALLOWED=NO \
+            DEVELOPMENT_TEAM=""
+
+          mkdir -p build/Payload
+          cp -r build/$SCHEME_NAME-dev.xcarchive/Products/Applications/*.app build/Payload/
+
+          APP_BUNDLE=$(ls build/Payload/ | head -1)
+          IPA_NAME="${APP_NAME}_Dev_v${APP_VERSION}"
+
+          cd build
+          zip -r "$IPA_NAME.ipa" Payload/
+
+          if [ -f "$IPA_NAME.ipa" ]; then
+            echo "✅ Development IPA created: $IPA_NAME.ipa"
+            ln -sf "$IPA_NAME.ipa" "latest-dev.ipa"
+          else
+            echo "❌ Failed to create Development IPA"
+            exit 1
+          fi
+
+    artifacts:
+      - ios/build/*.ipa
+
+  torrclient-android-build:
+    name: Torrclient Android Build
+    environment:
+      node: latest
+      java: latest
+      groups:
+        - EXPO
+        - ANDROID_KEYSTORE
+    scripts:
+      - name: Install dependencies
+        script: npm install --force
+
+      - name: Extract app version from app.json
+        script: |
+          if [ -f "app.json" ]; then
+            APP_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.version")
+            APP_NAME=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.name.replace(/[^a-zA-Z0-9]/g, '')")
+            
+            echo "🤖 App Name: $APP_NAME"
+            echo "📋 Version: $APP_VERSION"
+            echo "APP_VERSION=$APP_VERSION" >> $CM_ENV
+            echo "APP_NAME=$APP_NAME" >> $CM_ENV
+          else
+            echo "⚠️  app.json not found, using default values"
+            echo "APP_VERSION=1.0.0" >> $CM_ENV
+            echo "APP_NAME=Torrclient" >> $CM_ENV
+          fi
+
+      - name: Clean and generate Android project
+        script: |
+          rm -rf ios android
+          npm install -g @expo/cli@latest --force
+          npx expo prebuild --platform android
+
+      - name: Setup Android keystore
+        script: |
+          if [ -z "$KEYSTORE_FILE" ]; then
+            echo "⚠️  No keystore provided, building unsigned APK"
+            echo "UNSIGNED_BUILD=true" >> $CM_ENV
+          else
+            echo "🔐 Keystore file detected"
+            echo "UNSIGNED_BUILD=false" >> $CM_ENV
+          fi
+
+      - name: Build Android release
+        script: |
+          cd android
+          
+          if [ "$UNSIGNED_BUILD" = "true" ]; then
+            echo "📦 Building unsigned release APK"
+            ./gradlew assembleRelease -x configureCMakeRelease -Pandroid.overridePathCheck=true
+            BUILD_OUTPUT="app/build/outputs/apk/release"
+          else
+            echo "📦 Building signed release APK"
+            ./gradlew assembleRelease \
+              -x configureCMakeRelease \
+              -Pandroid.overridePathCheck=true \
+              -Pandroid.injected.signing.store.file=$KEYSTORE_FILE \
+              -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
+              -Pandroid.injected.signing.key.alias=$KEYSTORE_ALIAS \
+              -Pandroid.injected.signing.key.password=$KEYSTORE_KEY_PASSWORD
+            BUILD_OUTPUT="app/build/outputs/apk/release"
+          fi
+
+          if [ -f "$BUILD_OUTPUT/app-release.apk" ]; then
+            APK_NAME="${APP_NAME}_v${APP_VERSION}_release.apk"
+            cp "$BUILD_OUTPUT/app-release.apk" "../$APK_NAME"
+            
+            echo "✅ Release APK created: $APK_NAME"
+            echo "📊 APK size: $(ls -lh "$APK_NAME" | awk '{print $5}')"
+            echo "🏷️  Full version info: $APP_NAME v$APP_VERSION"
+            
+            ln -sf "$APK_NAME" "../latest-release.apk"
+            echo "🔗 Symlink created: latest-release.apk -> $APK_NAME"
+          else
+            echo "❌ Failed to create release APK"
+            exit 1
+          fi
+
+      - name: Build Android App Bundle
+        script: |
+          cd android
+          
+          if [ "$UNSIGNED_BUILD" = "true" ]; then
+            echo "📦 Building unsigned App Bundle"
+            ./gradlew bundleRelease -x configureCMakeRelease -Pandroid.overridePathCheck=true
+          else
+            echo "📦 Building signed App Bundle"
+            ./gradlew bundleRelease \
+              -x configureCMakeRelease \
+              -Pcom.android.build.gradle.overridePathCheck=true \
+              -Pandroid.injected.signing.store.file=$KEYSTORE_FILE \
+              -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
+              -Pandroid.injected.signing.key.alias=$KEYSTORE_ALIAS \
+              -Pandroid.injected.signing.key.password=$KEYSTORE_KEY_PASSWORD
+          fi
+
+          if [ -f "app/build/outputs/bundle/release/app-release.aab" ]; then
+            AAB_NAME="${APP_NAME}_v${APP_VERSION}_release.aab"
+            cp "app/build/outputs/bundle/release/app-release.aab" "../$AAB_NAME"
+            
+            echo "✅ App Bundle created: $AAB_NAME"
+            echo "📊 AAB size: $(ls -lh "$AAB_NAME" | awk '{print $5}')"
+            
+            ln -sf "$AAB_NAME" "../latest-release.aab"
+            echo "🔗 Symlink created: latest-release.aab -> $AAB_NAME"
+          else
+            echo "❌ Failed to create App Bundle"
+            exit 1
+          fi
+
+    artifacts:
+      - "*.apk"
+      - "*.aab"
+      - android/app/build/outputs/**/*
+
+  torrclient-android-dev:
+    name: Torrclient Android Development Build
+    environment:
+      node: latest
+      java: latest
+      groups:
+        - EXPO
+    scripts:
+      - name: Install dependencies
+        script: npm install --force
+
+      - name: Extract app version from app.json
+        script: |
+          if [ -f "app.json" ]; then
+            APP_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.version")
+            APP_NAME=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.name.replace(/[^a-zA-Z0-9]/g, '')")
+            
+            echo "🤖 App Name: $APP_NAME"
+            echo "📋 Version: $APP_VERSION"
+            echo "APP_VERSION=$APP_VERSION" >> $CM_ENV
+            echo "APP_NAME=$APP_NAME" >> $CM_ENV
+          else
+            echo "⚠️  app.json not found, using default values"
+            echo "APP_VERSION=1.0.0" >> $CM_ENV
+            echo "APP_NAME=Torrclient" >> $CM_ENV
+          fi
+
+      - name: Clean and generate Android project
+        script: |
+          rm -rf ios android
+          npm install -g @expo/cli@latest --force
+          npx expo prebuild --platform android
+
+      - name: Build Android debug APK
+        script: |
+          cd android
+          
+          echo "📦 Building debug APK"
+          ./gradlew assembleDebug -x configureCMakeDebug -Pandroid.overridePathCheck=true
+          
+          BUILD_OUTPUT="app/build/outputs/apk/debug"
+          
+          if [ -f "$BUILD_OUTPUT/app-debug.apk" ]; then
+            APK_NAME="${APP_NAME}_Dev_v${APP_VERSION}_debug.apk"
+            cp "$BUILD_OUTPUT/app-debug.apk" "../$APK_NAME"
+            
+            echo "✅ Debug APK created: $APK_NAME"
+            echo "📊 APK size: $(ls -lh "$APK_NAME" | awk '{print $5}')"
+            echo "🏷️  Full version info: $APP_NAME v$APP_VERSION (Debug)"
+            
+            ln -sf "$APK_NAME" "../latest-debug.apk"
+            echo "🔗 Symlink created: latest-debug.apk -> $APK_NAME"
+          else
+            echo "❌ Failed to create debug APK"
+            exit 1
+          fi
+
+    artifacts:
+      - "*.apk"
+      - android/app/build/outputs/**/*
