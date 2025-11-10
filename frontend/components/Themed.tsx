@@ -11,7 +11,6 @@ import {
   Platform
 } from 'react-native';
 import { StatusBar as DefaultStatusBar } from 'expo-status-bar';
-import Colors from '@/constants/Colors';
 
 type ThemeProps = {
   lightColor?: string;
@@ -24,32 +23,16 @@ export type ViewProps = ThemeProps & DefaultView['props'];
 export type StatusBarProps = ThemeProps & React.ComponentProps<typeof DefaultStatusBar>;
 export type ActivityIndicatorProps = ThemeProps & DefaultActivityIndicator['props'];
 
-export function useThemeColor(
-  props: { light?: string; dark?: string },
-  colorName: keyof typeof Colors.light & keyof typeof Colors.dark
-) {
-  const theme = 'dark';
-  const colorFromProps = props[theme];
-
-  if (colorFromProps) {
-    return colorFromProps;
-  } else {
-    return Colors[theme][colorName];
-  }
-}
-
 export function Text(props: TextProps) {
   const { style, lightColor, darkColor, ...otherProps } = props;
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
   const webFontStyle = Platform.OS === 'web' ? { fontFamily: 'SF Pro Display, -apple-system, BlinkMacSystemFont, sans-serif' } : {};
-  return <DefaultText style={[webFontStyle, { color }, style]} {...otherProps} />;
+  return <DefaultText style={[webFontStyle, style]} {...otherProps} />;
 }
 
 export function TextInput(props: TextInputProps) {
-  const { style, lightColor, darkColor, ...otherProps } = props;
-  const color = useThemeColor({ light: lightColor, dark: darkColor }, 'text');
+  const { style, darkColor, ...otherProps } = props;
 
-  return <DefaultTextInput style={[{ color }, style]} {...otherProps} />;
+  return <DefaultTextInput style={[style]} {...otherProps} />;
 }
 
 export function ActivityIndicator(props: ActivityIndicatorProps) {
@@ -61,9 +44,8 @@ export function ActivityIndicator(props: ActivityIndicatorProps) {
 
 export function View(props: ViewProps) {
   const { style, darkColor, ...otherProps } = props;
-  const backgroundColor = useThemeColor({dark: darkColor }, 'background');
 
-  return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
+  return <DefaultView style={[style]} {...otherProps} />;
 }
 
 export function StatusBar(props: StatusBarProps) {
