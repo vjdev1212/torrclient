@@ -22,7 +22,14 @@
       "icon": "assets/images/icon.png",
       "supportsTablet": true,
       "backgroundColor": "#000000",
-      "bundleIdentifier": "com.vijayyuvi.torrclient"
+      "bundleIdentifier": "com.vijayyuvi.torrclient",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": true,
+          "NSAllowsLocalNetworking": true
+        }
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -47,7 +54,8 @@
         {
           "android": {
             "usesCleartextTraffic": true,
-            "minSdkVersion": 24,
+            "networkSecurityConfig": "@xml/network_security_config",
+            "minSdkVersion": 26,
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
             "buildToolsVersion": "35.0.0"
