@@ -162,7 +162,7 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     imageWrapper: {
-        borderRadius: 12,
+        borderRadius: 8,
         overflow: 'hidden',
         backgroundColor: '#1a1a1a',
         position: 'relative',
