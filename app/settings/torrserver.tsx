@@ -76,15 +76,15 @@ const TorrServerScreen = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar />
-      
+
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>TorrServer</Text>
         <Text style={styles.headerSubtitle}>Configure your server connection</Text>
       </View>
 
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
+      <ScrollView
+        showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.content}
       >
         {/* Server Configuration Section */}
@@ -116,10 +116,10 @@ const TorrServerScreen = () => {
             <View style={styles.toggleWrapper}>
               <View style={styles.toggleLeft}>
                 <View style={styles.toggleIconContainer}>
-                  <Ionicons 
-                    name={authEnabled ? "lock-closed" : "lock-open-outline"} 
-                    size={20} 
-                    color="#535aff" 
+                  <Ionicons
+                    name={authEnabled ? "lock-closed" : "lock-open-outline"}
+                    size={20}
+                    color="#535aff"
                   />
                 </View>
                 <View>
@@ -141,7 +141,7 @@ const TorrServerScreen = () => {
             {authEnabled && (
               <>
                 <View style={styles.separator} />
-                
+
                 <View style={styles.inputWrapper}>
                   <View style={styles.labelRow}>
                     <Ionicons name="person-outline" size={18} color="#535aff" style={styles.labelIcon} />
@@ -174,14 +174,14 @@ const TorrServerScreen = () => {
                       placeholder="Enter password"
                       placeholderTextColor="#666"
                     />
-                    <Pressable 
+                    <Pressable
                       onPress={() => setShowPassword(!showPassword)}
                       style={styles.eyeIcon}
                     >
-                      <Ionicons 
-                        name={showPassword ? "eye-off-outline" : "eye-outline"} 
-                        size={20} 
-                        color="#666" 
+                      <Ionicons
+                        name={showPassword ? "eye-off-outline" : "eye-outline"}
+                        size={20}
+                        color="#666"
                       />
                     </Pressable>
                   </View>
@@ -192,8 +192,8 @@ const TorrServerScreen = () => {
         </View>
 
         {/* Save Button */}
-        <Pressable 
-          onPress={savePreferences} 
+        <Pressable
+          onPress={savePreferences}
           disabled={saving}
           style={({ pressed }) => [
             styles.saveButton,
@@ -201,10 +201,10 @@ const TorrServerScreen = () => {
             saving && styles.saveButtonDisabled
           ]}
         >
-          <Ionicons 
-            name={saving ? "hourglass-outline" : "checkmark-circle-outline"} 
-            size={20} 
-            color="#fff" 
+          <Ionicons
+            name={saving ? "hourglass-outline" : "checkmark-circle-outline"}
+            size={20}
+            color="#fff"
             style={styles.saveButtonIcon}
           />
           <Text style={styles.saveButtonText}>
@@ -227,7 +227,9 @@ const TorrServerScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    width: '100%',
+    margin: 'auto',
+    maxWidth: 780
   },
   header: {
     paddingHorizontal: 24,

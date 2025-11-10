@@ -163,7 +163,9 @@ const SearchScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    width: '100%',
+    margin: 'auto',
+    maxWidth: 780
   },
   header: {
     paddingHorizontal: 24,

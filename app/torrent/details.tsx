@@ -170,7 +170,7 @@ const TorrentDetails = () => {
 
         if (index === 0) {
           try {
-            const preloadUrl = `${streamUrl}&preload`;
+            const preloadUrl = `${streamUrl}&preload`;            
             const authHeader = await getTorrServerAuthHeader();
             await fetch(preloadUrl, {
               method: 'GET',
@@ -184,7 +184,7 @@ const TorrentDetails = () => {
 
         if (index === 1) {
           setTimeout(() => {
-            const playUrl = `${window.location.origin}${streamUrl}&play`;
+            const playUrl = `${streamUrl}&play`;
             console.log('PlayUrl', playUrl)
             showPlayerSelection(playUrl);
           }, 300);

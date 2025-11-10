@@ -241,8 +241,7 @@ export default AddTorrentScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    marginTop: 30
+    flex: 1
   },
   scrollContainer: {
     flexGrow: 1,

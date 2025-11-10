@@ -16,24 +16,24 @@ const SettingsScreen = () => {
   ];
 
   // SettingItem Component
-  const SettingItem = ({ 
-    title, 
-    icon, 
+  const SettingItem = ({
+    title,
+    icon,
     description,
-    onPress 
-  }: { 
-    title: string, 
-    icon: keyof typeof Ionicons.glyphMap, 
+    onPress
+  }: {
+    title: string,
+    icon: keyof typeof Ionicons.glyphMap,
     description?: string,
-    onPress: () => void 
+    onPress: () => void
   }) => {
     const iconColor = '#535aff';
     return (
-      <Pressable 
+      <Pressable
         style={({ pressed }) => [
           styles.settingItem,
           pressed && styles.settingItemPressed
-        ]} 
+        ]}
         onPress={onPress}
       >
         <View style={styles.iconContainer}>
@@ -58,14 +58,14 @@ const SettingsScreen = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar />
-      
+
       {/* Header Section */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Settings</Text>
         <Text style={styles.headerSubtitle}>Manage your preferences</Text>
       </View>
 
-      <ScrollView 
+      <ScrollView
         contentContainerStyle={styles.scrollViewContent}
         showsVerticalScrollIndicator={false}
       >
@@ -107,7 +107,9 @@ const SettingsScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    width: '100%',
+    margin: 'auto',
+    maxWidth: 780
   },
   header: {
     paddingHorizontal: 24,

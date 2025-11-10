@@ -1,42 +1,11 @@
-version: '3.8'
+version: '3.0'
 
+name: TorrClient
 services:
-  torrserver:
-    image: ghcr.io/yourok/torrserver
-    container_name: torrserver
-    environment:
-      - TS_PORT=4554
-      - TS_DONTKILL=1
-      - TS_HTTPAUTH=0
-      - TS_CONF_PATH=/opt/ts/config
-      - TS_TORR_DIR=/opt/ts/torrents
-    volumes:
-      - ./CACHE:/opt/ts/torrents
-      - ./CONFIG:/opt/ts/config
-    ports:
-      - "4554:4554"
-    networks:
-      - torrclient
-    restart: unless-stopped
-
   torrclient:
-    image: jarvisnexus/torrclient-server
-    build: ./server
     container_name: torrclient
+    hostname: torrclient
+    image: jarvisnexus/torrclient:latest
     ports:
-      - "3443:3000"
-    networks:
-      - torrclient
-    depends_on:
-      - torrserver
+      - "4444:80"
     restart: unless-stopped
-    environment:
-      - TORRSERVER_PORT=4554
-      - TORRSERVER_AUTHENABLED=false
-      - TORRSERVER_USERNAME=admin # Change if auth is enabled
-      - TORRSERVER_PASSWORD=secret # Change if auth is enabled
-
-networks:
-  torrclient:
-    name: torrclient
-    driver: bridge
