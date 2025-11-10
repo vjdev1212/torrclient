@@ -109,8 +109,8 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
                             {/* Subtle overlay for depth */}
                             <View style={styles.imageOverlay} />
                         </View>
-                        <Text 
-                            numberOfLines={2} 
+                        <Text
+                            numberOfLines={1}
                             style={[styles.title, { width: posterWidth }]}
                         >
                             {item.title}
@@ -130,11 +130,11 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
     }
 
     return (
-        <ScrollView 
+        <ScrollView
             contentContainerStyle={[
                 styles.scrollContent,
                 { paddingHorizontal: horizontalPadding }
-            ]} 
+            ]}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
         >
