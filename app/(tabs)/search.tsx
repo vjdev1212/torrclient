@@ -92,7 +92,7 @@ const SearchScreen = () => {
 
       {/* Search Bar */}
       <View style={styles.searchContainer}>
-        <View style={styles.searchInputWrapper}>
+        <View style={styles.searchInputWrapper} pointerEvents="box-none">
           <Ionicons name="search-outline" size={20} color="#888" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
@@ -179,7 +179,7 @@ const styles = StyleSheet.create({
     fontWeight: 500,
   },
   searchContainer: {
-    paddingHorizontal: 20,
+    paddingHorizontal: 15,
     paddingBottom: 16,
   },
   searchInputWrapper: {
@@ -187,8 +187,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#1f1f1f',
     borderRadius: 16,
-    paddingHorizontal: 16,
-    height: 48,
+    paddingHorizontal: 15,
+    minHeight: 48,
     borderWidth: 1,
     borderColor: '#2a2a2a',
   },
@@ -199,7 +199,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#fff',
-    height: '100%',
+    minHeight: 48,
+    paddingVertical: 12,
+    outlineWidth: 0,
+    cursor: 'pointer'
   },
   clearButton: {
     padding: 4,
