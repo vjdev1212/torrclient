@@ -460,26 +460,26 @@ const TorrentDetails = () => {
     <View style={styles.container}>
       <StatusBar />
 
-      {/* Hero Poster Section - Mobile Only */}
-      {!isLargeScreen && (
-        <View style={styles.heroPosterContainer}>
-          <Image
-            source={{ uri: torrentData.poster }}
-            style={styles.heroPosterImage}
-            resizeMode="cover"
-          />
-          <View style={styles.heroPosterOverlay} />
-          <View style={styles.heroPosterContent}>
-            <Text style={styles.heroTitle}>{torrentData.title}</Text>
-          </View>
-        </View>
-      )}
-
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ padding: contentPadding }}
         ref={ref}
       >
+        {/* Hero Poster Section - Mobile Only */}
+        {!isLargeScreen && (
+          <View style={styles.heroPosterContainer}>
+            <Image
+              source={{ uri: torrentData.poster }}
+              style={styles.heroPosterImage}
+              resizeMode="cover"
+            />
+            <View style={styles.heroPosterOverlay} />
+            <View style={styles.heroPosterContent}>
+              <Text style={styles.heroTitle}>{torrentData.title}</Text>
+            </View>
+          </View>
+        )}
+
         <View style={[styles.content, { flexDirection: isLargeScreen ? 'row' : 'column', gap: isLargeScreen ? 32 : 0 }]}>
 
           {/* Poster Section - Desktop Only */}
@@ -530,10 +530,7 @@ const TorrentDetails = () => {
             {videoFiles.length > 0 && (
               <View style={styles.filesSection}>
                 <View style={styles.filesSectionHeader}>
-                  <Text style={styles.sectionTitle}>Files</Text>
-                  <View style={styles.badge}>
-                    <Text style={styles.badgeText}>{videoFiles.length}</Text>
-                  </View>
+                  <Text style={styles.sectionTitle}>Files: {videoFiles.length}</Text>
                 </View>
                 {videoFiles.map((file: any, index: number) => (
                   <TouchableOpacity
@@ -600,8 +597,7 @@ const styles = StyleSheet.create({
   // Hero Poster - Mobile
   heroPosterContainer: {
     width: '100%',
-    height: 400,
-    position: 'relative',
+    height: 400
   },
   heroPosterImage: {
     width: '100%',
@@ -662,7 +658,8 @@ const styles = StyleSheet.create({
   },
   infoSectionMobile: {
     width: '100%',
-    padding: 20,
+    paddingVertical: 20,
+    paddingHorizontal: 15,
     paddingTop: 24,
   },
   headerSection: {
@@ -685,7 +682,6 @@ const styles = StyleSheet.create({
     fontWeight: 500,
     color: '#fff',
     marginBottom: 16,
-    letterSpacing: -0.3,
   },
 
   // Info Card - Mobile
@@ -768,17 +764,6 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     gap: 10,
   },
-  badge: {
-    backgroundColor: '#535aff',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,    
-  },
-  badgeText: {
-    color: '#fff',
-    fontSize: 13,
-    fontWeight: 500,
-  },
   fileCard: {
     backgroundColor: '#141414',
     borderRadius: 12,
@@ -828,8 +813,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 16,
-    paddingHorizontal: 20,
+    paddingVertical: 14,
+    paddingHorizontal: 12,
     borderRadius: 12,
     gap: 10,
     flex: 1,
@@ -844,7 +829,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 16,
     fontWeight: 500,
-    letterSpacing: -0.2,
   },
 
   // Loading States
