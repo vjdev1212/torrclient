@@ -18,7 +18,7 @@ const TorrentDetails = () => {
   const [cacheData, setCacheData] = useState<any>(null);
   const [baseUrl, setBaseUrl] = useState<any>('');
   const [loading, setLoading] = useState(true);
-  const [cacheLoading, setCacheLoading] = useState(true); // Separate loading state for cache
+  const [cacheLoading, setCacheLoading] = useState(true);
   const { width, height } = useWindowDimensions();
   const isPortrait = height >= width;
   const isLargeScreen = width > 768 && !isPortrait;
@@ -89,18 +89,16 @@ const TorrentDetails = () => {
       } catch (error) {
         console.error('Error fetching cache data:', error);
       } finally {
-        setCacheLoading(false); // Set cache loading to false after first fetch
+        setCacheLoading(false);
       }
     };
 
     if (hash) {
       loadBaseUrl().then((url: any) => {
-        // Fetch both simultaneously instead of sequentially
         Promise.all([
           fetchDetails(url),
           fetchCache(url)
         ]).then(() => {
-          // Start polling after initial fetch
           interval = setInterval(() => fetchCache(url), 3000);
         });
       });
@@ -111,17 +109,17 @@ const TorrentDetails = () => {
 
   if (loading) {
     return (
-      <View style={styles.centeredContainer}>
-        <ActivityIndicator size="large" style={styles.activityIndicator} color="#535aff" />
-        <Text style={styles.centeredText}>Loading</Text>
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator size="large" color="#535aff" />
+        <Text style={styles.loadingText}>Loading details...</Text>
       </View>
     );
   }
 
   if (!torrentData) {
     return (
-      <View style={styles.centeredContainer}>
-        <Text style={styles.centeredText}>No details available</Text>
+      <View style={styles.loadingContainer}>
+        <Text style={styles.emptyText}>No details available</Text>
       </View>
     );
   }
@@ -147,7 +145,6 @@ const TorrentDetails = () => {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
     }
 
-    // Trigger the first action sheet
     setTimeout(() => {
       showPreloadOrPlaySheet(file);
     }, 100);
@@ -172,7 +169,6 @@ const TorrentDetails = () => {
         const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}`;
 
         if (index === 0) {
-          // Preload
           try {
             const preloadUrl = `${streamUrl}&preload`;
             const authHeader = await getTorrServerAuthHeader();
@@ -187,10 +183,9 @@ const TorrentDetails = () => {
         }
 
         if (index === 1) {
-          // Play
           setTimeout(() => {
             const playUrl = `${window.location.origin}${streamUrl}&play`;
-            console.log('PlayUrl',playUrl)
+            console.log('PlayUrl', playUrl)
             showPlayerSelection(playUrl);
           }, 300);
         }
@@ -261,7 +256,6 @@ const TorrentDetails = () => {
       }
     );
   };
-
 
   const confirmAction = async (
     title: string,
@@ -341,7 +335,6 @@ const TorrentDetails = () => {
     }
   };
 
-
   const formatBytes = (bytes: number) => {
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
     if (bytes === 0) return '0 Bytes';
@@ -351,167 +344,133 @@ const TorrentDetails = () => {
   }
 
   const CacheInfo = React.memo(({ cacheData, cacheLoading }: { cacheData: any, cacheLoading: boolean }) => {
-    // Show loading state for cache info
     if (cacheLoading) {
       return (
-        <View>
-          <Text style={[styles.cacheTitle, { marginHorizontal: 25 }]}>Torrent Details</Text>
-          <View style={styles.metaTable}>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Category:</Text>
-              <Text style={styles.metaValue}>{getFormattedCategory(torrentData.category)}</Text>
-            </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Size:</Text>
-              <Text style={styles.metaValue}>{formatBytes(torrentData.size)}</Text>
-            </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Status:</Text>
-              <ActivityIndicator size="small" color="#535aff" />
-            </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Loading cache data...</Text>
-              <Text style={styles.metaValue}></Text>
-            </View>
+        <View style={styles.detailsSection}>
+          <Text style={styles.sectionTitle}>Details</Text>
+          <View style={styles.infoCard}>
+            <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
+            <InfoRow label="Size" value={formatBytes(torrentData.size)} />
+            <InfoRow label="Status" value={<ActivityIndicator size="small" color="#535aff" />} />
           </View>
         </View>
       );
     }
 
-    // Show placeholder if no cache data available
     if (!cacheData?.Torrent) {
       return (
-        <View>
-          <Text style={[styles.cacheTitle, { marginHorizontal: 25 }]}>Torrent Details</Text>
-          <View style={styles.metaTable}>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Category:</Text>
-              <Text style={styles.metaValue}>{getFormattedCategory(torrentData.category)}</Text>
-            </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Size:</Text>
-              <Text style={styles.metaValue}>{formatBytes(torrentData.size)}</Text>
-            </View>
-            <View style={styles.metaRow}>
-              <Text style={styles.metaLabel}>Status:</Text>
-              <Text style={styles.metaValue}>Loading...</Text>
-            </View>
+        <View style={styles.detailsSection}>
+          <Text style={styles.sectionTitle}>Details</Text>
+          <View style={styles.infoCard}>
+            <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
+            <InfoRow label="Size" value={formatBytes(torrentData.size)} />
+            <InfoRow label="Status" value="Loading..." />
           </View>
         </View>
       );
     }
 
     return (
-      <View>
-        <Text style={[styles.cacheTitle, { marginHorizontal: 25 }]}>Torrent Details</Text>
-        <View style={styles.metaTable}>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Category:</Text>
-            <Text style={styles.metaValue}>{getFormattedCategory(torrentData.category)}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Size:</Text>
-            <Text style={styles.metaValue}>{formatBytes(torrentData.size)}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Status:</Text>
-            <Text style={styles.metaValue}>{cacheData.Torrent.stat_string}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Peers:</Text>
-            <Text style={styles.metaValue}>{cacheData.Torrent.total_peers}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Seeders:</Text>
-            <Text style={styles.metaValue}>{cacheData.Torrent.connected_seeders}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Download Speed:</Text>
-            <Text style={styles.metaValue}>
-              {cacheData.Torrent?.download_speed > 0
-                ? `${formatBytes(cacheData.Torrent.download_speed)}/s`
-                : '0 KB/s'}
-            </Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Bytes Read:</Text>
-            <Text style={styles.metaValue}>{formatBytes(cacheData.Torrent?.bytes_read || 0)}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Bytes Written:</Text>
-            <Text style={styles.metaValue}>{formatBytes(cacheData.Torrent?.bytes_written || 0)}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Active Peers:</Text>
-            <Text style={styles.metaValue}>{cacheData.Torrent.active_peers}</Text>
-          </View>
-          <View style={styles.metaRow}>
-            <Text style={styles.metaLabel}>Pending Peers:</Text>
-            <Text style={styles.metaValue}>{cacheData.Torrent.pending_peers}</Text>
-          </View>
+      <View style={styles.detailsSection}>
+        <Text style={styles.sectionTitle}>Details</Text>
+        <View style={styles.infoCard}>
+          <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
+          <InfoRow label="Size" value={formatBytes(torrentData.size)} />
+          <InfoRow label="Status" value={cacheData.Torrent.stat_string} />
+          <InfoRow label="Peers" value={cacheData.Torrent.total_peers} />
+          <InfoRow label="Seeders" value={cacheData.Torrent.connected_seeders} />
+          <InfoRow 
+            label="Download Speed" 
+            value={cacheData.Torrent?.download_speed > 0
+              ? `${formatBytes(cacheData.Torrent.download_speed)}/s`
+              : '0 KB/s'} 
+          />
+          <InfoRow label="Bytes Read" value={formatBytes(cacheData.Torrent?.bytes_read || 0)} />
+          <InfoRow label="Bytes Written" value={formatBytes(cacheData.Torrent?.bytes_written || 0)} />
+          <InfoRow label="Active Peers" value={cacheData.Torrent.active_peers} />
+          <InfoRow label="Pending Peers" value={cacheData.Torrent.pending_peers} isLast />
         </View>
       </View>
     );
   });
 
+  const InfoRow = ({ label, value, isLast = false }: { label: string, value: any, isLast?: boolean }) => (
+    <View style={[styles.infoRow, !isLast && styles.infoRowBorder]}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue}>{value}</Text>
+    </View>
+  );
+
   return (
     <ScrollView showsVerticalScrollIndicator={false} style={styles.container} ref={ref}>
       <StatusBar />
-      <View style={[styles.rootContainer, {
+      <View style={[styles.content, {
         flexDirection: isLargeScreen ? 'row' : 'column',
-        marginTop: isLargeScreen ? 50 : 0
+        paddingTop: isLargeScreen ? 40 : 20
       }]}>
-        <View style={isLargeScreen ? styles.leftHalf : styles.fullWidth}>
+        {/* Poster Section */}
+        <View style={isLargeScreen ? styles.posterSection : styles.posterSectionMobile}>
           <Image
             source={{ uri: torrentData.poster }}
-            style={isLargeScreen ? styles.landscapePosterImage : styles.portraitPosterImage}
+            style={isLargeScreen ? styles.posterLarge : styles.posterMobile}
             resizeMode="cover"
           />
         </View>
 
-        <View style={isLargeScreen ? styles.rightHalf : styles.fullWidth}>
-          <Text style={[styles.title, { textAlign: 'center' }]}>{torrentData.title}</Text>
+        {/* Details Section */}
+        <View style={isLargeScreen ? styles.infoSection : styles.infoSectionMobile}>
+          <Text style={styles.title}>{torrentData.title}</Text>
+          
           <CacheInfo cacheData={cacheData} cacheLoading={cacheLoading} />
 
+          {/* Files Section */}
           {videoFiles.length > 0 && (
-            <View style={styles.filesContainer}>
-              <Text style={styles.cacheTitle}>Files</Text>
+            <View style={styles.filesSection}>
+              <Text style={styles.sectionTitle}>Files ({videoFiles.length})</Text>
               {videoFiles.map((file: any, index: number) => (
-                <View key={index} style={styles.cacheBox}>
-                  <TouchableOpacity onPress={() => handleFileLink(file)}>
-                    <Text style={styles.cacheText} numberOfLines={10} ellipsizeMode="middle">
-                      {file.path} ({(file.length / (1024 ** 2)).toFixed(2)} MB)
+                <TouchableOpacity 
+                  key={index} 
+                  style={styles.fileCard}
+                  onPress={() => handleFileLink(file)}
+                  activeOpacity={0.7}
+                >
+                  <View style={styles.fileInfo}>
+                    <Ionicons name="play-circle" size={20} color="#535aff" />
+                    <Text style={styles.fileName} numberOfLines={2}>
+                      {file.path}
                     </Text>
-                  </TouchableOpacity>
-                </View>
+                  </View>
+                  <Text style={styles.fileSize}>
+                    {(file.length / (1024 ** 2)).toFixed(2)} MB
+                  </Text>
+                </TouchableOpacity>
               ))}
             </View>
           )}
 
-          <View style={{ flexDirection: 'row', justifyContent: 'flex-start', marginVertical: 20 }}>
+          {/* Action Buttons */}
+          <View style={styles.actionsContainer}>
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: '#535aff' }]}
+              style={[styles.actionButton, styles.dropButton]}
               onPress={handleDrop}
+              activeOpacity={0.8}
             >
-              <View style={styles.buttonContent}>
-                <Ionicons name="remove-circle-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
-                <Text style={styles.actionButtonText}>Drop</Text>
-              </View>
+              <Ionicons name="remove-circle-outline" size={20} color="#fff" />
+              <Text style={styles.actionButtonText}>Drop</Text>
             </TouchableOpacity>
 
             <TouchableOpacity
-              style={[styles.actionButton, { backgroundColor: '#e74c3c' }]}
+              style={[styles.actionButton, styles.deleteButton]}
               onPress={handleWipe}
+              activeOpacity={0.8}
             >
-              <View style={styles.buttonContent}>
-                <Ionicons name="trash-outline" size={18} color="#fff" style={{ marginRight: 6 }} />
-                <Text style={styles.actionButtonText}>Delete</Text>
-              </View>
+              <Ionicons name="trash-outline" size={20} color="#fff" />
+              <Text style={styles.actionButtonText}>Delete</Text>
             </TouchableOpacity>
           </View>
         </View>
       </View>
-      <BottomSpacing space={100} />
+      <BottomSpacing space={60} />
     </ScrollView>
   );
 };
@@ -519,129 +478,154 @@ const TorrentDetails = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#000',
   },
-  rootContainer: {
-    justifyContent: 'flex-start',
-  },
-  portraitPosterImage: {
-    width: '90%',
-    aspectRatio: 3 / 4,
-    alignSelf: 'center',
-    borderRadius: 8,
-    resizeMode: 'contain',
-    marginVertical: 20,
-  },
-  landscapePosterImage: {
-    width: '75%',
-    aspectRatio: 2 / 3,
-    alignSelf: 'center',
-    borderRadius: 8
-  },
-  leftHalf: {
-    flex: 1,
-    padding: 10,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  rightHalf: {
-    flex: 2,
-    padding: 20,
-    justifyContent: 'flex-start',
-  },
-  fullWidth: {
+  content: {
+    paddingHorizontal: 20,
+    maxWidth: 1200,
     width: '100%',
-    marginBottom: 20,
+    alignSelf: 'center',
+  },
+  posterSection: {
+    flex: 1,
+    alignItems: 'center',
+    paddingRight: 30,
+  },
+  posterSectionMobile: {
+    width: '100%',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  posterLarge: {
+    width: '100%',
+    maxWidth: 300,
+    aspectRatio: 2 / 3,
+    borderRadius: 16,
+  },
+  posterMobile: {
+    width: '70%',
+    maxWidth: 250,
+    aspectRatio: 2 / 3,
+    borderRadius: 16,
+  },
+  infoSection: {
+    flex: 2,
+  },
+  infoSectionMobile: {
+    width: '100%',
   },
   title: {
-    fontSize: 30,
-    fontWeight: '500',
-    paddingHorizontal: 15,
-    marginTop: 10,
-    marginBottom: 25,
-  },
-  metaText: {
-    fontSize: 14,
-    color: '#fafafa',
-    textAlign: 'center',
-    marginBottom: 5
-  },
-  metaTable: {
-    marginBottom: 15,
-    marginTop: 8,
-    marginHorizontal: 20,
-    padding: 20,
-    backgroundColor: '#101010',
-    borderRadius: 8,
-    textAlign: 'justify'
-  },
-  metaRow: {
-    flexDirection: 'row',
-    marginVertical: 4
-  },
-  metaLabel: {
-    fontSize: 14,
+    fontSize: 28,
+    fontWeight: '700',
     color: '#fff',
-    marginRight: 30,
-    flex: 1
+    marginBottom: 24,
+    letterSpacing: -0.5,
   },
-  metaValue: {
-    fontSize: 14,
-    color: '#fff',
-    textAlign: 'left',
-    flex: 1.25
+  detailsSection: {
+    marginBottom: 24,
   },
-  cacheBox: {
-    marginHorizontal: 10,
-    marginVertical: 10,
-    padding: 20,
-    backgroundColor: '#101010',
-    borderRadius: 8,
-    maxWidth: '100%',
-  },
-  filesContainer: {
-    marginHorizontal: 10,
-    maxWidth: '100%',
-  },
-  cacheTitle: {
-    fontWeight: '500',
-    fontSize: 16,
-    marginBottom: 10,
-    marginHorizontal: 20
-  },
-  cacheText: {
-    fontSize: 14,
-    marginBottom: 2,
-    flexWrap: 'wrap',
-    flexShrink: 1,
-  },
-  activityIndicator: {
-    marginBottom: 10,
-  },
-  centeredContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  centeredText: {
+  sectionTitle: {
     fontSize: 18,
-    textAlign: 'center',
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 12,
+  },
+  infoCard: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 10,
+  },
+  infoRowBorder: {
+    borderBottomWidth: 1,
+    borderBottomColor: '#2a2a2a',
+  },
+  infoLabel: {
+    fontSize: 14,
+    color: '#999',
+    flex: 1,
+  },
+  infoValue: {
+    fontSize: 14,
+    color: '#fff',
+    fontWeight: '500',
+    flex: 1,
+    textAlign: 'right',
+  },
+  filesSection: {
+    marginBottom: 24,
+  },
+  fileCard: {
+    backgroundColor: '#1a1a1a',
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 10,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+  },
+  fileInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  fileName: {
+    fontSize: 14,
+    color: '#fff',
+    marginLeft: 10,
+    flex: 1,
+    fontWeight: '500',
+  },
+  fileSize: {
+    fontSize: 13,
+    color: '#999',
+  },
+  actionsContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    marginTop: 8,
   },
   actionButton: {
-    paddingVertical: 12,
-    paddingHorizontal: 25,
-    borderRadius: 25,
-    marginHorizontal: 30
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 14,
+    borderRadius: 12,
+    gap: 8,
+  },
+  dropButton: {
+    backgroundColor: '#535aff',
+  },
+  deleteButton: {
+    backgroundColor: '#e74c3c',
   },
   actionButtonText: {
     color: '#fff',
-    fontSize: 16,
+    fontSize: 15,
+    fontWeight: '600',
   },
-  buttonContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+  loadingContainer: {
+    flex: 1,
     justifyContent: 'center',
-  }
+    alignItems: 'center',
+    backgroundColor: '#000',
+  },
+  loadingText: {
+    marginTop: 16,
+    fontSize: 15,
+    color: '#999',
+  },
+  emptyText: {
+    fontSize: 16,
+    color: '#666',
+  },
 });
 
 export default TorrentDetails;
