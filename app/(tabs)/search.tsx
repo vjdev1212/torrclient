@@ -111,51 +111,45 @@ const SearchScreen = () => {
       </View>
 
       {/* Content Area */}
-      <ScrollView 
-        showsVerticalScrollIndicator={false} 
-        style={styles.contentContainer}
-        contentContainerStyle={styles.contentWrapper}
-      >
-        {loading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#535aff" />
-            <Text style={styles.loadingText}>Loading torrents...</Text>
+      {loading ? (
+        <View style={styles.loadingContainer}>
+          <ActivityIndicator size="large" color="#535aff" />
+          <Text style={styles.loadingText}>Loading torrents...</Text>
+        </View>
+      ) : query.length > 0 && filteredResults.length === 0 ? (
+        <View style={styles.emptyStateContainer}>
+          <View style={styles.emptyStateIcon}>
+            <Ionicons name="search-outline" color="#535aff" size={56} />
           </View>
-        )}
-
-        {!loading && query.length > 0 && filteredResults.length === 0 && (
-          <View style={styles.emptyStateContainer}>
-            <View style={styles.emptyStateIcon}>
-              <Ionicons name="search-outline" color="#535aff" size={56} />
-            </View>
-            <Text style={styles.emptyStateTitle}>No results found</Text>
-            <Text style={styles.emptyStateSubtitle}>
-              Try adjusting your search to find what you're looking for
-            </Text>
+          <Text style={styles.emptyStateTitle}>No results found</Text>
+          <Text style={styles.emptyStateSubtitle}>
+            Try adjusting your search to find what you're looking for
+          </Text>
+        </View>
+      ) : query.length === 0 && allTorrents.length > 0 ? (
+        <View style={styles.emptyStateContainer}>
+          <View style={styles.emptyStateIcon}>
+            <Ionicons name="compass-outline" color="#535aff" size={56} />
           </View>
-        )}
-
-        {!loading && query.length === 0 && allTorrents.length > 0 && (
-          <View style={styles.emptyStateContainer}>
-            <View style={styles.emptyStateIcon}>
-              <Ionicons name="compass-outline" color="#535aff" size={56} />
-            </View>
-            <Text style={styles.emptyStateTitle}>Start searching</Text>
-            <Text style={styles.emptyStateSubtitle}>
-              Enter a keyword to find movies, series or songs
-            </Text>
-          </View>
-        )}
-
-        {!loading && query.length > 0 && filteredResults.length > 0 && (
+          <Text style={styles.emptyStateTitle}>Start searching</Text>
+          <Text style={styles.emptyStateSubtitle}>
+            Enter a keyword to find movies, series or songs
+          </Text>
+        </View>
+      ) : (
+        <ScrollView 
+          showsVerticalScrollIndicator={false} 
+          style={styles.contentContainer}
+          contentContainerStyle={styles.contentWrapper}
+        >
           <View style={styles.resultsWrapper}>
             <Text style={styles.resultsCount}>
               {filteredResults.length} {filteredResults.length === 1 ? 'result' : 'results'}
             </Text>
             <TorrentGrid list={filteredResults} />
           </View>
-        )}
-      </ScrollView>
+        </ScrollView>
+      )}
     </SafeAreaView>
   );
 };
@@ -219,10 +213,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   loadingContainer: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 60,
   },
   loadingText: {
     marginTop: 16,
@@ -231,10 +228,13 @@ const styles = StyleSheet.create({
     fontWeight: '500',
   },
   emptyStateContainer: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    paddingVertical: 80,
     paddingHorizontal: 40,
   },
   emptyStateIcon: {

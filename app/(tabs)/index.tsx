@@ -105,59 +105,61 @@ const HomeScreen = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      {/* Header Section */}
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Library</Text>
-        <Text style={styles.headerSubtitle}>
-          {filteredData.length} {filteredData.length === 1 ? 'item' : 'items'}
-        </Text>
-      </View>
-
-      {/* Category Filter Chips */}
-      <View style={styles.filterSection}>
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.filterScrollContent}
-        >
-          {categories.map((category) => (
-            <TouchableOpacity
-              key={category}
-              style={[
-                styles.chip,
-                selectedCategory === category && styles.chipActive
-              ]}
-              onPress={() => handleCategoryPress(category)}
-              activeOpacity={0.7}
-            >
-              <Text style={[
-                styles.chipText,
-                selectedCategory === category && styles.chipTextActive
-              ]}>
-                {category}
-              </Text>
-            </TouchableOpacity>
-          ))}
-        </ScrollView>
-      </View>
-
-      {/* Content */}
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#535aff" />
-          <Text style={styles.loadingText}>Loading your library...</Text>
-        </View>
-      ) : filteredData.length === 0 ? (
-        <View style={styles.emptyContainer}>
-          <Text style={styles.emptyTitle}>No items found</Text>
-          <Text style={styles.emptySubtitle}>
-            Try selecting a different category
+    <SafeAreaView style={styles.safeArea} edges={['top']}>
+      <View style={styles.container}>
+        {/* Header Section */}
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>Library</Text>
+          <Text style={styles.headerSubtitle}>
+            {filteredData.length} {filteredData.length === 1 ? 'item' : 'items'}
           </Text>
         </View>
-      ) : (
-        <TorrentGrid list={filteredData} />
-      )}
+
+        {/* Category Filter Chips */}
+        <View style={styles.filterSection}>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.filterScrollContent}
+          >
+            {categories.map((category) => (
+              <TouchableOpacity
+                key={category}
+                style={[
+                  styles.chip,
+                  selectedCategory === category && styles.chipActive
+                ]}
+                onPress={() => handleCategoryPress(category)}
+                activeOpacity={0.7}
+              >
+                <Text style={[
+                  styles.chipText,
+                  selectedCategory === category && styles.chipTextActive
+                ]}>
+                  {category}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
+
+        {/* Content */}
+        {loading ? (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#535aff" />
+            <Text style={styles.loadingText}>Loading your library...</Text>
+          </View>
+        ) : filteredData.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyTitle}>No items found</Text>
+            <Text style={styles.emptySubtitle}>
+              Try selecting a different category
+            </Text>
+          </View>
+        ) : (
+          <TorrentGrid list={filteredData} />
+        )}
+      </View>
     </SafeAreaView>
   );
 };
@@ -165,6 +167,9 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+  },
   container: {
     flex: 1,
   },
@@ -215,10 +220,14 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   loadingContainer: {
-    flex: 1,
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent',
+    backgroundColor: 'transparent'
   },
   loadingText: {
     marginTop: 16,
