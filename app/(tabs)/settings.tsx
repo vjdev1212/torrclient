@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 15,
     color: '#888',
-    fontWeight: '500',
+    fontWeight: 500,
   },
   scrollViewContent: {
     paddingHorizontal: 20,
@@ -137,7 +137,7 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#888',
     letterSpacing: 0.5,
     marginBottom: 12,
@@ -174,7 +174,7 @@ const styles = StyleSheet.create({
   },
   settingText: {
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: 500,
     color: '#fff',
     marginBottom: 2,
   },
@@ -203,12 +203,12 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 15,
     color: '#888',
-    fontWeight: '500',
+    fontWeight: 500,
   },
   infoValue: {
     fontSize: 15,
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: 500,
   },
 });
 

@@ -526,7 +526,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#fff',
     marginBottom: 12,
   },
@@ -555,7 +555,7 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: 14,
     color: '#fff',
-    fontWeight: '500',
+    fontWeight: 500,
     flex: 1,
     textAlign: 'right',
   },
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginLeft: 10,
     flex: 1,
-    fontWeight: '500',
+    fontWeight: 500,
   },
   fileSize: {
     fontSize: 13,
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: '#fff',
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: 500,
   },
   loadingContainer: {
     flex: 1,

@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#fff',
     marginBottom: 10,
   },
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   },
   categoryChipText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#888',
   },
   categoryChipTextActive: {
@@ -362,6 +362,6 @@ const styles = StyleSheet.create({
   submitButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 500,
   },
 });

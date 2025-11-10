@@ -246,7 +246,7 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 15,
     color: '#888',
-    fontWeight: '500',
+    fontWeight: 500,
   },
   content: {
     paddingHorizontal: 20,
@@ -257,7 +257,7 @@ const styles = StyleSheet.create({
   },
   sectionHeader: {
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#888',
     letterSpacing: 0.5,
     marginBottom: 12,
@@ -283,7 +283,7 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#fff',
   },
   input: {
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   },
   toggleLabel: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: 500,
     color: '#fff',
     marginBottom: 2,
   },
@@ -366,7 +366,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 500,
   },
   infoCard: {
     flexDirection: 'row',

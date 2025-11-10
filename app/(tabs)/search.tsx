@@ -176,7 +176,7 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 15,
     color: '#888',
-    fontWeight: '500',
+    fontWeight: 500,
   },
   searchContainer: {
     paddingHorizontal: 20,
@@ -225,7 +225,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 15,
     color: '#888',
-    fontWeight: '500',
+    fontWeight: 500,
   },
   emptyStateContainer: {
     position: 'absolute',
@@ -248,7 +248,7 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#fff',
     marginBottom: 8,
     textAlign: 'center',
@@ -266,7 +266,7 @@ const styles = StyleSheet.create({
   resultsCount: {
     fontSize: 15,
     color: '#888',
-    fontWeight: '600',
+    fontWeight: 500,
     marginBottom: 16,
     paddingHorizontal: 4,
   },

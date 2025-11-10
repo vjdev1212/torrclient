@@ -213,7 +213,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 14,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#888',
   },
   chipTextActive: {
@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#fff',
     marginBottom: 8,
   },
