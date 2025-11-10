@@ -1,5 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Buffer } from 'buffer';
+import { StorageKeys } from './StorageService';
 
 interface ServerConfig {
   id: string;
@@ -10,12 +11,12 @@ interface ServerConfig {
   password: string;
 }
 
-/**
- * Get all configured servers
- */
+const TORRSERVER_CONFIGS_KEY = StorageKeys.TORRCLIENT_TORRSERVER_CONFIGS_KEY
+const TORRSERVER_ACTIVE_ID_KEY = StorageKeys.TORRCLIENT_TORRSERVER_ACTIVE_ID_KEY
+
 export const getServerConfigs = async (): Promise<ServerConfig[]> => {
   try {
-    const serversJson = await AsyncStorage.getItem('torrserverConfigs');
+    const serversJson = await AsyncStorage.getItem(TORRSERVER_CONFIGS_KEY);
     if (serversJson) {
       return JSON.parse(serversJson);
     }
@@ -31,7 +32,7 @@ export const getServerConfigs = async (): Promise<ServerConfig[]> => {
  */
 export const getActiveServerId = async (): Promise<string | null> => {
   try {
-    return await AsyncStorage.getItem('torrserverActiveId');
+    return await AsyncStorage.getItem(TORRSERVER_ACTIVE_ID_KEY);
   } catch (error) {
     console.error('Error getting active server ID:', error);
     return null;
@@ -132,7 +133,7 @@ export const getServerConnection = async (serverId: string): Promise<{
  */
 export const setServerConfigs = async (servers: ServerConfig[]): Promise<void> => {
   try {
-    await AsyncStorage.setItem('torrserverConfigs', JSON.stringify(servers));
+    await AsyncStorage.setItem(TORRSERVER_CONFIGS_KEY, JSON.stringify(servers));
   } catch (error) {
     console.error('Error saving server configs:', error);
   }
@@ -143,7 +144,7 @@ export const setServerConfigs = async (servers: ServerConfig[]): Promise<void> =
  */
 export const setActiveServerId = async (serverId: string): Promise<void> => {
   try {
-    await AsyncStorage.setItem('torrserverActiveId', serverId);
+    await AsyncStorage.setItem(TORRSERVER_ACTIVE_ID_KEY, serverId);
   } catch (error) {
     console.error('Error setting active server ID:', error);
   }

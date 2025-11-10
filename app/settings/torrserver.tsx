@@ -12,6 +12,7 @@ import { confirmAction, isHapticsSupported, showAlert } from '@/utils/platform';
 import * as Haptics from 'expo-haptics';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { StorageKeys, storageService } from '@/utils/StorageService';
 
 interface ServerConfig {
   id: string;
@@ -21,6 +22,8 @@ interface ServerConfig {
   username: string;
   password: string;
 }
+const TORRSERVER_CONFIGS_KEY = StorageKeys.TORRCLIENT_TORRSERVER_CONFIGS_KEY
+const TORRSERVER_ACTIVE_ID_KEY = StorageKeys.TORRCLIENT_TORRSERVER_ACTIVE_ID_KEY
 
 const TorrServerScreen = () => {
   const [servers, setServers] = useState<ServerConfig[]>([]);
@@ -34,8 +37,8 @@ const TorrServerScreen = () => {
 
   const loadServerConfigs = async () => {
     try {
-      const serversJson = await AsyncStorage.getItem('torrserverConfigs');
-      const activeId = await AsyncStorage.getItem('torrserverActiveId');
+      const serversJson = await AsyncStorage.getItem(TORRSERVER_CONFIGS_KEY);
+      const activeId = await AsyncStorage.getItem(TORRSERVER_ACTIVE_ID_KEY);
 
       if (serversJson) {
         const loadedServers = JSON.parse(serversJson);
@@ -82,8 +85,8 @@ const TorrServerScreen = () => {
         }
       }
 
-      await AsyncStorage.setItem('torrserverConfigs', JSON.stringify(servers));
-      await AsyncStorage.setItem('torrserverActiveId', activeServerId);
+      await AsyncStorage.setItem(TORRSERVER_CONFIGS_KEY, JSON.stringify(servers));
+      await AsyncStorage.setItem(TORRSERVER_ACTIVE_ID_KEY, activeServerId);
 
       showAlert('Saved', 'Server configurations saved successfully.');
     } catch (error) {
