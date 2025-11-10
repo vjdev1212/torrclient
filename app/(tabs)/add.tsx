@@ -185,7 +185,7 @@ const AddTorrentScreen = () => {
 
               {/* IMDB ID Input */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>IMDb ID <Text style={styles.optional}>(optional)</Text></Text>
+                <Text style={styles.label}>IMDB ID <Text style={styles.optional}>(optional)</Text></Text>
                 <TextInput
                   style={styles.input}
                   value={imdbId}
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 15,
     fontWeight: 500,
-    color: '#fff',
+    color: '#ccc',
     marginBottom: 10,
   },
   optional: {
