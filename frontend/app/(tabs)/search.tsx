@@ -1,7 +1,6 @@
 import { Text, ActivityIndicator, TextInput, View, StatusBar } from '@/components/Themed';
 import { useState, useEffect } from 'react';
-import { ScrollView } from 'react-native';
-import { StyleSheet, Pressable } from 'react-native';
+import { StyleSheet, Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';

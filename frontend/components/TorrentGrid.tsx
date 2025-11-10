@@ -5,7 +5,6 @@ import {
     StyleSheet,
     Pressable,
     useWindowDimensions,
-    View as RNView,
     Keyboard,
 } from 'react-native';
 import { Text, View } from '@/components/Themed';
@@ -119,11 +118,11 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
         >
-            <RNView style={styles.moviesGrid}>
+            <View style={styles.moviesGrid}>
                 {list.map((item, index) => (
                     <TorrentItem key={index.toString()} item={item} />
                 ))}
-            </RNView>
+            </View>
         </ScrollView>
     );
 };

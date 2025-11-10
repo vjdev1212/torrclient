@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useState } from 'react';
 import { View, ActivityIndicator, Text } from '@/components/Themed';
 import TorrentGrid from '@/components/TorrentGrid';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { useFocusEffect } from 'expo-router';
 import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
