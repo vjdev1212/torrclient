@@ -6,7 +6,6 @@ import {
   Image,
   Alert,
   ScrollView,
-  SafeAreaView,
 } from 'react-native';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import * as Haptics from 'expo-haptics';
@@ -14,6 +13,7 @@ import { isHapticsSupported } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { useRouter } from 'expo-router';
 import { Text, View } from '@/components/Themed';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const categories = [
   { key: 'movie', label: 'Movie' },

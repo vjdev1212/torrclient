@@ -4,9 +4,10 @@ import TorrentGrid from '@/components/TorrentGrid';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { useFocusEffect } from 'expo-router';
-import { SafeAreaView, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const HomeScreen = () => {
   const [data, setData] = useState<any[]>([]);

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import {
-  SafeAreaView,
   ScrollView,
   StyleSheet,
   TextInput,
@@ -11,6 +10,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar, Text, View } from '@/components/Themed';
 import { isHapticsSupported, showAlert } from '@/utils/platform';
 import * as Haptics from 'expo-haptics';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const TorrServerScreen = () => {
   const [torrServerUrl, setTorrServerUrl] = useState('http://192.168.1.10:5665');

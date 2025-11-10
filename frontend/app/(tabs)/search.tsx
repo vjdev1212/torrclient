@@ -1,12 +1,13 @@
 import { Text, ActivityIndicator, TextInput, View, StatusBar } from '@/components/Themed';
 import { useState, useEffect } from 'react';
-import { SafeAreaView, ScrollView } from 'react-native';
+import { ScrollView } from 'react-native';
 import { StyleSheet, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import TorrentGrid from '@/components/TorrentGrid';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const SearchScreen = () => {
   const [query, setQuery] = useState('');

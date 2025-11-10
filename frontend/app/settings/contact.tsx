@@ -1,9 +1,10 @@
 import React from 'react';
-import { StyleSheet, Pressable, Linking, SafeAreaView, ScrollView } from 'react-native';
+import { StyleSheet, Pressable, Linking,  ScrollView } from 'react-native';
 import { AntDesign } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { View, Text, StatusBar } from '@/components/Themed';
 import { isHapticsSupported } from '@/utils/platform';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const ContactScreen = () => {
     const feedbackUrl =  process.env.EXPO_PUBLIC_FEEDBACK_URL || '';
