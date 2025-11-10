@@ -16,17 +16,6 @@ function TabBarIcon(props: {
 
 export default function TabLayout() {
 
-  const getTabBarHeight = () => {
-    switch (Platform.OS) {
-      case 'web':
-        return 70;
-      case 'ios':
-        return 85;
-      default:
-        return 65;
-    }
-  };
-
   // Memoize background to avoid re-render crashes
   const tabBarBackground = useMemo(() => (
     <View
