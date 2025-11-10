@@ -206,8 +206,8 @@ const TorrentDetails = () => {
       playerOptions.push(
         { label: 'VLC', url: `vlc://${streamUrl}` },
         {
-          label: 'MX Player',
-          url: `intent:${streamUrl}#Intent;package=com.mxtech.videoplayer.ad;type=video/*;end`,
+          label: 'External',
+          url: `${streamUrl}`,
         }
       );
     } else {
