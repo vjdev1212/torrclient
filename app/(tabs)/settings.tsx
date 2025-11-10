@@ -8,7 +8,6 @@ import { isHapticsSupported } from '@/utils/platform';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 const SettingsScreen = () => {
-  const showContactList = process.env.EXPO_PUBLIC_SHOW_CONTACT === 'true';
   const router = useRouter();
 
   const preferencesList: { title: string, route: string, icon: keyof typeof Ionicons.glyphMap, description?: string }[] = [
