@@ -94,7 +94,7 @@ const HomeScreen = () => {
             setFilteredData(filtered);
           }
         } catch (error) {
-          console.error('Error fetching torrents:', error);
+          console.log('Error fetching torrents:', error);
         } finally {
           setLoading(false);
         }

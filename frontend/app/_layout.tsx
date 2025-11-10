@@ -45,37 +45,6 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
-
-  const LightTheme: Theme = {
-    dark: false,
-    colors: {
-      primary: 'rgb(0, 122, 255)',
-      background: 'rgb(255, 255, 255)',
-      card: 'rgb(255, 255, 255)',
-      text: 'rgb(28, 28, 30)',
-      border: 'rgb(216, 216, 216)',
-      notification: 'rgb(255, 59, 48)',
-    },
-    fonts: {
-      regular: {
-        fontFamily: '',
-        fontWeight: '500'
-      },
-      medium: {
-        fontFamily: '',
-        fontWeight: '500'
-      },
-      bold: {
-        fontFamily: '',
-        fontWeight: '500'
-      },
-      heavy: {
-        fontFamily: '',
-        fontWeight: '500'
-      }
-    }
-  };
-
   const theme = DarkTheme;
   const tintColor = '#ffffff';
 

@@ -60,8 +60,8 @@ export function ActivityIndicator(props: ActivityIndicatorProps) {
 }
 
 export function View(props: ViewProps) {
-  const { style, lightColor, darkColor, ...otherProps } = props;
-  const backgroundColor = useThemeColor({ light: lightColor, dark: darkColor }, 'background');
+  const { style, darkColor, ...otherProps } = props;
+  const backgroundColor = useThemeColor({dark: darkColor }, 'background');
 
   return <DefaultView style={[{ backgroundColor }, style]} {...otherProps} />;
 }
