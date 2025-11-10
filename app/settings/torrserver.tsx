@@ -414,7 +414,7 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 15,
     color: '#888',
-    fontWeight: '500',
+    fontWeight: 500,
   },
   content: {
     paddingHorizontal: 20,
@@ -580,7 +580,7 @@ const styles = StyleSheet.create({
   },
   toggleLabel: {
     fontSize: 15,
-    fontWeight: '500',
+    fontWeight: 500,
     color: '#fff',
     marginBottom: 2,
   },

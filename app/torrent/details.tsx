@@ -683,7 +683,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 20,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#fff',
     marginBottom: 16,
     letterSpacing: -0.3,
@@ -711,12 +711,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     flex: 1,
-    fontWeight: '500',
+    fontWeight: 500,
   },
   infoValue: {
     fontSize: 14,
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: 500,
     flex: 1,
     textAlign: 'right',
   },
@@ -750,12 +750,12 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#999',
     marginBottom: 6,
-    fontWeight: '500',
+    fontWeight: 500,
   },
   statValue: {
     fontSize: 16,
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: 500,
     letterSpacing: -0.2,
   },
 
@@ -778,7 +778,7 @@ const styles = StyleSheet.create({
   badgeText: {
     color: '#fff',
     fontSize: 13,
-    fontWeight: '600',
+    fontWeight: 500,
   },
   fileCard: {
     backgroundColor: '#141414',
@@ -806,13 +806,13 @@ const styles = StyleSheet.create({
   fileName: {
     fontSize: 15,
     color: '#fff',
-    fontWeight: '500',
+    fontWeight: 500,
     lineHeight: 20,
   },
   fileSize: {
     fontSize: 13,
     color: '#999',
-    fontWeight: '500',
+    fontWeight: 500,
   },
 
   // Action Buttons
@@ -844,7 +844,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: 500,
     letterSpacing: -0.2,
   },
 
@@ -859,12 +859,12 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 15,
     color: '#999',
-    fontWeight: '500',
+    fontWeight: 500,
   },
   emptyText: {
     fontSize: 16,
     color: '#666',
-    fontWeight: '500',
+    fontWeight: 500,
   },
 });
 
