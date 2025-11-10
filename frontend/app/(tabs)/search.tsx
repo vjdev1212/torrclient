@@ -79,36 +79,81 @@ const SearchScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar />
-      <View style={styles.searchInputContainer}>
-        <TextInput
-          style={[styles.searchInput, styles.darkSearchInput]}
-          placeholder="Search movies, series or songs..."
-          placeholderTextColor={'#888888'}
-          value={query}
-          onChangeText={setQuery}
-          submitBehavior={'blurAndSubmit'}
-        />
-        {query.length > 0 && (
-          <Pressable onPress={clearSearch} style={styles.clearIcon}>
-            <Ionicons name="close-circle" size={20} color="#888" />
-          </Pressable>
-        )}
+      
+      {/* Header Section */}
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>Search</Text>
+        <Text style={styles.headerSubtitle}>
+          {allTorrents.length} {allTorrents.length === 1 ? 'item' : 'items'} available
+        </Text>
       </View>
 
-      {loading && <ActivityIndicator size="large" color="#535aff" style={styles.loader} />}
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputWrapper}>
+          <Ionicons name="search-outline" size={20} color="#888" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search movies, series or songs..."
+            placeholderTextColor="#888888"
+            value={query}
+            onChangeText={setQuery}
+            submitBehavior="blurAndSubmit"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={clearSearch} style={styles.clearButton}>
+              <Ionicons name="close-circle" size={22} color="#535aff" />
+            </Pressable>
+          )}
+        </View>
+      </View>
 
-      <ScrollView showsVerticalScrollIndicator={false} style={styles.searchResultsContainer}>
+      {/* Content Area */}
+      <ScrollView 
+        showsVerticalScrollIndicator={false} 
+        style={styles.contentContainer}
+        contentContainerStyle={styles.contentWrapper}
+      >
+        {loading && (
+          <View style={styles.loadingContainer}>
+            <ActivityIndicator size="large" color="#535aff" />
+            <Text style={styles.loadingText}>Loading torrents...</Text>
+          </View>
+        )}
+
         {!loading && query.length > 0 && filteredResults.length === 0 && (
-          <View style={styles.centeredContainer}>
-            <Ionicons style={styles.noResults} name="search-outline" color="#535aff" size={70} />
-            <Text style={styles.noResultsText}>No results found.</Text>
+          <View style={styles.emptyStateContainer}>
+            <View style={styles.emptyStateIcon}>
+              <Ionicons name="search-outline" color="#535aff" size={56} />
+            </View>
+            <Text style={styles.emptyStateTitle}>No results found</Text>
+            <Text style={styles.emptyStateSubtitle}>
+              Try adjusting your search to find what you're looking for
+            </Text>
+          </View>
+        )}
+
+        {!loading && query.length === 0 && allTorrents.length > 0 && (
+          <View style={styles.emptyStateContainer}>
+            <View style={styles.emptyStateIcon}>
+              <Ionicons name="compass-outline" color="#535aff" size={56} />
+            </View>
+            <Text style={styles.emptyStateTitle}>Start searching</Text>
+            <Text style={styles.emptyStateSubtitle}>
+              Enter a keyword to find movies, series or songs
+            </Text>
           </View>
         )}
 
         {!loading && query.length > 0 && filteredResults.length > 0 && (
-          <TorrentGrid list={filteredResults} />
+          <View style={styles.resultsWrapper}>
+            <Text style={styles.resultsCount}>
+              {filteredResults.length} {filteredResults.length === 1 ? 'result' : 'results'}
+            </Text>
+            <TorrentGrid list={filteredResults} />
+          </View>
         )}
       </ScrollView>
     </SafeAreaView>
@@ -118,53 +163,110 @@ const SearchScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    marginTop: 30,
+    backgroundColor: '#000',
   },
-  searchInputContainer: {
-    marginTop: 30,
+  header: {
+    paddingHorizontal: 24,
+    paddingTop: 20,
+    paddingBottom: 16,
+  },
+  headerTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#fff',
+    marginBottom: 4,
+    letterSpacing: -0.5,
+  },
+  headerSubtitle: {
+    fontSize: 15,
+    color: '#888',
+    fontWeight: '500',
+  },
+  searchContainer: {
     paddingHorizontal: 20,
-    width: '100%',
-    maxWidth: 780,
-    margin: 'auto',
+    paddingBottom: 16,
+  },
+  searchInputWrapper: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1f1f1f',
+    borderRadius: 16,
+    paddingHorizontal: 16,
+    height: 52,
+    borderWidth: 1,
+    borderColor: '#2a2a2a',
+  },
+  searchIcon: {
+    marginRight: 12,
   },
   searchInput: {
-    height: 40,
-    borderRadius: 25,
-    paddingLeft: 20,
-    paddingRight: 40,
+    flex: 1,
     fontSize: 16,
-  },
-  clearIcon: {
-    position: 'absolute',
-    right: 30,
-    justifyContent: 'center',
-    height: 40,
-  },
-  darkSearchInput: {
-    backgroundColor: '#1f1f1f',
     color: '#fff',
+    height: '100%',
   },
-  loader: {
-    marginTop: 20,
+  clearButton: {
+    padding: 4,
+    marginLeft: 8,
   },
-  searchResultsContainer: {
-    marginVertical: 20
+  contentContainer: {
+    flex: 1,
   },
-  centeredContainer: {
+  contentWrapper: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+  },
+  loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    padding: 20,
+    paddingVertical: 60,
   },
-  noResults: {
-    marginTop: 100,
+  loadingText: {
+    marginTop: 16,
+    fontSize: 15,
+    color: '#888',
+    fontWeight: '500',
+  },
+  emptyStateContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingVertical: 80,
+    paddingHorizontal: 40,
+  },
+  emptyStateIcon: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: 'rgba(83, 90, 255, 0.1)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  emptyStateTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 8,
+    textAlign: 'center',
+  },
+  emptyStateSubtitle: {
+    fontSize: 15,
+    color: '#888',
+    textAlign: 'center',
+    lineHeight: 22,
+  },
+  resultsWrapper: {
+    paddingTop: 8,
     paddingBottom: 20,
   },
-  noResultsText: {
-    fontSize: 16,
-    textAlign: 'center',
-    marginHorizontal: '5%',
+  resultsCount: {
+    fontSize: 15,
     color: '#888',
+    fontWeight: '600',
+    marginBottom: 16,
+    paddingHorizontal: 4,
   },
 });
 
