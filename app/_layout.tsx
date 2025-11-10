@@ -103,7 +103,7 @@ function RootLayoutNav() {
                 headerTintColor: '#ffffff',
                 headerBackTitle: '',
                 title: 'Home',
-                contentStyle: { backgroundColor: 'transparent' }
+                contentStyle: { backgroundColor: 'transparent' } // Only tabs can be transparent
               }}
             />
             <Stack.Screen
@@ -116,7 +116,7 @@ function RootLayoutNav() {
             <Stack.Screen
               name="torrent/details"
               options={{
-                headerShown: false,
+                headerShown: true,
                 headerTransparent: true,
                 headerBackground: InvisibleHeaderBackground,
                 headerTitle: '',
@@ -131,7 +131,7 @@ function RootLayoutNav() {
             <Stack.Screen
               name="settings/torrserver"
               options={{
-                headerShown: false,
+                headerShown: true,
                 headerTransparent: true,
                 headerBackground: InvisibleHeaderBackground,
                 headerTitle: '',
@@ -146,7 +146,7 @@ function RootLayoutNav() {
             <Stack.Screen
               name="settings/contact"
               options={{
-                headerShown: false,
+                headerShown: true,
                 headerTransparent: true,
                 headerBackground: InvisibleHeaderBackground,
                 headerTitle: '',
@@ -161,7 +161,7 @@ function RootLayoutNav() {
             <Stack.Screen
               name="settings/donate"
               options={{
-                headerShown: false,
+                headerShown: true,
                 headerTransparent: true,
                 headerBackground: InvisibleHeaderBackground,
                 headerTitle: '',
