@@ -170,7 +170,7 @@ const TorrentDetails = () => {
 
         if (index === 0) {
           try {
-            const preloadUrl = `${streamUrl}&preload`;            
+            const preloadUrl = `${streamUrl}&preload`;
             const authHeader = await getTorrServerAuthHeader();
             await fetch(preloadUrl, {
               method: 'GET',
@@ -348,11 +348,25 @@ const TorrentDetails = () => {
       return (
         <View style={styles.detailsSection}>
           <Text style={styles.sectionTitle}>Details</Text>
-          <View style={styles.infoCard}>
-            <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
-            <InfoRow label="Size" value={formatBytes(torrentData.size)} />
-            <InfoRow label="Status" value={<ActivityIndicator size="small" color="#535aff" />} />
-          </View>
+          {isLargeScreen ? (
+            <View style={styles.statsGrid}>
+              <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
+              <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
+              <View style={styles.statCard}>
+                <View style={styles.statIconContainer}>
+                  <Ionicons name="information-circle-outline" size={20} color="#535aff" />
+                </View>
+                <Text style={styles.statLabel}>Status</Text>
+                <ActivityIndicator size="small" color="#535aff" style={{ marginTop: 4 }} />
+              </View>
+            </View>
+          ) : (
+            <View style={styles.infoCard}>
+              <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
+              <InfoRow label="Size" value={formatBytes(torrentData.size)} />
+              <InfoRow label="Status" value={<ActivityIndicator size="small" color="#535aff" />} />
+            </View>
+          )}
         </View>
       );
     }
@@ -361,11 +375,19 @@ const TorrentDetails = () => {
       return (
         <View style={styles.detailsSection}>
           <Text style={styles.sectionTitle}>Details</Text>
-          <View style={styles.infoCard}>
-            <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
-            <InfoRow label="Size" value={formatBytes(torrentData.size)} />
-            <InfoRow label="Status" value="Loading..." />
-          </View>
+          {isLargeScreen ? (
+            <View style={styles.statsGrid}>
+              <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
+              <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
+              <StatCard label="Status" value="Loading..." icon="information-circle-outline" />
+            </View>
+          ) : (
+            <View style={styles.infoCard}>
+              <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
+              <InfoRow label="Size" value={formatBytes(torrentData.size)} />
+              <InfoRow label="Status" value="Loading..." />
+            </View>
+          )}
         </View>
       );
     }
@@ -373,26 +395,57 @@ const TorrentDetails = () => {
     return (
       <View style={styles.detailsSection}>
         <Text style={styles.sectionTitle}>Details</Text>
-        <View style={styles.infoCard}>
-          <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
-          <InfoRow label="Size" value={formatBytes(torrentData.size)} />
-          <InfoRow label="Status" value={cacheData.Torrent.stat_string} />
-          <InfoRow label="Peers" value={cacheData.Torrent.total_peers} />
-          <InfoRow label="Seeders" value={cacheData.Torrent.connected_seeders} />
-          <InfoRow 
-            label="Download Speed" 
-            value={cacheData.Torrent?.download_speed > 0
-              ? `${formatBytes(cacheData.Torrent.download_speed)}/s`
-              : '0 KB/s'} 
-          />
-          <InfoRow label="Bytes Read" value={formatBytes(cacheData.Torrent?.bytes_read || 0)} />
-          <InfoRow label="Bytes Written" value={formatBytes(cacheData.Torrent?.bytes_written || 0)} />
-          <InfoRow label="Active Peers" value={cacheData.Torrent.active_peers} />
-          <InfoRow label="Pending Peers" value={cacheData.Torrent.pending_peers} isLast />
-        </View>
+        {isLargeScreen ? (
+          <View style={styles.statsGrid}>
+            <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
+            <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
+            <StatCard label="Status" value={cacheData.Torrent.stat_string} icon="information-circle-outline" />
+            <StatCard label="Peers" value={cacheData.Torrent.total_peers} icon="people-outline" />
+            <StatCard label="Seeders" value={cacheData.Torrent.connected_seeders} icon="cloud-upload-outline" />
+            <StatCard
+              label="Download"
+              value={cacheData.Torrent?.download_speed > 0
+                ? `${formatBytes(cacheData.Torrent.download_speed)}/s`
+                : '0 KB/s'}
+              icon="download-outline"
+            />
+            <StatCard label="Read" value={formatBytes(cacheData.Torrent?.bytes_read || 0)} icon="analytics-outline" />
+            <StatCard label="Written" value={formatBytes(cacheData.Torrent?.bytes_written || 0)} icon="create-outline" />
+            <StatCard label="Active" value={cacheData.Torrent.active_peers} icon="pulse-outline" />
+            <StatCard label="Pending" value={cacheData.Torrent.pending_peers} icon="time-outline" />
+          </View>
+        ) : (
+          <View style={styles.infoCard}>
+            <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
+            <InfoRow label="Size" value={formatBytes(torrentData.size)} />
+            <InfoRow label="Status" value={cacheData.Torrent.stat_string} />
+            <InfoRow label="Peers" value={cacheData.Torrent.total_peers} />
+            <InfoRow label="Seeders" value={cacheData.Torrent.connected_seeders} />
+            <InfoRow
+              label="Download Speed"
+              value={cacheData.Torrent?.download_speed > 0
+                ? `${formatBytes(cacheData.Torrent.download_speed)}/s`
+                : '0 KB/s'}
+            />
+            <InfoRow label="Bytes Read" value={formatBytes(cacheData.Torrent?.bytes_read || 0)} />
+            <InfoRow label="Bytes Written" value={formatBytes(cacheData.Torrent?.bytes_written || 0)} />
+            <InfoRow label="Active Peers" value={cacheData.Torrent.active_peers} />
+            <InfoRow label="Pending Peers" value={cacheData.Torrent.pending_peers} isLast />
+          </View>
+        )}
       </View>
     );
   });
+
+  const StatCard = ({ label, value, icon }: { label: string, value: any, icon: any }) => (
+    <View style={styles.statCard}>
+      <View style={styles.statIconContainer}>
+        <Ionicons name={icon} size={20} color="#535aff" />
+      </View>
+      <Text style={styles.statLabel}>{label}</Text>
+      <Text style={styles.statValue} numberOfLines={1}>{value}</Text>
+    </View>
+  );
 
   const InfoRow = ({ label, value, isLast = false }: { label: string, value: any, isLast?: boolean }) => (
     <View style={[styles.infoRow, !isLast && styles.infoRowBorder]}>
@@ -401,141 +454,248 @@ const TorrentDetails = () => {
     </View>
   );
 
+  const contentPadding = isLargeScreen ? 32 : 0;
+
   return (
-    <ScrollView showsVerticalScrollIndicator={false} style={styles.container} ref={ref}>
+    <View style={styles.container}>
       <StatusBar />
-      <View style={[styles.content, {
-        flexDirection: isLargeScreen ? 'row' : 'column',
-        paddingTop: isLargeScreen ? 40 : 20
-      }]}>
-        {/* Poster Section */}
-        <View style={isLargeScreen ? styles.posterSection : styles.posterSectionMobile}>
+
+      {/* Hero Poster Section - Mobile Only */}
+      {!isLargeScreen && (
+        <View style={styles.heroPosterContainer}>
           <Image
             source={{ uri: torrentData.poster }}
-            style={isLargeScreen ? styles.posterLarge : styles.posterMobile}
+            style={styles.heroPosterImage}
             resizeMode="cover"
           />
+          <View style={styles.heroPosterOverlay} />
+          <View style={styles.heroPosterContent}>
+            <Text style={styles.heroTitle}>{torrentData.title}</Text>
+          </View>
         </View>
+      )}
 
-        {/* Details Section */}
-        <View style={isLargeScreen ? styles.infoSection : styles.infoSectionMobile}>
-          <Text style={styles.title}>{torrentData.title}</Text>
-          
-          <CacheInfo cacheData={cacheData} cacheLoading={cacheLoading} />
+      <ScrollView
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ padding: contentPadding }}
+        ref={ref}
+      >
+        <View style={[styles.content, { flexDirection: isLargeScreen ? 'row' : 'column', gap: isLargeScreen ? 32 : 0 }]}>
 
-          {/* Files Section */}
-          {videoFiles.length > 0 && (
-            <View style={styles.filesSection}>
-              <Text style={styles.sectionTitle}>Files ({videoFiles.length})</Text>
-              {videoFiles.map((file: any, index: number) => (
-                <TouchableOpacity 
-                  key={index} 
-                  style={styles.fileCard}
-                  onPress={() => handleFileLink(file)}
-                  activeOpacity={0.7}
+          {/* Poster Section - Desktop Only */}
+          {isLargeScreen && (
+            <View style={styles.posterSection}>
+              <View style={styles.posterContainer}>
+                <Image
+                  source={{ uri: torrentData.poster }}
+                  style={styles.posterImage}
+                  resizeMode="cover"
+                />
+                <View style={styles.posterOverlay} />
+              </View>
+
+              <View style={styles.actionsContainerDesktop}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.dropButton]}
+                  onPress={handleDrop}
+                  activeOpacity={0.8}
                 >
-                  <View style={styles.fileInfo}>
-                    <Ionicons name="play-circle" size={20} color="#535aff" />
-                    <Text style={styles.fileName} numberOfLines={2}>
-                      {file.path}
-                    </Text>
-                  </View>
-                  <Text style={styles.fileSize}>
-                    {(file.length / (1024 ** 2)).toFixed(2)} MB
-                  </Text>
+                  <Ionicons name="remove-circle-outline" size={22} color="#fff" />
+                  <Text style={styles.actionButtonText}>Drop Torrent</Text>
                 </TouchableOpacity>
-              ))}
+
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.deleteButton]}
+                  onPress={handleWipe}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="trash-outline" size={22} color="#fff" />
+                  <Text style={styles.actionButtonText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
             </View>
           )}
 
-          {/* Action Buttons */}
-          <View style={styles.actionsContainer}>
-            <TouchableOpacity
-              style={[styles.actionButton, styles.dropButton]}
-              onPress={handleDrop}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="remove-circle-outline" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Drop</Text>
-            </TouchableOpacity>
+          {/* Info Section */}
+          <View style={isLargeScreen ? styles.infoSection : styles.infoSectionMobile}>
+            {isLargeScreen && (
+              <View style={styles.headerSection}>
+                <Text style={styles.title}>{torrentData.title}</Text>
+              </View>
+            )}
 
-            <TouchableOpacity
-              style={[styles.actionButton, styles.deleteButton]}
-              onPress={handleWipe}
-              activeOpacity={0.8}
-            >
-              <Ionicons name="trash-outline" size={20} color="#fff" />
-              <Text style={styles.actionButtonText}>Delete</Text>
-            </TouchableOpacity>
+            <CacheInfo cacheData={cacheData} cacheLoading={cacheLoading} />
+
+            {/* Files Section */}
+            {videoFiles.length > 0 && (
+              <View style={styles.filesSection}>
+                <View style={styles.filesSectionHeader}>
+                  <Text style={styles.sectionTitle}>Files</Text>
+                  <View style={styles.badge}>
+                    <Text style={styles.badgeText}>{videoFiles.length}</Text>
+                  </View>
+                </View>
+                {videoFiles.map((file: any, index: number) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.fileCard}
+                    onPress={() => handleFileLink(file)}
+                    activeOpacity={0.7}
+                  >
+                    <View style={styles.fileIconContainer}>
+                      <Ionicons name="play-circle" size={24} color="#535aff" />
+                    </View>
+                    <View style={styles.fileContent}>
+                      <Text style={styles.fileName} numberOfLines={2}>
+                        {file.path}
+                      </Text>
+                      <Text style={styles.fileSize}>
+                        {(file.length / (1024 ** 2)).toFixed(2)} MB
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#666" />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            )}
+
+            {/* Action Buttons - Mobile Only */}
+            {!isLargeScreen && (
+              <View style={styles.actionsContainerMobile}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.dropButton]}
+                  onPress={handleDrop}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="remove-circle-outline" size={22} color="#fff" />
+                  <Text style={styles.actionButtonText}>Drop</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.deleteButton]}
+                  onPress={handleWipe}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="trash-outline" size={22} color="#fff" />
+                  <Text style={styles.actionButtonText}>Delete</Text>
+                </TouchableOpacity>
+              </View>
+            )}
           </View>
         </View>
-      </View>
-      <BottomSpacing space={60} />
-    </ScrollView>
+        <BottomSpacing space={40} />
+      </ScrollView>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: '#0a0a0a',
   },
   content: {
-    paddingHorizontal: 20,
-    maxWidth: 1200,
-    width: '100%',
-    alignSelf: 'center',
-  },
-  posterSection: {
-    flex: 1,
-    alignItems: 'center',
-    paddingRight: 30,
-  },
-  posterSectionMobile: {
-    width: '100%',
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  posterLarge: {
-    width: '100%',
-    maxWidth: 300,
-    aspectRatio: 2 / 3,
-    borderRadius: 16,
-  },
-  posterMobile: {
-    width: '70%',
-    maxWidth: 250,
-    aspectRatio: 2 / 3,
-    borderRadius: 16,
-  },
-  infoSection: {
-    flex: 2,
-  },
-  infoSectionMobile: {
     width: '100%',
   },
-  title: {
+
+  // Hero Poster - Mobile
+  heroPosterContainer: {
+    width: '100%',
+    height: 400,
+    position: 'relative',
+  },
+  heroPosterImage: {
+    width: '100%',
+    height: '100%',
+  },
+  heroPosterOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  heroPosterContent: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    padding: 20,
+    paddingBottom: 24,
+  },
+  heroTitle: {
     fontSize: 28,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 24,
     letterSpacing: -0.5,
+    lineHeight: 34,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 10,
   },
-  detailsSection: {
+
+  // Poster Section - Desktop
+  posterSection: {
+    width: 320,
+    flexShrink: 0,
+  },
+  posterContainer: {
+    position: 'relative',
+    borderRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: '#1a1a1a',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.4,
+    shadowRadius: 16,
+    elevation: 8,
+  },
+  posterImage: {
+    width: '100%',
+    aspectRatio: 2 / 3,
+  },
+  posterOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+  },
+
+  // Info Section
+  infoSection: {
+    flex: 1,
+    minWidth: 0,
+  },
+  infoSectionMobile: {
+    width: '100%',
+    padding: 20,
+    paddingTop: 24,
+  },
+  headerSection: {
     marginBottom: 24,
+  },
+  title: {
+    fontSize: 32,
+    fontWeight: '700',
+    color: '#fff',
+    letterSpacing: -0.5,
+    lineHeight: 38,
+  },
+
+  // Details Section
+  detailsSection: {
+    marginBottom: 28,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 500,
+    fontSize: 20,
+    fontWeight: '600',
     color: '#fff',
-    marginBottom: 12,
+    marginBottom: 16,
+    letterSpacing: -0.3,
   },
+
+  // Info Card - Mobile
   infoCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#141414',
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderColor: '#222',
   },
   infoRow: {
     flexDirection: 'row',
@@ -545,60 +705,135 @@ const styles = StyleSheet.create({
   },
   infoRowBorder: {
     borderBottomWidth: 1,
-    borderBottomColor: '#2a2a2a',
+    borderBottomColor: '#222',
   },
   infoLabel: {
     fontSize: 14,
     color: '#999',
     flex: 1,
+    fontWeight: '500',
   },
   infoValue: {
     fontSize: 14,
     color: '#fff',
-    fontWeight: 500,
+    fontWeight: '600',
     flex: 1,
     textAlign: 'right',
   },
+
+  // Stats Grid - Desktop
+  statsGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  statCard: {
+    backgroundColor: '#141414',
+    borderRadius: 12,
+    padding: 16,
+    minWidth: 140,
+    flex: 1,
+    flexBasis: '30%',
+    borderWidth: 1,
+    borderColor: '#222',
+  },
+  statIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: 'rgba(83, 90, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 12,
+  },
+  statLabel: {
+    fontSize: 13,
+    color: '#999',
+    marginBottom: 6,
+    fontWeight: '500',
+  },
+  statValue: {
+    fontSize: 16,
+    color: '#fff',
+    fontWeight: '600',
+    letterSpacing: -0.2,
+  },
+
+  // Files Section
   filesSection: {
-    marginBottom: 24,
+    marginBottom: 28,
+  },
+  filesSectionHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 16,
+    gap: 10,
+  },
+  badge: {
+    backgroundColor: '#535aff',
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 12,    
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
   },
   fileCard: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#141414',
     borderRadius: 12,
     padding: 16,
     marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
-  },
-  fileInfo: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: '#222',
+    gap: 12,
+  },
+  fileIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 12,
+    backgroundColor: 'rgba(83, 90, 255, 0.1)',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  fileContent: {
+    flex: 1,
+    gap: 4,
   },
   fileName: {
-    fontSize: 14,
+    fontSize: 15,
     color: '#fff',
-    marginLeft: 10,
-    flex: 1,
-    fontWeight: 500,
+    fontWeight: '500',
+    lineHeight: 20,
   },
   fileSize: {
     fontSize: 13,
     color: '#999',
+    fontWeight: '500',
   },
-  actionsContainer: {
+
+  // Action Buttons
+  actionsContainerDesktop: {
+    marginTop: 20,
+    gap: 12,
+  },
+  actionsContainerMobile: {
     flexDirection: 'row',
     gap: 12,
     marginTop: 8,
   },
   actionButton: {
-    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
     borderRadius: 12,
-    gap: 8,
+    gap: 10,
+    flex: 1,
   },
   dropButton: {
     backgroundColor: '#535aff',
@@ -608,23 +843,28 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     color: '#fff',
-    fontSize: 15,
-    fontWeight: 500,
+    fontSize: 16,
+    fontWeight: '600',
+    letterSpacing: -0.2,
   },
+
+  // Loading States
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#000',
+    backgroundColor: '#0a0a0a',
   },
   loadingText: {
     marginTop: 16,
     fontSize: 15,
     color: '#999',
+    fontWeight: '500',
   },
   emptyText: {
     fontSize: 16,
     color: '#666',
+    fontWeight: '500',
   },
 });
 
