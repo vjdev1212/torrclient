@@ -210,7 +210,6 @@ const styles = StyleSheet.create({
   },
   contentWrapper: {
     flexGrow: 1,
-    paddingHorizontal: 20,
   },
   loadingContainer: {
     position: 'absolute',
@@ -268,7 +267,7 @@ const styles = StyleSheet.create({
     color: '#888',
     fontWeight: 500,
     marginBottom: 16,
-    paddingHorizontal: 4,
+    paddingHorizontal: 20,
   },
 });
 

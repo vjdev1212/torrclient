@@ -135,7 +135,7 @@ const AddTorrentScreen = () => {
                   onChangeText={handleInputChange}
                   placeholder="magnet:?xt=urn:btih:... or hash"
                   autoCapitalize="none"
-                  placeholderTextColor="#666"
+                  placeholderTextColor="#888"
                   submitBehavior="blurAndSubmit"
                 />
               </View>
@@ -148,7 +148,7 @@ const AddTorrentScreen = () => {
                   value={title}
                   onChangeText={setTitle}
                   placeholder="Enter title"
-                  placeholderTextColor="#666"
+                  placeholderTextColor="#888"
                   submitBehavior="blurAndSubmit"
                 />
               </View>
@@ -192,7 +192,7 @@ const AddTorrentScreen = () => {
                   onChangeText={setImdbId}
                   placeholder="tt0133093"
                   autoCapitalize="none"
-                  placeholderTextColor="#666"
+                  placeholderTextColor="#888"
                   submitBehavior="blurAndSubmit"
                 />
               </View>
@@ -209,7 +209,7 @@ const AddTorrentScreen = () => {
                   }}
                   placeholder="https://example.com/poster.jpg"
                   autoCapitalize="none"
-                  placeholderTextColor="#666"
+                  placeholderTextColor="#888"
                   submitBehavior="blurAndSubmit"
                 />
               </View>
@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   optional: {
     fontSize: 14,
     fontWeight: 400,
-    color: '#666',
+    color: '#888',
   },
   input: {
     backgroundColor: '#1a1a1a',
@@ -316,9 +316,9 @@ const styles = StyleSheet.create({
   },
   categoryChip: {
     flex: 1,
-    paddingVertical: 12,
+    paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 12,
+    borderRadius: 50,
     backgroundColor: '#1a1a1a',
     alignItems: 'center',
     borderWidth: 1,
@@ -331,7 +331,7 @@ const styles = StyleSheet.create({
   categoryChipText: {
     fontSize: 14,
     fontWeight: 500,
-    color: '#888',
+    color: '#aaa',
   },
   categoryChipTextActive: {
     color: '#fff',
@@ -355,7 +355,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginTop: 8,
     width: '100%',
-    maxWidth: 300,
+    maxWidth: 200,
     margin: 'auto'
   },
   submitButtonDisabled: {
