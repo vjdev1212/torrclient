@@ -237,8 +237,8 @@ const AddTorrentScreen = () => {
                 </Text>
               </TouchableOpacity>
             </View>
+            <BottomSpacing space={100} />
           </View>
-          <BottomSpacing space={50} />
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
@@ -260,7 +260,7 @@ const styles = StyleSheet.create({
   contentWrapper: {
     flex: 1,
     paddingHorizontal: 20,
-    maxWidth: 600,
+    maxWidth: 780,
     width: '100%',
     alignSelf: 'center',
     backgroundColor: 'transparent',
@@ -354,6 +354,9 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     marginTop: 8,
+    width: '100%',
+    maxWidth: 300,
+    margin: 'auto'
   },
   submitButtonDisabled: {
     opacity: 0.5,
