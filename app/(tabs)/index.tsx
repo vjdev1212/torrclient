@@ -189,7 +189,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     marginTop: 4,
-    fontWeight: '400',
+    fontWeight: 400,
   },
   filterSection: {
     paddingBottom: 20,
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 15,
     color: '#999',
-    fontWeight: '400',
+    fontWeight: 400,
   },
   emptyContainer: {
     flex: 1,

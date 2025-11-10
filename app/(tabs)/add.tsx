@@ -297,7 +297,7 @@ const styles = StyleSheet.create({
   },
   optional: {
     fontSize: 14,
-    fontWeight: '400',
+    fontWeight: 400,
     color: '#666',
   },
   input: {

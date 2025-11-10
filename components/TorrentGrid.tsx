@@ -196,7 +196,7 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: '400',
+        fontWeight: 400,
     },
 });
 
