@@ -11,6 +11,7 @@ import { Text, View } from '@/components/Themed';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
+import Svg, { Rect, Polygon } from 'react-native-svg';
 
 interface Torrent {
     hash: string;
@@ -23,6 +24,42 @@ interface Torrent {
 interface TorrentGridProps {
     list: Torrent[];
 }
+
+// Film Tape Placeholder Component
+const FilmTapePlaceholder = ({ width, height }: { width: number; height: number }) => (
+    <Svg width={width} height={height} viewBox="0 0 500 750">
+        {/* Background */}
+        <Rect width="500" height="750" fill="#2a2a2a" />
+        
+        {/* Movie frame/screen */}
+        <Rect x="100" y="220" width="300" height="220" fill="none" stroke="#666" strokeWidth="6" rx="8" />
+        
+        {/* Film strip on left */}
+        <Rect x="100" y="220" width="20" height="220" fill="#666" />
+        <Rect x="105" y="230" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="105" y="255" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="105" y="280" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="105" y="305" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="105" y="330" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="105" y="355" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="105" y="380" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="105" y="405" width="10" height="15" fill="#2a2a2a" rx="2" />
+        
+        {/* Film strip on right */}
+        <Rect x="380" y="220" width="20" height="220" fill="#666" />
+        <Rect x="385" y="230" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="385" y="255" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="385" y="280" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="385" y="305" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="385" y="330" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="385" y="355" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="385" y="380" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="385" y="405" width="10" height="15" fill="#2a2a2a" rx="2" />
+        
+        {/* Play button triangle */}
+        <Polygon points="220,300 220,360 270,330" fill="#666" />
+    </Svg>
+);
 
 const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
     const router = useRouter();
@@ -72,6 +109,8 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
     const posterHeight = posterWidth * 1.5;
 
     const TorrentItem = ({ item }: { item: Torrent }) => {
+        const [imageError, setImageError] = useState(false);
+
         const handlePress = async () => {
             if (isHapticsSupported()) {
                 await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
@@ -83,11 +122,9 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
             });
         };
 
-        const posterUri =
-            item.poster?.trim() !== ''
-                ? item.poster
-                : 'https://via.placeholder.com/150x225?text=No+Image';
-
+        // Check if poster exists and is valid
+        const hasValidPoster = item.poster && item.poster.trim() !== '' && !imageError;
+        
         return (
             <Pressable
                 style={[styles.card, { width: posterWidth }]}
@@ -101,11 +138,16 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
                             { width: posterWidth, height: posterHeight },
                             pressed && styles.imagePressed
                         ]}>
-                            <Image
-                                source={{ uri: posterUri }}
-                                style={styles.posterImage}
-                                resizeMode="cover"
-                            />
+                            {hasValidPoster ? (
+                                <Image
+                                    source={{ uri: item.poster }}
+                                    style={styles.posterImage}
+                                    resizeMode="cover"
+                                    onError={() => setImageError(true)}
+                                />
+                            ) : (
+                                <FilmTapePlaceholder width={posterWidth} height={posterHeight} />
+                            )}
                             {/* Subtle overlay for depth */}
                             <View style={styles.imageOverlay} />
                         </View>
@@ -182,7 +224,7 @@ const styles = StyleSheet.create({
     title: {
         marginTop: 8,
         fontSize: 13,
-        fontWeight: 500,
+        fontWeight: '500',
         color: '#fff',
         lineHeight: 18,
     },
@@ -196,7 +238,7 @@ const styles = StyleSheet.create({
     emptyText: {
         fontSize: 16,
         color: '#666',
-        fontWeight: 400,
+        fontWeight: '400',
     },
 });
 
