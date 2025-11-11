@@ -59,7 +59,7 @@ const TorrentDetails = () => {
 
         setTorrentData({
           title: torrentResult.title || 'Untitled',
-          poster: torrentResult.poster || 'https://via.placeholder.com/150x225?text=No+Image',
+          poster: torrentResult.poster || 'https://dummyimage.com/500x750/101010/777777.png&text=Poster Unavailable',
           category: torrentResult.category || 'unknown',
           size: torrentResult.torrent_size,
           files,
@@ -475,7 +475,7 @@ const TorrentDetails = () => {
             />
             <View style={styles.heroPosterOverlay} />
             <View style={styles.heroPosterContent}>
-              <Text style={styles.heroTitle}>{torrentData.title}</Text>
+              <Text style={styles.heroTitle} numberOfLines={2}>{torrentData.title}</Text>
             </View>
           </View>
         )}
@@ -520,7 +520,7 @@ const TorrentDetails = () => {
           <View style={isLargeScreen ? styles.infoSection : styles.infoSectionMobile}>
             {isLargeScreen && (
               <View style={styles.headerSection}>
-                <Text style={styles.title}>{torrentData.title}</Text>
+                <Text style={styles.title} numberOfLines={2}>{torrentData.title}</Text>
               </View>
             )}
 
