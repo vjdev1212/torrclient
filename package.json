@@ -22,7 +22,9 @@
   "dependencies": {
     "@expo/react-native-action-sheet": "^4.1.1",
     "@expo/vector-icons": "^15.0.3",
+    "@react-native-assets/slider": "^11.0.12",
     "@react-native-async-storage/async-storage": "2.2.0",
+    "@react-native-menu/menu": "^2.0.0",
     "@react-navigation/native": "^7.0.0-rc.20",
     "expo": "54.0.23",
     "expo-blur": "~15.0.7",
@@ -45,10 +47,12 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-immersive-mode": "^2.0.2",
     "react-native-reanimated": "~4.1.1",
     "react-native-safe-area-context": "~5.6.0",
     "react-native-screens": "~4.16.0",
     "react-native-svg": "^15.12.1",
+    "react-native-vlc-media-player": "^1.0.98",
     "react-native-web": "^0.21.0",
     "react-native-webview": "13.15.0",
     "react-native-worklets": "~0.5.1"
