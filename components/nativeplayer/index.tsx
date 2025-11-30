@@ -125,8 +125,8 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
             player.muted = settings.isMuted;
             player.playbackRate = settings.playbackSpeed;
         }
-    }, [player, settings.isMuted, settings.playbackSpeed]);    
-    
+    }, [player, settings.isMuted, settings.playbackSpeed]);
+
     // Player event handlers
     const playingChange = useEvent(player, "playingChange");
     useEffect(() => {
@@ -442,7 +442,7 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
         settings.selectedSubtitle,
         useCustomSubtitles,
         player.availableSubtitleTracks
-    ), [settings.selectedSubtitle, useCustomSubtitles, player.availableSubtitleTracks]);
+    ), [subtitleState, settings.selectedSubtitle, useCustomSubtitles, player.availableSubtitleTracks]);
 
     const audioActions = useMemo(() => buildAudioActions(
         player.availableAudioTracks,
@@ -568,7 +568,7 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
                             <Text style={styles.titleText} numberOfLines={1}>{title}</Text>
                         </View>
 
-                        <View style={styles.topRightControls}>                            
+                        <View style={styles.topRightControls}>
                             <TouchableOpacity style={styles.controlButton} onPress={handleMuteToggle}>
                                 <Ionicons name={settings.isMuted ? "volume-mute" : "volume-high"} size={24} color="white" />
                             </TouchableOpacity>
