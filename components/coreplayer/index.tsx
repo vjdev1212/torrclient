@@ -8,7 +8,6 @@ import { parseSubtitleFile } from './subtitle';
 import { styles } from './styles';
 import { formatTime } from './utils';
 import { MediaPlayerProps } from './models';
-import { extractAudioCodec, extractQuality, extractSize, extractVideoCodec } from '@/utils/StreamItem';
 import { MenuAction } from '@react-native-menu/menu';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
@@ -326,45 +325,6 @@ export const buildSubtitleActions = (
         }))
     ];
 };
-
-export const buildStreamActions = (streams: Stream[], currentIndex: number): MenuAction[] => {
-    return streams.map((stream, index) => {
-        const name = stream.name || "";
-        const title = stream.title || stream.description || "";
-
-        const quality = extractQuality(name, title);
-        const size = extractSize(title);
-        const videoCodec = extractVideoCodec(title);
-        const audioCodec = extractAudioCodec(title);
-
-        // Build parts dynamically
-        const parts: string[] = [];
-
-        if (size) parts.push(size);
-        if (videoCodec) parts.push(videoCodec);
-
-        const suffix = `${parts.join(" - ")}`;
-
-        const displayName = parts.length > 0 ? `${name.substring(0, 20)} | ${suffix}` : name;
-
-        return {
-            id: `stream-${index}`,
-            title: displayName,
-            titleColor: '#ffffff',
-            image: Platform.select({
-                ios: 'play.circle',
-                default: undefined,
-            }),
-            imageColor: '#ffffff',
-            state: index === currentIndex ? ('on' as const) : 'off',
-            attributes: {
-                disabled: false,
-            },
-        };
-    });
-};
-
-
 
 export const buildAudioActions = (
     audioTracks: any[],

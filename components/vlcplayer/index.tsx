@@ -35,7 +35,6 @@ import {
     useTimers,
     useUIState,
     ExtendedMediaPlayerProps,
-    buildStreamActions
 } from "../coreplayer";
 
 const useVLCPlayerState = () => {
@@ -539,11 +538,6 @@ const VlcMediaPlayerComponent: React.FC<ExtendedMediaPlayerProps> = ({
         [playerState.availableAudioTracks, settings.selectedAudioTrack]
     );
 
-    const streamActions = useMemo(() =>
-        buildStreamActions(streams, currentStreamIndex),
-        [streams, currentStreamIndex]
-    );
-
     const { displayTime, sliderValue } = useMemo(() =>
         calculateSliderValues(
             playerState.isDragging,
@@ -633,41 +627,7 @@ const VlcMediaPlayerComponent: React.FC<ExtendedMediaPlayerProps> = ({
                             <Text style={styles.titleText} numberOfLines={1}>{title}</Text>
                         </View>
 
-                        <View style={styles.topRightControls}>
-                            {/* Stream Selector - Only show if streams are available */}
-                            {streams.length > 1 && (
-                                <MenuView
-                                    ref={streamMenuRef}
-                                    title="Select Stream"
-                                    onPressAction={({ nativeEvent }) => {
-                                        const index = parseInt(nativeEvent.event.split('-')[1]);
-                                        if (!isNaN(index)) handleStreamSelect(index);
-                                    }}
-                                    actions={streamActions}
-                                    shouldOpenOnLongPress={false}
-                                    themeVariant="dark"
-                                    onOpenMenu={() => {
-                                        shouldAutoHideControls.current = false;
-                                        timers.clearTimer('hideControls');
-                                    }}
-                                    onCloseMenu={() => {
-                                        shouldAutoHideControls.current = true;
-                                        showControlsTemporarily();
-                                    }}
-                                >
-                                    <TouchableOpacity
-                                        style={styles.controlButton}
-                                        onPress={() => {
-                                            if (Platform.OS === 'android') {
-                                                streamMenuRef.current?.show();
-                                            }
-                                        }}
-                                    >
-                                        <MaterialIcons name="ondemand-video" size={24} color="#ffffff" />
-                                    </TouchableOpacity>
-                                </MenuView>
-                            )}
-
+                        <View style={styles.topRightControls}>                            
                             <TouchableOpacity style={styles.controlButton} onPress={handleZoomOut}>
                                 <MaterialIcons name="zoom-out" size={24} color="white" />
                             </TouchableOpacity>
