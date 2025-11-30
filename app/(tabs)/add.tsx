@@ -300,14 +300,14 @@ const styles = StyleSheet.create({
     color: '#888',
   },
   input: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#101010',
     borderRadius: 10,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
     color: '#fff',
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#202020',
   },
   categoryContainer: {
     flexDirection: 'row',
@@ -321,8 +321,8 @@ const styles = StyleSheet.create({
     borderRadius: 50,
     backgroundColor: '#1a1a1a',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#202020',
   },
   categoryChipActive: {
     backgroundColor: '#535aff',
@@ -350,12 +350,12 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: '#535aff',
-    paddingVertical: 16,
-    borderRadius: 12,
+    paddingVertical: 14,
+    borderRadius: 25,
     alignItems: 'center',
     marginTop: 8,
     width: '100%',
-    maxWidth: 200,
+    maxWidth: 150,
     margin: 'auto'
   },
   submitButtonDisabled: {

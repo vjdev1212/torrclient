@@ -203,9 +203,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18,
     paddingVertical: 9,
     borderRadius: 20,
-    backgroundColor: '#1a1a1a',
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
+    backgroundColor: '#101010',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#202020',
   },
   chipActive: {
     backgroundColor: '#535aff',
