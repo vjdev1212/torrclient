@@ -196,6 +196,8 @@ const TorrentDetails = () => {
   const showPlayerSelection = (streamUrl: string) => {
     const playerOptions: { label: string; url: string }[] = [];
 
+    playerOptions.push({ label: 'Default', url: 'default', });
+
     if (getOriginalPlatform() === 'ios') {
       playerOptions.push(
         { label: 'Infuse', url: `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}` },
@@ -236,6 +238,13 @@ const TorrentDetails = () => {
       async (selectedIndex) => {
         const selected = playerOptions[selectedIndex as any];
         if (!selected || selected.url === 'cancel') return;
+
+        if (selected.url.toLowerCase() === 'default') {
+          router.push({
+            pathname: '/stream/player',
+            params: { url: streamUrl, title: torrentData.title },
+          });
+        }
 
         if (selected.url === 'copy') {
           await Clipboard.setStringAsync(streamUrl);

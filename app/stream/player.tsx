@@ -16,21 +16,21 @@ interface PlaybackErrorEvent {
 
 const MediaPlayerScreen: React.FC = () => {
   const router = useRouter();
-  const { videoUrl: urlParam } = useLocalSearchParams();
+  const { url, title } = useLocalSearchParams();
   
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
 
   useEffect(() => {
-    if (urlParam) {
-      setVideoUrl(urlParam as string);
+    if (url) {
+      setVideoUrl(url as string);
       setIsLoading(false);
     } else {
       setError('No video URL provided');
       setIsLoading(false);
     }
-  }, [urlParam]);
+  }, [url]);
 
   const handleBack = (event: BackEvent): void => {
     router.back();
@@ -73,6 +73,7 @@ const MediaPlayerScreen: React.FC = () => {
   return (
     <Player
       videoUrl={videoUrl}
+      title={title as string}
       back={handleBack}
       updateProgress={handleUpdateProgress}
       onPlaybackError={handlePlaybackError}
