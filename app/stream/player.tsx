@@ -21,6 +21,10 @@ const MediaPlayerScreen: React.FC = () => {
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string>('');
+  
+  // Player fallback state
+  const [currentPlayerType, setCurrentPlayerType] = useState<"native" | "vlc">("native");
+  const [hasTriedNative, setHasTriedNative] = useState(false);
 
   useEffect(() => {
     if (url) {
@@ -32,6 +36,14 @@ const MediaPlayerScreen: React.FC = () => {
     }
   }, [url]);
 
+  useEffect(() => {
+    if (currentPlayerType === "vlc" && hasTriedNative) {
+      console.log('Switching to VLC player');
+      setError('');
+      setIsLoading(false);
+    }
+  }, [currentPlayerType, hasTriedNative]);
+
   const handleBack = (event: BackEvent): void => {
     router.back();
   };
@@ -41,13 +53,42 @@ const MediaPlayerScreen: React.FC = () => {
   };
 
   const handlePlaybackError = (event: PlaybackErrorEvent): void => {
-    setError(event.error || 'Playback failed');
+    console.log('Playback error:', event);
+
+    if (
+      currentPlayerType === "native" &&
+      !hasTriedNative &&
+      Platform.OS !== "web"
+    ) {
+      console.log('Native player failed, falling back to VLC');
+
+      setHasTriedNative(true);
+      setError('');
+      setCurrentPlayerType("vlc");
+      setTimeout(() => {
+        console.log('VLC player ready, video URL:', videoUrl);
+      }, 100);
+
+    } else {
+      const errorMessage = currentPlayerType === "vlc"
+        ? 'VLC player was unable to play this format. The video codec may not be supported.'
+        : (event.error || 'Playback failed');
+
+      console.log('Final playback error:', errorMessage);
+      setError(errorMessage);
+      setIsLoading(false);
+    }
   };
 
   function getPlayer() {
     if (Platform.OS === "web") {
       return require("../../components/nativeplayer").MediaPlayer;
     }
+
+    if (currentPlayerType === "vlc") {
+      return require("../../components/vlcplayer").MediaPlayer;
+    }
+
     return require("../../components/nativeplayer").MediaPlayer;
   }
 
