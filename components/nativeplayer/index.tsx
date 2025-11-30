@@ -14,8 +14,6 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
     videoUrl,
     title,
     back: onBack,
-    progress,
-    artwork,
     updateProgress,
     onPlaybackError
 }) => {
@@ -60,29 +58,13 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
     // Initialize player (memoized to prevent recreation)
     const player = useVideoPlayer({
         uri: videoUrl,
-        metadata: { title, artwork }
+        metadata: { title }
     }, useCallback((player: VideoPlayer) => {
         player.loop = false;
         player.muted = settings.isMuted;
         player.playbackRate = settings.playbackSpeed;
     }, [settings.isMuted, settings.playbackSpeed]));
-
-    // Restore progress - optimized with dependency array
-    useEffect(() => {
-        if (playerState.isReady && progress && progress > 0 && player.duration > 0) {
-            const currentTime = (progress / 100) * player.duration;
-            isSeeking.current = true;
-            wasPlayingBeforeSeek.current = false; // Don't auto-play when restoring
-            player.currentTime = currentTime;
-            playerState.setCurrentTime(currentTime);
-
-            const timeoutId = setTimeout(() => {
-                isSeeking.current = false;
-            }, 300);
-            return () => clearTimeout(timeoutId);
-        }
-    }, [playerState.isReady, player.duration, progress]);
-
+    
     const showControlsTemporarily = useCallback(() => {
         setShowControls(true);
         Animated.timing(controlsOpacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
@@ -540,12 +522,6 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
                 allowsPictureInPicture
                 nativeControls={false}
                 contentFit={contentFit}
-            />
-
-            <ArtworkBackground
-                artwork={artwork}
-                isBuffering={playerState.isBuffering}
-                hasStartedPlaying={playerState.isReady}
             />
 
             <WaitingLobby

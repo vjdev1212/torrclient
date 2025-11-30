@@ -58,8 +58,6 @@ const VlcMediaPlayerComponent: React.FC<MediaPlayerProps> = ({
     videoUrl,
     title,
     back: onBack,
-    progress,
-    artwork,
     updateProgress,
 }) => {
     const playerRef = useRef<VLCPlayer>(null);
@@ -168,7 +166,6 @@ const VlcMediaPlayerComponent: React.FC<MediaPlayerProps> = ({
     const vlcHandlers = useMemo(() => ({
         onLoad: (data: any) => {
             console.log('VLC onLoad');
-            console.log('progress', progress);
 
             // Batch state updates
             requestAnimationFrame(() => {
@@ -187,10 +184,7 @@ const VlcMediaPlayerComponent: React.FC<MediaPlayerProps> = ({
                 if (data?.duration) {
                     const durationInSeconds = data.duration / 1000;
                     playerState.setDuration(durationInSeconds);
-                }
-                if (progress && progress > 0) {
-                    playerRef.current?.seek(progress / 100);
-                }
+                }                
             });
 
             Animated.timing(animations.bufferOpacity, {
@@ -514,13 +508,6 @@ const VlcMediaPlayerComponent: React.FC<MediaPlayerProps> = ({
                     playerState.setIsBuffering(true);
                     playerState.setHasStartedPlaying(false);
                 }}
-            />
-
-            <ArtworkBackground
-                artwork={artwork}
-                isBuffering={playerState.isBuffering}
-                hasStartedPlaying={playerState.hasStartedPlaying}
-                error={!!playerState.error}
             />
 
             <WaitingLobby
