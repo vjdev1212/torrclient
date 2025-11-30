@@ -49,8 +49,8 @@ const TorrServerScreen = () => {
         // Create default server
         const defaultServer: ServerConfig = {
           id: Date.now().toString(),
-          name: 'Primary Server',
-          url: 'http://192.168.1.10:5665',
+          name: '',
+          url: '',
           authEnabled: false,
           username: '',
           password: '',
@@ -100,8 +100,8 @@ const TorrServerScreen = () => {
   const addServer = () => {
     const newServer: ServerConfig = {
       id: Date.now().toString(),
-      name: `Server ${servers.length + 1}`,
-      url: 'http://',
+      name: ``,
+      url: '',
       authEnabled: false,
       username: '',
       password: '',
@@ -198,7 +198,7 @@ const TorrServerScreen = () => {
                 style={styles.input}
                 value={server.name}
                 onChangeText={(text) => updateServer(server.id, { name: text })}
-                placeholder="My Server"
+                placeholder="TorrServer"
                 placeholderTextColor="#666"
               />
             </View>
@@ -244,9 +244,9 @@ const TorrServerScreen = () => {
               <Switch
                 value={server.authEnabled}
                 onValueChange={(value) => updateServer(server.id, { authEnabled: value })}
-                thumbColor={server.authEnabled ? '#535aff' : '#666'}
-                trackColor={{ false: '#2a2a2a', true: 'rgba(83, 90, 255, 0.3)' }}
-                ios_backgroundColor="#2a2a2a"
+                thumbColor={server.authEnabled ? '#535aff' : '#888'}
+                trackColor={{ false: '#202020', true: 'rgba(83, 90, 255, 0.3)' }}
+                ios_backgroundColor="#202020"
               />
             </View>
 
@@ -447,10 +447,10 @@ const styles = StyleSheet.create({
     color: '#535aff',
   },
   serverCard: {
-    backgroundColor: '#1f1f1f',
+    backgroundColor: '#101010',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#202020',
     marginBottom: 12,
     overflow: 'hidden',
   },
@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     color: '#535aff',
   },
   serverDetails: {
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#101010',
   },
   inputWrapper: {
     padding: 16,
@@ -536,14 +536,14 @@ const styles = StyleSheet.create({
     color: '#fff',
   },
   input: {
-    height: 44,
-    backgroundColor: '#0a0a0a',
+    height: 40,
+    backgroundColor: '#1a1a1a',
     borderRadius: 10,
     paddingHorizontal: 14,
     fontSize: 15,
     color: '#fff',
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#202020',
   },
   passwordContainer: {
     position: 'relative',
@@ -554,7 +554,7 @@ const styles = StyleSheet.create({
   eyeIcon: {
     position: 'absolute',
     right: 12,
-    top: 12,
+    top: 5,
     padding: 4,
   },
   toggleWrapper: {
@@ -590,7 +590,7 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 1,
-    backgroundColor: '#2a2a2a',
+    backgroundColor: '#202020',
   },
   deleteButton: {
     flexDirection: 'row',

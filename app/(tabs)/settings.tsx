@@ -143,10 +143,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 4,
   },
   settingsGroup: {
-    backgroundColor: '#1f1f1f',
+    backgroundColor: '#101010',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#202020',
     overflow: 'hidden',
   },
   settingItem: {
@@ -188,10 +188,10 @@ const styles = StyleSheet.create({
     marginLeft: 64,
   },
   infoCard: {
-    backgroundColor: '#1f1f1f',
+    backgroundColor: '#101010',
     borderRadius: 16,
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#202020',
     padding: 16,
   },
   infoRow: {

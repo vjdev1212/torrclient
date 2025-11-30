@@ -59,7 +59,7 @@ const TorrentDetails = () => {
 
         setTorrentData({
           title: torrentResult.title || 'Untitled',
-          poster: torrentResult.poster || 'https://dummyimage.com/500x750/101010/777777.png&text=Poster Unavailable',
+          poster: torrentResult.poster || 'https://dummyimage.com/500x750/1A1A1A/FFFFFF.png&text=Poster Unavailable',
           category: torrentResult.category || 'unknown',
           size: torrentResult.torrent_size,
           files,
@@ -279,17 +279,16 @@ const TorrentDetails = () => {
   };
 
   const handleDrop = async () => {
-    const confirmed = await confirmAction(
-      'Confirm Drop',
-      'Are you sure you want to drop this torrent?',
-      'Drop'
-    );
-    if (!confirmed) return;
-
     try {
       if (isHapticsSupported()) {
-        await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
+        await Haptics.impactAsync(ImpactFeedbackStyle.Light);
       }
+      const confirmed = await confirmAction(
+        'Confirm Drop',
+        'Are you sure you want to drop this torrent?',
+        'Drop'
+      );
+      if (!confirmed) return;
       const authHeader = await getTorrServerAuthHeader();
       await fetch(`${baseUrl}/torrents`, {
         method: 'POST',
@@ -307,17 +306,17 @@ const TorrentDetails = () => {
   };
 
   const handleWipe = async () => {
-    const confirmed = await confirmAction(
-      'Confirm Delete',
-      'Are you sure you want to permanently delete this torrent?',
-      'Delete'
-    );
-    if (!confirmed) return;
 
     try {
       if (isHapticsSupported()) {
-        await Haptics.impactAsync(ImpactFeedbackStyle.Soft);
+        await Haptics.impactAsync(ImpactFeedbackStyle.Light);
       }
+      const confirmed = await confirmAction(
+        'Confirm Delete',
+        'Are you sure you want to permanently delete this torrent?',
+        'Delete'
+      );
+      if (!confirmed) return;
       const authHeader = await getTorrServerAuthHeader();
       await fetch(`${baseUrl}/torrents`, {
         method: 'POST',

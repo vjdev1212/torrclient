@@ -185,12 +185,11 @@ const styles = StyleSheet.create({
   searchInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#1f1f1f',
-    borderRadius: 16,
-    paddingHorizontal: 15,
-    minHeight: 48,
-    borderWidth: 1,
-    borderColor: '#2a2a2a',
+    backgroundColor: '#101010',
+    borderRadius: 12,
+    paddingHorizontal: 15,    
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: '#202020',
   },
   searchIcon: {
     marginRight: 12,
@@ -199,8 +198,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: '#fff',
-    minHeight: 48,
-    paddingVertical: 12,
+    paddingVertical: 10,
     outlineWidth: 0,
     cursor: 'pointer'
   },
