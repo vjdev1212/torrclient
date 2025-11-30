@@ -184,7 +184,7 @@ const TorrentDetails = () => {
 
         if (index === 1) {
           setTimeout(() => {
-            const playUrl = `${streamUrl}&play`;
+            const playUrl = `${streamUrl}&play&preload`;
             console.log('PlayUrl', playUrl)
             showPlayerSelection(playUrl);
           }, 300);
