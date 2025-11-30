@@ -72,7 +72,7 @@ const MediaPlayerScreen: React.FC = () => {
 
   return (
     <Player
-      videoUrl={videoUrl}
+      videoUrl={encodeURI(videoUrl)}
       title={title as string}
       back={handleBack}
       updateProgress={handleUpdateProgress}
