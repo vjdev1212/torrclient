@@ -6,28 +6,18 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { MenuComponentRef, MenuView } from '@react-native-menu/menu';
 import { styles } from "../coreplayer/styles";
 import { playHaptic } from "../coreplayer/utils";
-import { usePlayerState, useSubtitleState, useUIState, usePlayerSettings, useTimers, usePlayerAnimations, hideControls, CONSTANTS, setupOrientation, cleanupOrientation, loadSubtitle, handleSubtitleError, findActiveSubtitle, calculateProgress, performSeek, buildSpeedActions, buildSubtitleActions, buildAudioActions, calculateSliderValues, ArtworkBackground, WaitingLobby, SubtitleDisplay, CenterControls, ProgressBar, ContentFitLabel, SubtitleSource, ErrorDisplay, ExtendedMediaPlayerProps } from "../coreplayer";
+import { usePlayerState, useSubtitleState, useUIState, usePlayerSettings, useTimers, usePlayerAnimations, hideControls, CONSTANTS, setupOrientation, cleanupOrientation, calculateProgress, performSeek, buildSpeedActions, buildSubtitleActions, buildAudioActions, calculateSliderValues, ArtworkBackground, WaitingLobby, SubtitleDisplay, CenterControls, ProgressBar, ContentFitLabel, SubtitleSource, ErrorDisplay } from "../coreplayer";
 import { View, Text } from "../Themed";
+import { MediaPlayerProps } from "../coreplayer/models";
 
-// Menu wrapper component - uses CustomMenu on web, MenuView on native
-const MenuWrapper: React.FC<any> = (props) => {
-    return <MenuView {...props} />;
-};
-
-
-export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
+export const MediaPlayer: React.FC<MediaPlayerProps> = ({
     videoUrl,
     title,
     back: onBack,
     progress,
     artwork,
-    subtitles = [],
-    openSubtitlesClient,
     updateProgress,
-    onPlaybackError,
-    streams = [],
-    currentStreamIndex = 0,
-    onStreamChange
+    onPlaybackError
 }) => {
     const videoRef = useRef<VideoView>(null);
     const shouldAutoHideControls = useRef(true);
@@ -58,7 +48,6 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
     const audioMenuRef = useRef<MenuComponentRef>(null);
     const subtitleMenuRef = useRef<MenuComponentRef>(null);
     const speedMenuRef = useRef<MenuComponentRef>(null);
-    const streamMenuRef = useRef<MenuComponentRef>(null);
 
     // Local state
     const [contentFit, setContentFit] = useState<'contain' | 'cover' | 'fill'>('cover');
@@ -66,7 +55,7 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
     const [isPiPActive, setIsPiPActive] = useState(false);
     const [videoError, setVideoError] = useState<string | null>(null);
 
-    const useCustomSubtitles = subtitles.length > 0;
+    const useCustomSubtitles = false;
 
     // Initialize player (memoized to prevent recreation)
     const player = useVideoPlayer({
@@ -136,64 +125,8 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
             player.muted = settings.isMuted;
             player.playbackRate = settings.playbackSpeed;
         }
-    }, [player, settings.isMuted, settings.playbackSpeed]);
-
-    // Load subtitles - optimized with better dependency tracking
-    useEffect(() => {
-        if (!useCustomSubtitles || settings.selectedSubtitle < 0 || settings.selectedSubtitle >= subtitles.length) {
-            subtitleState.setParsedSubtitles([]);
-            subtitleState.setCurrentSubtitle('');
-            return;
-        }
-
-        let isMounted = true;
-
-        const loadSub = async () => {
-            subtitleState.setIsLoadingSubtitles(true);
-            try {
-                const parsed = await loadSubtitle(subtitles[settings.selectedSubtitle] as SubtitleSource, openSubtitlesClient);
-                if (isMounted) {
-                    subtitleState.setParsedSubtitles(parsed);
-                }
-            } catch (error: any) {
-                if (isMounted) {
-                    handleSubtitleError(error);
-                    subtitleState.setParsedSubtitles([]);
-                }
-            } finally {
-                if (isMounted) {
-                    subtitleState.setIsLoadingSubtitles(false);
-                    subtitleState.setCurrentSubtitle('');
-                }
-            }
-        };
-
-        loadSub();
-
-        return () => {
-            isMounted = false;
-        };
-    }, [settings.selectedSubtitle, subtitles, openSubtitlesClient, useCustomSubtitles]);
-
-    // Update subtitle display - optimized interval
-    useEffect(() => {
-        if (subtitleState.parsedSubtitles.length === 0) {
-            subtitleState.setCurrentSubtitle('');
-            return;
-        }
-
-        const updateSubtitle = () => {
-            const text = findActiveSubtitle(player.currentTime, subtitleState.parsedSubtitles);
-            if (text !== subtitleState.currentSubtitle) {
-                subtitleState.setCurrentSubtitle(text);
-            }
-        };
-
-        updateSubtitle();
-        const interval = setInterval(updateSubtitle, CONSTANTS.SUBTITLE_UPDATE_INTERVAL);
-        return () => clearInterval(interval);
-    }, [subtitleState.parsedSubtitles, player.currentTime, subtitleState.currentSubtitle]);
-
+    }, [player, settings.isMuted, settings.playbackSpeed]);    
+    
     // Player event handlers
     const playingChange = useEvent(player, "playingChange");
     useEffect(() => {
@@ -495,14 +428,6 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
         player.audioTrack = player.availableAudioTracks[index];
     }, [player, settings]);
 
-    const handleStreamSelect = useCallback(async (index: number) => {
-        await playHaptic();
-        if (onStreamChange) {
-            onStreamChange(index);
-        }
-        showControlsTemporarily();
-    }, [onStreamChange, showControlsTemporarily]);
-
     // Memoized helper
     const getContentFitIcon = useCallback((): "fit-screen" | "crop" | "fullscreen" => {
         const icons = { contain: 'fit-screen', cover: 'crop', fill: 'fullscreen' } as const;
@@ -511,12 +436,14 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
 
     // Memoize menu actions to prevent rebuilding on every render
     const speedActions = useMemo(() => buildSpeedActions(settings.playbackSpeed), [settings.playbackSpeed]);
+
     const subtitleActions = useMemo(() => buildSubtitleActions(
-        subtitles as SubtitleSource[],
+        [],
         settings.selectedSubtitle,
         useCustomSubtitles,
         player.availableSubtitleTracks
-    ), [subtitles, settings.selectedSubtitle, useCustomSubtitles, player.availableSubtitleTracks]);
+    ), [settings.selectedSubtitle, useCustomSubtitles, player.availableSubtitleTracks]);
+
     const audioActions = useMemo(() => buildAudioActions(
         player.availableAudioTracks,
         settings.selectedAudioTrack
@@ -546,24 +473,12 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
     }, [player, playerState]);
 
     // Memoize menu handlers to prevent recreating on every render
-    const handleWebSpeedAction = useCallback((id: string) => {
-        const speed = parseFloat(id.split('-')[1]);
-        if (!isNaN(speed)) handleSpeedSelect(speed);
-    }, [handleSpeedSelect]);
 
     const handleNativeSpeedAction = useCallback(({ nativeEvent }: any) => {
         const speed = parseFloat(nativeEvent.event.split('-')[1]);
         if (!isNaN(speed)) handleSpeedSelect(speed);
     }, [handleSpeedSelect]);
 
-    const handleWebSubtitleAction = useCallback((id: string) => {
-        if (id === 'subtitle-off') {
-            handleSubtitleSelect(-1);
-        } else {
-            const index = parseInt(id.split('-')[1]);
-            if (!isNaN(index)) handleSubtitleSelect(index);
-        }
-    }, [handleSubtitleSelect]);
 
     const handleNativeSubtitleAction = useCallback(({ nativeEvent }: any) => {
         if (nativeEvent.event === 'subtitle-off') {
@@ -574,25 +489,11 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
         }
     }, [handleSubtitleSelect]);
 
-    const handleWebAudioAction = useCallback((id: string) => {
-        const index = audioActions.findIndex(a => a.id === id);
-        if (index !== -1) handleAudioSelect(index);
-    }, [audioActions, handleAudioSelect]);
 
     const handleNativeAudioAction = useCallback(({ nativeEvent }: any) => {
         const index = audioActions.findIndex(a => a.id === nativeEvent.event);
         if (index !== -1) handleAudioSelect(index);
     }, [audioActions, handleAudioSelect]);
-
-    const handleWebStreamAction = useCallback((id: string) => {
-        const index = parseInt(id.split('-')[1]);
-        if (!isNaN(index)) handleStreamSelect(index);
-    }, [handleStreamSelect]);
-
-    const handleNativeStreamAction = useCallback(({ nativeEvent }: any) => {
-        const index = parseInt(nativeEvent.event.split('-')[1]);
-        if (!isNaN(index)) handleStreamSelect(index);
-    }, [handleStreamSelect]);
 
     const handleMenuOpen = useCallback(() => {
         shouldAutoHideControls.current = false;
@@ -680,11 +581,11 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
                             </TouchableOpacity>
 
                             {player.availableAudioTracks.length > 0 && (
-                                <MenuWrapper
+                                <MenuView
                                     style={{ zIndex: 1000 }}
                                     title="Audio Track"
                                     ref={audioMenuRef}
-                                    onPressAction={Platform.OS === 'web' ? handleWebAudioAction : handleNativeAudioAction}
+                                    onPressAction={handleNativeAudioAction}
                                     actions={audioActions}
                                     shouldOpenOnLongPress={false}
                                     themeVariant="dark"
@@ -698,15 +599,15 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
                                     }}>
                                         <MaterialIcons name="audiotrack" size={24} color="white" />
                                     </TouchableOpacity>
-                                </MenuWrapper>
+                                </MenuView>
                             )}
 
                             {(useCustomSubtitles || player.availableSubtitleTracks.length > 0) && (
-                                <MenuWrapper
+                                <MenuView
                                     style={{ zIndex: 1000 }}
                                     title="Subtitles"
                                     ref={subtitleMenuRef}
-                                    onPressAction={Platform.OS === 'web' ? handleWebSubtitleAction : handleNativeSubtitleAction}
+                                    onPressAction={handleNativeSubtitleAction}
                                     actions={subtitleActions}
                                     shouldOpenOnLongPress={false}
                                     themeVariant="dark"
@@ -720,14 +621,14 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
                                     }}>
                                         <MaterialIcons name="closed-caption" size={24} color="white" />
                                     </TouchableOpacity>
-                                </MenuWrapper>
+                                </MenuView>
                             )}
 
-                            <MenuWrapper
+                            <MenuView
                                 style={{ zIndex: 1000 }}
                                 title="Playback Speed"
                                 ref={speedMenuRef}
-                                onPressAction={Platform.OS === 'web' ? handleWebSpeedAction : handleNativeSpeedAction}
+                                onPressAction={handleNativeSpeedAction}
                                 actions={speedActions}
                                 shouldOpenOnLongPress={false}
                                 themeVariant="dark"
@@ -741,7 +642,7 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
                                 }}>
                                     <MaterialIcons name="speed" size={24} color={"white"} />
                                 </TouchableOpacity>
-                            </MenuWrapper>
+                            </MenuView>
                         </View>
                     </View>
 

@@ -23,22 +23,6 @@ export const CONSTANTS = {
 
 // ==================== TYPES ====================
 
-interface Stream {
-    name: string;
-    title?: string;
-    url?: string;
-    embed?: string;
-    infoHash?: string;
-    magnet?: string;
-    magnetLink?: string;
-    description?: string;
-}
-export interface ExtendedMediaPlayerProps extends MediaPlayerProps {
-    streams?: Stream[];
-    currentStreamIndex?: number;
-    onStreamChange?: (index: number) => void;
-}
-
 export interface SubtitleSource {
     fileId?: string;
     url?: string;
@@ -188,61 +172,6 @@ export const cleanupOrientation = async () => {
         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.DEFAULT);
         StatusBar.setHidden(false);
     }
-};
-
-// Subtitle loading logic
-export const loadSubtitle = async (
-    subtitle: SubtitleSource,
-    openSubtitlesClient?: any
-): Promise<any[]> => {
-    let subtitleContent = '';
-
-    // Load from OpenSubtitles
-    if (subtitle.fileId && openSubtitlesClient) {
-        const response = await openSubtitlesClient.downloadSubtitle(String(subtitle.fileId));
-
-        if ('error' in response || ('status' in response && response.status !== 200)) {
-            throw new Error(response.message || 'Download failed');
-        }
-
-        const downloadResponse = response as DownloadResponse;
-        if (!downloadResponse.link) {
-            throw new Error('No download link');
-        }
-
-        const subResponse = await fetch(downloadResponse.link);
-        if (!subResponse.ok) {
-            throw new Error(`HTTP ${subResponse.status}`);
-        }
-        subtitleContent = await subResponse.text();
-    }
-    // Load from direct URL
-    else if (subtitle.url && !subtitle.url.includes('opensubtitles.org')) {
-        const response = await fetch(subtitle.url);
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status}`);
-        }
-        subtitleContent = await response.text();
-    }
-    else {
-        throw new Error('No valid subtitle source');
-    }
-
-    return parseSubtitleFile(subtitleContent);
-};
-
-// Subtitle update logic
-export const findActiveSubtitle = (
-    currentTime: number,
-    parsedSubtitles: any[]
-): string => {
-    if (parsedSubtitles.length === 0) return '';
-
-    const active = parsedSubtitles.find(
-        sub => currentTime >= sub.start && currentTime <= sub.end
-    );
-
-    return active?.text || '';
 };
 
 // Controls visibility management

@@ -12,30 +12,25 @@ import {
     WaitingLobby,
     buildAudioActions,
     buildSpeedActions,
-    buildSubtitleActions,
     calculateProgress,
     calculateSliderValues,
     CenterControls,
     cleanupOrientation,
     CONSTANTS,
     ErrorDisplay,
-    findActiveSubtitle,
-    handleSubtitleError,
     hideControls,
-    loadSubtitle,
     performSeek,
     ProgressBar,
     setupOrientation,
     SubtitleDisplay,
-    SubtitleSource,
     usePlayerAnimations,
     usePlayerSettings,
     usePlayerState,
     useSubtitleState,
     useTimers,
-    useUIState,
-    ExtendedMediaPlayerProps,
+    useUIState
 } from "../coreplayer";
+import { MediaPlayerProps } from "../coreplayer/models";
 
 const useVLCPlayerState = () => {
     const baseState = usePlayerState();
@@ -59,18 +54,13 @@ const useVLCPlayerState = () => {
 
 // Helper function to build stream actions for MenuView
 
-const VlcMediaPlayerComponent: React.FC<ExtendedMediaPlayerProps> = ({
+const VlcMediaPlayerComponent: React.FC<MediaPlayerProps> = ({
     videoUrl,
     title,
     back: onBack,
     progress,
     artwork,
-    subtitles = [],
-    openSubtitlesClient,
     updateProgress,
-    streams = [],
-    currentStreamIndex = 0,
-    onStreamChange
 }) => {
     const playerRef = useRef<VLCPlayer>(null);
     const shouldAutoHideControls = useRef(true);
@@ -89,9 +79,7 @@ const VlcMediaPlayerComponent: React.FC<ExtendedMediaPlayerProps> = ({
     const [zoom, setZoom] = useState(1.0);
 
     const audioMenuRef = useRef<MenuComponentRef>(null);
-    const subtitleMenuRef = useRef<MenuComponentRef>(null);
     const speedMenuRef = useRef<MenuComponentRef>(null);
-    const streamMenuRef = useRef<MenuComponentRef>(null);
 
     const stateRefs = useRef({
         isPlaying: false,
@@ -174,61 +162,7 @@ const VlcMediaPlayerComponent: React.FC<ExtendedMediaPlayerProps> = ({
         if (playerState.isPlaying && !playerState.isBuffering && uiState.showControls && shouldAutoHideControls.current) {
             showControlsTemporarily();
         }
-    }, [playerState.isPlaying, playerState.isBuffering]);
-
-    // Optimized subtitle loading
-    useEffect(() => {
-        if (subtitles.length === 0 || settings.selectedSubtitle < 0 || settings.selectedSubtitle >= subtitles.length) {
-            subtitleState.setParsedSubtitles([]);
-            subtitleState.setCurrentSubtitle('');
-            return;
-        }
-
-        const loadSub = async () => {
-            subtitleState.setIsLoadingSubtitles(true);
-            try {
-                const parsed = await loadSubtitle(subtitles[settings.selectedSubtitle] as SubtitleSource, openSubtitlesClient);
-                subtitleState.setParsedSubtitles(parsed);
-            } catch (error: any) {
-                handleSubtitleError(error);
-                subtitleState.setParsedSubtitles([]);
-            } finally {
-                subtitleState.setIsLoadingSubtitles(false);
-                subtitleState.setCurrentSubtitle('');
-            }
-        };
-
-        loadSub();
-    }, [settings.selectedSubtitle, subtitles]);
-
-    // Optimized subtitle updates - only when playing and subtitles exist
-    useEffect(() => {
-        if (subtitleState.parsedSubtitles.length === 0 || !playerState.isPlaying) {
-            // Clear interval if player is paused
-            if (subtitleIntervalRef.current) {
-                clearInterval(subtitleIntervalRef.current);
-                subtitleIntervalRef.current = null;
-            }
-            return;
-        }
-
-        const updateSubtitle = () => {
-            const text = findActiveSubtitle(playerState.currentTime, subtitleState.parsedSubtitles);
-            if (subtitleState.currentSubtitle !== text) {
-                subtitleState.setCurrentSubtitle(text);
-            }
-        };
-
-        updateSubtitle();
-        subtitleIntervalRef.current = setInterval(updateSubtitle, CONSTANTS.SUBTITLE_UPDATE_INTERVAL);
-
-        return () => {
-            if (subtitleIntervalRef.current) {
-                clearInterval(subtitleIntervalRef.current);
-                subtitleIntervalRef.current = null;
-            }
-        };
-    }, [subtitleState.parsedSubtitles, playerState.isPlaying, playerState.currentTime]);
+    }, [playerState.isPlaying, playerState.isBuffering]);        
 
     // Memoize VLC handlers to prevent recreation
     const vlcHandlers = useMemo(() => ({
@@ -503,10 +437,6 @@ const VlcMediaPlayerComponent: React.FC<ExtendedMediaPlayerProps> = ({
         showControlsTemporarily();
     }, [settings, showControlsTemporarily]);
 
-    const handleSubtitleSelect = useCallback(async (index: number) => {
-        await playHaptic();
-        settings.setSelectedSubtitle(index);
-    }, [settings]);
 
     const handleAudioSelect = useCallback(async (index: number) => {
         await playHaptic();
@@ -514,23 +444,10 @@ const VlcMediaPlayerComponent: React.FC<ExtendedMediaPlayerProps> = ({
         showControlsTemporarily();
     }, [settings, showControlsTemporarily]);
 
-    const handleStreamSelect = useCallback(async (index: number) => {
-        await playHaptic();
-        if (onStreamChange) {
-            onStreamChange(index);
-        }
-        showControlsTemporarily();
-    }, [onStreamChange, showControlsTemporarily]);
-
     // Memoize action builders
     const speedActions = useMemo(() =>
         buildSpeedActions(settings.playbackSpeed),
         [settings.playbackSpeed]
-    );
-
-    const subtitleActions = useMemo(() =>
-        buildSubtitleActions(subtitles as SubtitleSource[], settings.selectedSubtitle, true),
-        [subtitles, settings.selectedSubtitle]
     );
 
     const audioActions = useMemo(() =>
@@ -676,44 +593,7 @@ const VlcMediaPlayerComponent: React.FC<ExtendedMediaPlayerProps> = ({
                                     </TouchableOpacity>
                                 </MenuView>
                             )}
-
-                            {subtitles.length > 0 && (
-                                <MenuView
-                                    style={{ zIndex: 1000 }}
-                                    title="Subtitles"
-                                    onPressAction={({ nativeEvent }) => {
-                                        if (nativeEvent.event === 'subtitle-off') {
-                                            handleSubtitleSelect(-1);
-                                        } else {
-                                            const index = parseInt(nativeEvent.event.split('-')[1]);
-                                            if (!isNaN(index)) handleSubtitleSelect(index);
-                                        }
-                                    }}
-                                    actions={subtitleActions}
-                                    shouldOpenOnLongPress={false}
-                                    themeVariant="dark"
-                                    onOpenMenu={() => {
-                                        shouldAutoHideControls.current = false;
-                                        timers.clearTimer('hideControls');
-                                    }}
-                                    onCloseMenu={() => {
-                                        shouldAutoHideControls.current = true;
-                                        showControlsTemporarily();
-                                    }}
-                                >
-                                    <TouchableOpacity
-                                        style={styles.controlButton}
-                                        onPress={() => {
-                                            if (Platform.OS === 'android') {
-                                                subtitleMenuRef.current?.show();
-                                            }
-                                        }}
-                                    >
-                                        <MaterialIcons name="closed-caption" size={24} color="white" />
-                                    </TouchableOpacity>
-                                </MenuView>
-                            )}
-
+                            
                             <MenuView
                                 ref={speedMenuRef}
                                 title="Playback Speed"
