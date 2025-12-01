@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TextInput,
   StyleSheet,
@@ -28,10 +28,31 @@ const AddTorrentScreen = () => {
   const { magnet } = useLocalSearchParams();
   const [input, setInput] = useState(magnet ? String(magnet) : '');
   const [title, setTitle] = useState('');
-  const [poster, setPoster] = useState('');
+  const [posterInput, setPosterInput] = useState('');
   const [category, setCategory] = useState<'movie' | 'tv' | 'music' | 'other'>('movie');
   const [submitting, setSubmitting] = useState(false);
-  const [imdbId, setImdbId] = useState('');
+
+  const extractImdbId = (text: string): string | null => {
+    // Match IMDB ID patterns (tt followed by 7-8 digits)
+    const imdbMatch = text.match(/tt\d{7,8}/i);
+    return imdbMatch ? imdbMatch[0] : null;
+  };
+
+  const getFinalPosterUrl = (): string => {
+    if (!posterInput) return '';
+    
+    const imdbId = extractImdbId(posterInput);
+    
+    if (imdbId && posterInput.trim() === imdbId) {
+      return `https://images.metahub.space/poster/medium/${imdbId}/img`;
+    }
+    
+    if (imdbId && posterInput.includes('metahub.space')) {
+      return `https://images.metahub.space/poster/medium/${imdbId}/img`;
+    }
+    
+    return posterInput;
+  };
 
   const handleSubmit = async () => {
     let hash = '';
@@ -53,13 +74,15 @@ const AddTorrentScreen = () => {
 
     try {
       const baseUrl = getTorrServerUrl();
+      const finalPosterUrl = getFinalPosterUrl();
+      
       const payload = {
         action: 'add',
         category,
         data: '',
         hash,
         link,
-        poster: poster || (imdbId ? `https://live.metahub.space/poster/medium/${imdbId}/img` : ''),
+        poster: finalPosterUrl,
         save_to_db: true,
         title,
       };
@@ -78,8 +101,7 @@ const AddTorrentScreen = () => {
       showAlert('Success', 'Torrent added successfully.');
       setInput('');
       setTitle('');
-      setPoster('');
-      setImdbId('');
+      setPosterInput('');
       setCategory('movie');
       router.push("/(tabs)");
     } catch (err) {
@@ -103,6 +125,8 @@ const AddTorrentScreen = () => {
       }
     }
   };
+
+  const previewUrl = getFinalPosterUrl();
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -184,42 +208,34 @@ const AddTorrentScreen = () => {
                 </View>
               </View>
 
-              {/* IMDB ID Input */}
+              {/* Poster Input (IMDB ID or URL) */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>IMDB ID <Text style={styles.optional}>(optional)</Text></Text>
+                <Text style={styles.label}>
+                  Poster <Text style={styles.optional}>(IMDB ID or URL)</Text>
+                </Text>
                 <TextInput
                   style={styles.input}
-                  value={imdbId}
-                  onChangeText={setImdbId}
-                  placeholder="tt0133093"
+                  value={posterInput}
+                  onChangeText={setPosterInput}
+                  placeholder="tt0133093 or https://example.com/poster.jpg"
                   autoCapitalize="none"
                   placeholderTextColor="#888"
                   submitBehavior="blurAndSubmit"
                 />
-              </View>
-
-              {/* Poster URL Input */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Poster URL <Text style={styles.optional}>(optional)</Text></Text>
-                <TextInput
-                  style={styles.input}
-                  value={poster}
-                  onChangeText={(text) => {
-                    setPoster(text);
-                    if (text) setImdbId('');
-                  }}
-                  placeholder="https://example.com/poster.jpg"
-                  autoCapitalize="none"
-                  placeholderTextColor="#888"
-                  submitBehavior="blurAndSubmit"
-                />
+                {posterInput && (
+                  <Text style={styles.helperText}>
+                    {extractImdbId(posterInput) 
+                      ? `Using IMDB ID: ${extractImdbId(posterInput)}`
+                      : 'Using custom URL'}
+                  </Text>
+                )}
               </View>
 
               {/* Poster Preview */}
-              {(poster || imdbId) ? (
+              {previewUrl ? (
                 <View style={styles.previewContainer}>
                   <Image
-                    source={{ uri: poster || `https://live.metahub.space/poster/medium/${imdbId}/img` }}
+                    source={{ uri: previewUrl }}
                     style={styles.previewImage}
                     resizeMode="cover"
                   />
@@ -309,6 +325,12 @@ const styles = StyleSheet.create({
     color: '#fff',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#202020',
+  },
+  helperText: {
+    fontSize: 13,
+    color: '#666',
+    marginTop: 6,
+    fontStyle: 'italic',
   },
   categoryContainer: {
     flexDirection: 'row',
