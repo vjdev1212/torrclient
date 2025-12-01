@@ -65,6 +65,7 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
         player.muted = settings.isMuted;
         player.playbackRate = settings.playbackSpeed;
         player.allowsExternalPlayback = true;
+        player.showNowPlayingNotification = true;
     }, [settings.isMuted, settings.playbackSpeed]));
 
     const showControlsTemporarily = useCallback(() => {
@@ -518,7 +519,7 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
                 player={player}
                 fullscreenOptions={{ enable: true, orientation: 'landscape' }}
                 allowsPictureInPicture
-                nativeControls={false}
+                nativeControls={Platform.OS === 'web' ? true : false}
                 contentFit={contentFit}
             />
 
