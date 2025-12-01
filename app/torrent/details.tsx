@@ -207,19 +207,13 @@ const TorrentDetails = () => {
     if (defaultMediaPlayer && defaultMediaPlayer !== 'ask') {
       routeToPlayer(defaultMediaPlayer, streamUrl);
     } else {
-      showPlayerSelection(streamUrl);
+      routeToPlayer('default', streamUrl);
     }
   };
 
   const routeToPlayer = (playerType: string, streamUrl: string) => {
     console.log('Routing to player:', playerType, streamUrl);
     switch (playerType.toLowerCase()) {
-      case 'default':
-        router.push({
-          pathname: '/stream/player',
-          params: { url: streamUrl, title: torrentData.title },
-        });
-        break;
       case 'infuse':
         Linking.openURL(`infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`);
         break;
@@ -236,80 +230,12 @@ const TorrentDetails = () => {
         Linking.openURL(streamUrl);
         break;
       default:
-        console.log('Hello');
-        showPlayerSelection(streamUrl);
+        router.push({
+          pathname: '/stream/player',
+          params: { url: streamUrl, title: torrentData.title },
+        });
+        break;
     }
-  };
-
-  const showPlayerSelection = (streamUrl: string) => {
-    const playerOptions: { label: string; url: string; type: string }[] = [];
-
-    playerOptions.push({ label: 'Default', url: 'default', type: 'default' });
-
-    if (getOriginalPlatform() === 'ios') {
-      playerOptions.push(
-        { label: 'Infuse', url: `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`, type: 'infuse' },
-        { label: 'VidHub', url: `open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}`, type: 'vidhub' },
-        { label: 'VLC', url: `vlc://${streamUrl}`, type: 'vlc' }
-      );
-    } else if (getOriginalPlatform() === 'android') {
-      playerOptions.push(
-        { label: 'VLC', url: `vlc://${streamUrl}`, type: 'vlc' },
-        { label: 'External', url: `${streamUrl}`, type: 'external' }
-      );
-    } else {
-      playerOptions.push({ label: 'New Window', url: streamUrl, type: 'newwindow' });
-    }
-
-    playerOptions.push(
-      { label: 'Copy Link', url: 'copy', type: 'copy' },
-      { label: 'Share', url: 'share', type: 'share' },
-      { label: 'Cancel', url: 'cancel', type: 'cancel' }
-    );
-
-    const options = playerOptions.map((p) => p.label);
-
-    showActionSheetWithOptions(
-      {
-        options,
-        cancelButtonIndex: options.length - 1,
-        title: 'Open with...',
-        textStyle: { color: '#fff' },
-        titleTextStyle: { color: '#007aff' },
-        containerStyle: { backgroundColor: '#101010' },
-        cancelButtonTintColor: '#ff4757',
-        userInterfaceStyle: 'dark',
-      },
-      async (selectedIndex) => {
-        const selected = playerOptions[selectedIndex as any];
-        if (!selected || selected.url === 'cancel') return;
-
-        if (selected.type === 'default') {
-          router.push({
-            pathname: '/stream/player',
-            params: { url: streamUrl, title: torrentData.title },
-          });
-          return;
-        }
-
-        if (selected.url === 'copy') {
-          await Clipboard.setStringAsync(streamUrl);
-          showAlert('Copied', 'Stream link copied to clipboard.');
-          return;
-        }
-
-        if (selected.url === 'share') {
-          try {
-            await Share.share({ message: streamUrl, url: streamUrl, title: 'Open Stream' });
-          } catch {
-            showAlert('Unable to share', 'Please copy and open the stream manually.');
-          }
-          return;
-        }
-
-        Linking.openURL(selected.url);
-      }
-    );
   };
 
   const confirmAction = async (
