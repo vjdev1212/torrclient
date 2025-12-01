@@ -58,13 +58,15 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
     // Initialize player (memoized to prevent recreation)
     const player = useVideoPlayer({
         uri: videoUrl,
-        metadata: { title }
+        metadata: { title },
+        useCaching: true
     }, useCallback((player: VideoPlayer) => {
         player.loop = false;
         player.muted = settings.isMuted;
         player.playbackRate = settings.playbackSpeed;
+        player.allowsExternalPlayback = true;
     }, [settings.isMuted, settings.playbackSpeed]));
-    
+
     const showControlsTemporarily = useCallback(() => {
         setShowControls(true);
         Animated.timing(controlsOpacity, { toValue: 1, duration: 200, useNativeDriver: true }).start();
