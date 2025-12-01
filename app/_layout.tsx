@@ -152,6 +152,7 @@ function RootLayoutNav() {
                 headerTintColor: '#ffffff',
                 headerBackTitle: '',
                 headerShadowVisible: false,
+                headerBackVisible: false,
                 headerStyle: {
                   backgroundColor: 'transparent',
                 }

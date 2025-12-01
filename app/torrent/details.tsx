@@ -29,7 +29,6 @@ const TorrentDetails = () => {
   useEffect(() => {
     const savedPlayer = storageService.getItem(StorageKeys.DEFAULT_MEDIA_PLAYER_KEY);
     if (savedPlayer) {
-      console.log('Loaded default media player from storage:', savedPlayer);
       setDefaultMediaPlayer(savedPlayer);
     }
   }, []);
@@ -327,25 +326,17 @@ const TorrentDetails = () => {
       return (
         <View style={styles.detailsSection}>
           <Text style={styles.sectionTitle}>Details</Text>
-          {isLargeScreen ? (
-            <View style={styles.statsGrid}>
-              <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
-              <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
-              <View style={styles.statCard}>
-                <View style={styles.statIconContainer}>
-                  <Ionicons name="information-circle-outline" size={20} color="#535aff" />
-                </View>
-                <Text style={styles.statLabel}>Status</Text>
-                <ActivityIndicator size="small" color="#535aff" style={{ marginTop: 4 }} />
+          <View style={styles.statsGrid}>
+            <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
+            <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
+            <View style={styles.statCard}>
+              <View style={styles.statIconContainer}>
+                <Ionicons name="information-circle-outline" size={20} color="#535aff" />
               </View>
+              <Text style={styles.statLabel}>Status</Text>
+              <ActivityIndicator size="small" color="#535aff" style={{ marginTop: 4 }} />
             </View>
-          ) : (
-            <View style={styles.infoCard}>
-              <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
-              <InfoRow label="Size" value={formatBytes(torrentData.size)} />
-              <InfoRow label="Status" value={<ActivityIndicator size="small" color="#535aff" />} />
-            </View>
-          )}
+          </View>
         </View>
       );
     }
@@ -354,19 +345,11 @@ const TorrentDetails = () => {
       return (
         <View style={styles.detailsSection}>
           <Text style={styles.sectionTitle}>Details</Text>
-          {isLargeScreen ? (
-            <View style={styles.statsGrid}>
-              <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
-              <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
-              <StatCard label="Status" value="Loading..." icon="information-circle-outline" />
-            </View>
-          ) : (
-            <View style={styles.infoCard}>
-              <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
-              <InfoRow label="Size" value={formatBytes(torrentData.size)} />
-              <InfoRow label="Status" value="Loading..." />
-            </View>
-          )}
+          <View style={styles.statsGrid}>
+            <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
+            <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
+            <StatCard label="Status" value="Loading..." icon="information-circle-outline" />
+          </View>
         </View>
       );
     }
@@ -374,44 +357,24 @@ const TorrentDetails = () => {
     return (
       <View style={styles.detailsSection}>
         <Text style={styles.sectionTitle}>Details</Text>
-        {isLargeScreen ? (
-          <View style={styles.statsGrid}>
-            <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
-            <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
-            <StatCard label="Status" value={cacheData.Torrent.stat_string} icon="information-circle-outline" />
-            <StatCard label="Peers" value={cacheData.Torrent.total_peers} icon="people-outline" />
-            <StatCard label="Seeders" value={cacheData.Torrent.connected_seeders} icon="cloud-upload-outline" />
-            <StatCard
-              label="Download"
-              value={cacheData.Torrent?.download_speed > 0
-                ? `${formatBytes(cacheData.Torrent.download_speed)}/s`
-                : '0 KB/s'}
-              icon="download-outline"
-            />
-            <StatCard label="Read" value={formatBytes(cacheData.Torrent?.bytes_read || 0)} icon="analytics-outline" />
-            <StatCard label="Written" value={formatBytes(cacheData.Torrent?.bytes_written || 0)} icon="create-outline" />
-            <StatCard label="Active" value={cacheData.Torrent.active_peers} icon="pulse-outline" />
-            <StatCard label="Pending" value={cacheData.Torrent.pending_peers} icon="time-outline" />
-          </View>
-        ) : (
-          <View style={styles.infoCard}>
-            <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
-            <InfoRow label="Size" value={formatBytes(torrentData.size)} />
-            <InfoRow label="Status" value={cacheData.Torrent.stat_string} />
-            <InfoRow label="Peers" value={cacheData.Torrent.total_peers} />
-            <InfoRow label="Seeders" value={cacheData.Torrent.connected_seeders} />
-            <InfoRow
-              label="Download Speed"
-              value={cacheData.Torrent?.download_speed > 0
-                ? `${formatBytes(cacheData.Torrent.download_speed)}/s`
-                : '0 KB/s'}
-            />
-            <InfoRow label="Bytes Read" value={formatBytes(cacheData.Torrent?.bytes_read || 0)} />
-            <InfoRow label="Bytes Written" value={formatBytes(cacheData.Torrent?.bytes_written || 0)} />
-            <InfoRow label="Active Peers" value={cacheData.Torrent.active_peers} />
-            <InfoRow label="Pending Peers" value={cacheData.Torrent.pending_peers} isLast />
-          </View>
-        )}
+        <View style={styles.statsGrid}>
+          <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
+          <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
+          <StatCard label="Status" value={cacheData.Torrent.stat_string} icon="information-circle-outline" />
+          <StatCard label="Peers" value={cacheData.Torrent.total_peers} icon="people-outline" />
+          <StatCard label="Seeders" value={cacheData.Torrent.connected_seeders} icon="cloud-upload-outline" />
+          <StatCard
+            label="Download"
+            value={cacheData.Torrent?.download_speed > 0
+              ? `${formatBytes(cacheData.Torrent.download_speed)}/s`
+              : '0 KB/s'}
+            icon="download-outline"
+          />
+          <StatCard label="Read" value={formatBytes(cacheData.Torrent?.bytes_read || 0)} icon="analytics-outline" />
+          <StatCard label="Written" value={formatBytes(cacheData.Torrent?.bytes_written || 0)} icon="create-outline" />
+          <StatCard label="Active" value={cacheData.Torrent.active_peers} icon="pulse-outline" />
+          <StatCard label="Pending" value={cacheData.Torrent.pending_peers} icon="time-outline" />
+        </View>
       </View>
     );
   });
@@ -423,13 +386,6 @@ const TorrentDetails = () => {
       </View>
       <Text style={styles.statLabel}>{label}</Text>
       <Text style={styles.statValue} numberOfLines={1}>{value}</Text>
-    </View>
-  );
-
-  const InfoRow = ({ label, value, isLast = false }: { label: string, value: any, isLast?: boolean }) => (
-    <View style={[styles.infoRow, !isLast && styles.infoRowBorder]}>
-      <Text style={styles.infoLabel}>{label}</Text>
-      <Text style={styles.infoValue}>{value}</Text>
     </View>
   );
 
@@ -503,8 +459,6 @@ const TorrentDetails = () => {
               </View>
             )}
 
-            <CacheInfo cacheData={cacheData} cacheLoading={cacheLoading} />
-
             {/* Files Section */}
             {videoFiles.length > 0 && (
               <View style={styles.filesSection}>
@@ -557,6 +511,9 @@ const TorrentDetails = () => {
                 </TouchableOpacity>
               </View>
             )}
+
+            <CacheInfo cacheData={cacheData} cacheLoading={cacheLoading} />
+
           </View>
         </View>
         <BottomSpacing space={40} />
@@ -780,13 +737,15 @@ const styles = StyleSheet.create({
 
   // Action Buttons
   actionsContainerDesktop: {
-    marginTop: 20,
+    marginVertical: 20,
+    paddingBottom: 20,
     gap: 12,
   },
   actionsContainerMobile: {
     flexDirection: 'row',
     gap: 12,
-    marginTop: 8,
+    marginVertical: 10,
+    paddingBottom: 20,
   },
   actionButton: {
     flexDirection: 'row',
