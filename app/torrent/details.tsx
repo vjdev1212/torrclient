@@ -201,7 +201,7 @@ const TorrentDetails = () => {
     if (getOriginalPlatform() === 'ios') {
       playerOptions.push(
         { label: 'Infuse', url: `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}` },
-        { label: 'Vidhub', url: `open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}` },
+        { label: 'VidHub', url: `open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}` },
         { label: 'VLC', url: `vlc://${streamUrl}` }
       );
     } else if (getOriginalPlatform() === 'android') {
