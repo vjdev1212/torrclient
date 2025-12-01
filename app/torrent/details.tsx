@@ -436,7 +436,7 @@ const TorrentDetails = () => {
                   activeOpacity={0.8}
                 >
                   <Ionicons name="remove-circle-outline" size={22} color="#fff" />
-                  <Text style={styles.actionButtonText}>Drop Torrent</Text>
+                  <Text style={styles.actionButtonText}>Drop</Text>
                 </TouchableOpacity>
 
                 <TouchableOpacity
@@ -492,14 +492,6 @@ const TorrentDetails = () => {
             {/* Action Buttons - Mobile Only */}
             {!isLargeScreen && (
               <View style={styles.actionsContainerMobile}>
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.dropButton]}
-                  onPress={handleDrop}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="remove-circle-outline" size={22} color="#fff" />
-                  <Text style={styles.actionButtonText}>Drop</Text>
-                </TouchableOpacity>
 
                 <TouchableOpacity
                   style={[styles.actionButton, styles.deleteButton]}
@@ -509,6 +501,16 @@ const TorrentDetails = () => {
                   <Ionicons name="trash-outline" size={22} color="#fff" />
                   <Text style={styles.actionButtonText}>Delete</Text>
                 </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.dropButton]}
+                  onPress={handleDrop}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="remove-circle-outline" size={22} color="#fff" />
+                  <Text style={styles.actionButtonText}>Drop</Text>
+                </TouchableOpacity>
+
               </View>
             )}
 
@@ -743,25 +745,27 @@ const styles = StyleSheet.create({
   },
   actionsContainerMobile: {
     flexDirection: 'row',
+    justifyContent: 'space-around',
+    alignItems: 'center',
     gap: 12,
-    marginVertical: 10,
     paddingBottom: 20,
   },
   actionButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 12,
-    borderRadius: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 25,
     gap: 10,
-    flex: 1,
+    minWidth: 150,
+    marginVertical: 5
   },
   dropButton: {
-    backgroundColor: '#535aff',
+    backgroundColor: 'rgba(83, 90, 255, 0.5)',
   },
   deleteButton: {
-    backgroundColor: '#e74c3c',
+    backgroundColor: 'rgba(231, 76, 60, 0.5)',
   },
   actionButtonText: {
     color: '#fff',

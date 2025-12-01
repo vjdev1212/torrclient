@@ -116,7 +116,6 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
     useEffect(() => {
         if (!playingChange) return;
 
-        console.log('PlayingChange:', playingChange.isPlaying, 'isSeeking:', isSeeking.current);
         playerState.setIsPlaying(playingChange.isPlaying);
 
         // Only hide buffering when video actually starts playing AND we're not in the middle of a seek
@@ -176,7 +175,6 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
         if (!statusChange) return;
 
         const { status, error } = statusChange;
-        console.log('StatusChange:', status, 'isSeeking:', isSeeking.current);
 
         switch (status) {
             case "loading":
@@ -290,7 +288,6 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
         // Wait a bit, then resume playback if it was playing
         // The buffering indicator will be hidden when playingChange event fires
         seekTimeoutRef.current = setTimeout(() => {
-            console.log('Seek complete, resuming playback:', wasPlayingBeforeSeek.current);
             isSeeking.current = false;
 
             if (wasPlayingBeforeSeek.current) {
@@ -374,7 +371,6 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
 
             // Wait a bit, then resume playback if it was playing
             seekTimeoutRef.current = setTimeout(() => {
-                console.log('Slider seek complete, resuming playback:', wasPlayingBeforeSeek.current);
                 isSeeking.current = false;
 
                 if (wasPlayingBeforeSeek.current) {
