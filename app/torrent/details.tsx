@@ -69,7 +69,7 @@ const TorrentDetails = () => {
 
         setTorrentData({
           title: torrentResult.title || 'Untitled',
-          poster: torrentResult.poster || 'https://dummyimage.com/500x750/1A1A1A/FFFFFF.png&text=Poster Unavailable',
+          poster: torrentResult.poster || 'https://dummyimage.com/500x750/1A1A1A/FFFFFF.png&text= ',
           category: torrentResult.category || 'unknown',
           size: torrentResult.torrent_size,
           files,
