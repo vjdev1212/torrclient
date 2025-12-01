@@ -12,7 +12,7 @@ const SettingsScreen = () => {
 
   const preferencesList: { title: string, route: string, icon: keyof typeof Ionicons.glyphMap, description?: string }[] = [
     { title: 'TorrServer', route: '/settings/torrserver', icon: 'server-outline', description: 'Configure server connection' },
-    { title: 'Media Player', route: '/settings/mediaplayer', icon: 'play-circle-outline', description: 'Select media player' },
+    { title: 'Media Player', route: '/settings/mediaplayer', icon: 'play-circle-outline', description: 'Select preferred media player' },
   ];
 
   // SettingItem Component
