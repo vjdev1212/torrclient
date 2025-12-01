@@ -1,6 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Buffer } from 'buffer';
-import { StorageKeys } from './StorageService';
+import { StorageKeys, storageService } from './StorageService';
 
 interface ServerConfig {
   id: string;
@@ -11,12 +10,12 @@ interface ServerConfig {
   password: string;
 }
 
-const TORRSERVER_CONFIGS_KEY = StorageKeys.TORRCLIENT_TORRSERVER_CONFIGS_KEY
-const TORRSERVER_ACTIVE_ID_KEY = StorageKeys.TORRCLIENT_TORRSERVER_ACTIVE_ID_KEY
+const TORRSERVER_CONFIGS_KEY = StorageKeys.TORRSERVER_CONFIGS_KEY
+const TORRSERVER_ACTIVE_ID_KEY = StorageKeys.TORRSERVER_ACTIVE_ID_KEY
 
-export const getServerConfigs = async (): Promise<ServerConfig[]> => {
+export const getServerConfigs = (): ServerConfig[] => {
   try {
-    const serversJson = await AsyncStorage.getItem(TORRSERVER_CONFIGS_KEY);
+    const serversJson = storageService.getItem(TORRSERVER_CONFIGS_KEY);
     if (serversJson) {
       return JSON.parse(serversJson);
     }
@@ -30,25 +29,25 @@ export const getServerConfigs = async (): Promise<ServerConfig[]> => {
 /**
  * Get the active server ID
  */
-export const getActiveServerId = async (): Promise<string | null> => {
+export const getActiveServerId = (): string | undefined => {
   try {
-    return await AsyncStorage.getItem(TORRSERVER_ACTIVE_ID_KEY);
+    return storageService.getItem(TORRSERVER_ACTIVE_ID_KEY);
   } catch (error) {
     console.error('Error getting active server ID:', error);
-    return null;
+    return undefined;
   }
 };
 
 /**
  * Get the active server configuration
  */
-export const getActiveServerConfig = async (): Promise<ServerConfig | null> => {
+export const getActiveServerConfig = (): ServerConfig | null => {
   try {
-    const servers = await getServerConfigs();
-    const activeId = await getActiveServerId();
-    
+    const servers = getServerConfigs();
+    const activeId = getActiveServerId();
+
     if (!servers.length) return null;
-    
+
     const activeServer = servers.find(s => s.id === activeId);
     return activeServer || servers[0];
   } catch (error) {
@@ -60,9 +59,9 @@ export const getActiveServerConfig = async (): Promise<ServerConfig | null> => {
 /**
  * Get TorrServer URL - automatically fallback to Docker proxy if no user config is found
  */
-export const getTorrServerUrl = async (): Promise<string> => {
+export const getTorrServerUrl = (): string => {
   try {
-    const activeServer = await getActiveServerConfig();
+    const activeServer = getActiveServerConfig();
 
     // If user has configured a server with a URL, use that (PWA mode)
     if (activeServer?.url && activeServer.url.trim() !== '') {
@@ -80,10 +79,10 @@ export const getTorrServerUrl = async (): Promise<string> => {
 /**
  * Get auth header for the active server - only if enabled and credentials are set
  */
-export const getTorrServerAuthHeader = async (): Promise<{ Authorization: string } | null> => {
+export const getTorrServerAuthHeader = (): { Authorization: string } | null => {
   try {
-    const activeServer = await getActiveServerConfig();
-    
+    const activeServer = getActiveServerConfig();
+
     if (!activeServer?.authEnabled) return null;
     if (!activeServer.username || !activeServer.password) return null;
 
@@ -102,14 +101,14 @@ export const getTorrServerAuthHeader = async (): Promise<{ Authorization: string
 /**
  * Get URL and auth header for a specific server by ID
  */
-export const getServerConnection = async (serverId: string): Promise<{
+export const getServerConnection = (serverId: string): {
   url: string;
   authHeader: { Authorization: string } | null;
-} | null> => {
+} | null => {
   try {
-    const servers = await getServerConfigs();
+    const servers = getServerConfigs();
     const server = servers.find(s => s.id === serverId);
-    
+
     if (!server) return null;
 
     const url = server.url.trim().replace(/\/$/, '');
@@ -131,9 +130,9 @@ export const getServerConnection = async (serverId: string): Promise<{
 /**
  * Save server configurations
  */
-export const setServerConfigs = async (servers: ServerConfig[]): Promise<void> => {
+export const setServerConfigs = (servers: ServerConfig[]): void => {
   try {
-    await AsyncStorage.setItem(TORRSERVER_CONFIGS_KEY, JSON.stringify(servers));
+    storageService.setItem(TORRSERVER_CONFIGS_KEY, JSON.stringify(servers));
   } catch (error) {
     console.error('Error saving server configs:', error);
   }
@@ -142,9 +141,9 @@ export const setServerConfigs = async (servers: ServerConfig[]): Promise<void> =
 /**
  * Set the active server
  */
-export const setActiveServerId = async (serverId: string): Promise<void> => {
+export const setActiveServerId = (serverId: string): void => {
   try {
-    await AsyncStorage.setItem(TORRSERVER_ACTIVE_ID_KEY, serverId);
+    storageService.setItem(TORRSERVER_ACTIVE_ID_KEY, serverId);
   } catch (error) {
     console.error('Error setting active server ID:', error);
   }
@@ -153,11 +152,11 @@ export const setActiveServerId = async (serverId: string): Promise<void> => {
 /**
  * Add a new server configuration
  */
-export const addServerConfig = async (server: ServerConfig): Promise<void> => {
+export const addServerConfig = (server: ServerConfig): void => {
   try {
-    const servers = await getServerConfigs();
+    const servers = getServerConfigs();
     servers.push(server);
-    await setServerConfigs(servers);
+    setServerConfigs(servers);
   } catch (error) {
     console.error('Error adding server config:', error);
   }
@@ -166,13 +165,13 @@ export const addServerConfig = async (server: ServerConfig): Promise<void> => {
 /**
  * Update a server configuration
  */
-export const updateServerConfig = async (serverId: string, updates: Partial<ServerConfig>): Promise<void> => {
+export const updateServerConfig = (serverId: string, updates: Partial<ServerConfig>): void => {
   try {
-    const servers = await getServerConfigs();
-    const updatedServers = servers.map(s => 
+    const servers = getServerConfigs();
+    const updatedServers = servers.map(s =>
       s.id === serverId ? { ...s, ...updates } : s
     );
-    await setServerConfigs(updatedServers);
+    setServerConfigs(updatedServers);
   } catch (error) {
     console.error('Error updating server config:', error);
   }
@@ -181,16 +180,16 @@ export const updateServerConfig = async (serverId: string, updates: Partial<Serv
 /**
  * Delete a server configuration
  */
-export const deleteServerConfig = async (serverId: string): Promise<void> => {
+export const deleteServerConfig = (serverId: string): void => {
   try {
-    const servers = await getServerConfigs();
+    const servers = getServerConfigs();
     const filteredServers = servers.filter(s => s.id !== serverId);
-    await setServerConfigs(filteredServers);
+    setServerConfigs(filteredServers);
 
     // If deleted server was active, set first server as active
-    const activeId = await getActiveServerId();
+    const activeId = getActiveServerId();
     if (activeId === serverId && filteredServers.length > 0) {
-      await setActiveServerId(filteredServers[0].id);
+      setActiveServerId(filteredServers[0].id);
     }
   } catch (error) {
     console.error('Error deleting server config:', error);
@@ -201,11 +200,11 @@ export const deleteServerConfig = async (serverId: string): Promise<void> => {
  * Legacy function for backward compatibility - saves to first server or creates one
  * @deprecated Use setServerConfigs instead
  */
-export const setTorrServerUrl = async (url: string): Promise<void> => {
+export const setTorrServerUrl = (url: string): void => {
   try {
-    const servers = await getServerConfigs();
+    const servers = getServerConfigs();
     if (servers.length > 0) {
-      await updateServerConfig(servers[0].id, { url });
+      updateServerConfig(servers[0].id, { url });
     } else {
       const newServer: ServerConfig = {
         id: Date.now().toString(),
@@ -215,8 +214,8 @@ export const setTorrServerUrl = async (url: string): Promise<void> => {
         username: '',
         password: '',
       };
-      await addServerConfig(newServer);
-      await setActiveServerId(newServer.id);
+      addServerConfig(newServer);
+      setActiveServerId(newServer.id);
     }
   } catch (error) {
     console.error('Error saving TorrServer URL:', error);
@@ -227,11 +226,11 @@ export const setTorrServerUrl = async (url: string): Promise<void> => {
  * Legacy function for backward compatibility - saves to first server or creates one
  * @deprecated Use setServerConfigs instead
  */
-export const setTorrServerAuth = async (enabled: boolean, username: string, password: string): Promise<void> => {
+export const setTorrServerAuth = (enabled: boolean, username: string, password: string): void => {
   try {
-    const servers = await getServerConfigs();
+    const servers = getServerConfigs();
     if (servers.length > 0) {
-      await updateServerConfig(servers[0].id, {
+      updateServerConfig(servers[0].id, {
         authEnabled: enabled,
         username,
         password,
@@ -245,8 +244,8 @@ export const setTorrServerAuth = async (enabled: boolean, username: string, pass
         username,
         password,
       };
-      await addServerConfig(newServer);
-      await setActiveServerId(newServer.id);
+      addServerConfig(newServer);
+      setActiveServerId(newServer.id);
     }
   } catch (error) {
     console.error('Error saving TorrServer auth settings:', error);
