@@ -10,6 +10,7 @@ import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { useActionSheet } from '@expo/react-native-action-sheet';
 import * as Clipboard from 'expo-clipboard';
+import { storageService, StorageKeys } from '@/utils/StorageService';
 
 const TorrentDetails = () => {
   const { showActionSheetWithOptions } = useActionSheet();
@@ -19,23 +20,32 @@ const TorrentDetails = () => {
   const [baseUrl, setBaseUrl] = useState<any>('');
   const [loading, setLoading] = useState(true);
   const [cacheLoading, setCacheLoading] = useState(true);
+  const [defaultMediaPlayer, setDefaultMediaPlayer] = useState<string>('default');
   const { width, height } = useWindowDimensions();
   const isPortrait = height >= width;
   const isLargeScreen = width > 768 && !isPortrait;
   const ref = useRef<ScrollView | null>(null);
 
   useEffect(() => {
+    const savedPlayer = storageService.getItem(StorageKeys.DEFAULT_MEDIA_PLAYER_KEY);
+    if (savedPlayer) {
+      console.log('Loaded default media player from storage:', savedPlayer);
+      setDefaultMediaPlayer(savedPlayer);
+    }
+  }, []);
+
+  useEffect(() => {
     let interval: any;
 
     const loadBaseUrl = async () => {
-      const url = await getTorrServerUrl();
+      const url = getTorrServerUrl();
       setBaseUrl(url);
       return url;
     };
 
     const fetchDetails = async (baseUrl: string) => {
       try {
-        const authHeader = await getTorrServerAuthHeader();
+        const authHeader = getTorrServerAuthHeader();
         const torrentRes = await fetch(`${baseUrl}/torrents`, {
           method: 'POST',
           headers: {
@@ -73,7 +83,7 @@ const TorrentDetails = () => {
 
     const fetchCache = async (baseUrl: string) => {
       try {
-        const authHeader = await getTorrServerAuthHeader();
+        const authHeader = getTorrServerAuthHeader();
         const cacheRes = await fetch(`${baseUrl}/cache`, {
           method: 'POST',
           headers: {
@@ -171,7 +181,7 @@ const TorrentDetails = () => {
         if (index === 0) {
           try {
             const preloadUrl = `${streamUrl}&preload`;
-            const authHeader = await getTorrServerAuthHeader();
+            const authHeader = getTorrServerAuthHeader();
             await fetch(preloadUrl, {
               method: 'GET',
               headers: { ...(authHeader || {}) },
@@ -185,41 +195,76 @@ const TorrentDetails = () => {
         if (index === 1) {
           setTimeout(() => {
             const playUrl = `${streamUrl}&play&preload`;
-            console.log('PlayUrl', playUrl)
-            showPlayerSelection(playUrl);
+            console.log('PlayUrl', playUrl);
+            handlePlayWithDefaultPlayer(playUrl);
           }, 300);
         }
       }
     );
   };
 
-  const showPlayerSelection = (streamUrl: string) => {
-    const playerOptions: { label: string; url: string }[] = [];
+  const handlePlayWithDefaultPlayer = (streamUrl: string) => {
+    if (defaultMediaPlayer && defaultMediaPlayer !== 'ask') {
+      routeToPlayer(defaultMediaPlayer, streamUrl);
+    } else {
+      showPlayerSelection(streamUrl);
+    }
+  };
 
-    playerOptions.push({ label: 'Default', url: 'default', });
+  const routeToPlayer = (playerType: string, streamUrl: string) => {
+    console.log('Routing to player:', playerType, streamUrl);
+    switch (playerType.toLowerCase()) {
+      case 'default':
+        router.push({
+          pathname: '/stream/player',
+          params: { url: streamUrl, title: torrentData.title },
+        });
+        break;
+      case 'infuse':
+        Linking.openURL(`infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`);
+        break;
+      case 'vidhub':
+        Linking.openURL(`open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}`);
+        break;
+      case 'vlc':
+        Linking.openURL(`vlc://${streamUrl}`);
+        break;
+      case 'external':
+        Linking.openURL(streamUrl);
+        break;
+      case 'newwindow':
+        Linking.openURL(streamUrl);
+        break;
+      default:
+        console.log('Hello');
+        showPlayerSelection(streamUrl);
+    }
+  };
+
+  const showPlayerSelection = (streamUrl: string) => {
+    const playerOptions: { label: string; url: string; type: string }[] = [];
+
+    playerOptions.push({ label: 'Default', url: 'default', type: 'default' });
 
     if (getOriginalPlatform() === 'ios') {
       playerOptions.push(
-        { label: 'Infuse', url: `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}` },
-        { label: 'VidHub', url: `open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}` },
-        { label: 'VLC', url: `vlc://${streamUrl}` }
+        { label: 'Infuse', url: `infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`, type: 'infuse' },
+        { label: 'VidHub', url: `open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}`, type: 'vidhub' },
+        { label: 'VLC', url: `vlc://${streamUrl}`, type: 'vlc' }
       );
     } else if (getOriginalPlatform() === 'android') {
       playerOptions.push(
-        { label: 'VLC', url: `vlc://${streamUrl}` },
-        {
-          label: 'External',
-          url: `${streamUrl}`,
-        }
+        { label: 'VLC', url: `vlc://${streamUrl}`, type: 'vlc' },
+        { label: 'External', url: `${streamUrl}`, type: 'external' }
       );
     } else {
-      playerOptions.push({ label: 'New Window', url: streamUrl });
+      playerOptions.push({ label: 'New Window', url: streamUrl, type: 'newwindow' });
     }
 
     playerOptions.push(
-      { label: 'Copy Link', url: 'copy' },
-      { label: 'Share', url: 'share' },
-      { label: 'Cancel', url: 'cancel' }
+      { label: 'Copy Link', url: 'copy', type: 'copy' },
+      { label: 'Share', url: 'share', type: 'share' },
+      { label: 'Cancel', url: 'cancel', type: 'cancel' }
     );
 
     const options = playerOptions.map((p) => p.label);
@@ -239,11 +284,12 @@ const TorrentDetails = () => {
         const selected = playerOptions[selectedIndex as any];
         if (!selected || selected.url === 'cancel') return;
 
-        if (selected.url.toLowerCase() === 'default') {
+        if (selected.type === 'default') {
           router.push({
             pathname: '/stream/player',
             params: { url: streamUrl, title: torrentData.title },
           });
+          return;
         }
 
         if (selected.url === 'copy') {
@@ -298,7 +344,7 @@ const TorrentDetails = () => {
         'Drop'
       );
       if (!confirmed) return;
-      const authHeader = await getTorrServerAuthHeader();
+      const authHeader = getTorrServerAuthHeader();
       await fetch(`${baseUrl}/torrents`, {
         method: 'POST',
         headers: {
@@ -315,7 +361,6 @@ const TorrentDetails = () => {
   };
 
   const handleWipe = async () => {
-
     try {
       if (isHapticsSupported()) {
         await Haptics.impactAsync(ImpactFeedbackStyle.Light);
@@ -326,7 +371,7 @@ const TorrentDetails = () => {
         'Delete'
       );
       if (!confirmed) return;
-      const authHeader = await getTorrServerAuthHeader();
+      const authHeader = getTorrServerAuthHeader();
       await fetch(`${baseUrl}/torrents`, {
         method: 'POST',
         headers: {

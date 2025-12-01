@@ -82,7 +82,7 @@ const MediaPlayerConfigScreen = () => {
             const savedDefault = storageService.getItem(DEFAULT_MEDIA_PLAYER_KEY);
 
             if (savedDefault) {
-                const defaultPlayerName = JSON.parse(savedDefault);
+                const defaultPlayerName = savedDefault;
                 setSelectedPlayer(defaultPlayerName);
 
                 // Mark the default player
@@ -123,7 +123,7 @@ const MediaPlayerConfigScreen = () => {
         setSaving(true);
 
         try {
-            storageService.setItem(DEFAULT_MEDIA_PLAYER_KEY, JSON.stringify(selectedPlayer));
+            storageService.setItem(DEFAULT_MEDIA_PLAYER_KEY, selectedPlayer);
 
             if (isHapticsSupported()) {
                 await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
