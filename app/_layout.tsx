@@ -53,7 +53,7 @@ function RootLayoutNav() {
     ...DarkTheme,
     colors: {
       ...DarkTheme.colors,
-      background: '#0a0a0a', 
+      background: '#0a0a0a',
       card: 'rgba(18, 18, 18, 0.9)',
       border: 'rgba(255, 255, 255, 0.1)',
     }
@@ -138,6 +138,7 @@ function RootLayoutNav() {
                 headerTintColor: '#ffffff',
                 headerBackTitle: '',
                 headerShadowVisible: false,
+                headerBackVisible: false,
                 headerStyle: {
                   backgroundColor: 'transparent',
                 }
@@ -157,7 +158,7 @@ function RootLayoutNav() {
                   backgroundColor: 'transparent',
                 }
               }}
-            />            
+            />
           </Stack>
         </ThemeProvider>
       </ActionSheetProvider>
