@@ -12,7 +12,7 @@ import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Text, View } from '@/components/Themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -25,7 +25,8 @@ const categories = [
 
 const AddTorrentScreen = () => {
   const router = useRouter();
-  const [input, setInput] = useState('');
+  const { magnet } = useLocalSearchParams();
+  const [input, setInput] = useState(magnet ? String(magnet) : '');
   const [title, setTitle] = useState('');
   const [poster, setPoster] = useState('');
   const [category, setCategory] = useState<'movie' | 'tv' | 'music' | 'other'>('movie');
@@ -51,7 +52,7 @@ const AddTorrentScreen = () => {
     setSubmitting(true);
 
     try {
-      const baseUrl = await getTorrServerUrl();
+      const baseUrl = getTorrServerUrl();
       const payload = {
         action: 'add',
         category,
@@ -63,7 +64,7 @@ const AddTorrentScreen = () => {
         title,
       };
 
-      const authHeader = await getTorrServerAuthHeader();
+      const authHeader = getTorrServerAuthHeader();
       const response = await fetch(`${baseUrl}/torrents`, {
         method: 'POST',
         headers: {

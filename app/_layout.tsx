@@ -1,7 +1,7 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { DarkTheme, Theme, ThemeProvider } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
-import { Stack } from 'expo-router';
+import { Stack, router } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
@@ -9,6 +9,7 @@ import { View, StyleSheet } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { ActionSheetProvider } from '@expo/react-native-action-sheet';
+import * as Linking from 'expo-linking';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -48,6 +49,34 @@ export default function RootLayout() {
 }
 
 function RootLayoutNav() {
+
+  useEffect(() => {
+    const getInitialURL = async () => {
+      const url = await Linking.getInitialURL();
+      if (url) {
+        handleMagnetLink(url);
+      }
+    };
+
+    getInitialURL();
+
+    const subscription = Linking.addEventListener('url', ({ url }) => {
+      handleMagnetLink(url);
+    });
+
+    return () => subscription.remove();
+  }, []);
+
+  const handleMagnetLink = (url: string) => {
+    if (url && url.startsWith('magnet:')) {
+      console.log('Magnet link received:', url);
+
+      router.push({
+        pathname: '/(tabs)/add',
+        params: { magnet: url },
+      });
+    }
+  };
 
   const GlassDarkTheme: Theme = {
     ...DarkTheme,
