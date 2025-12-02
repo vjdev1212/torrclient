@@ -18,43 +18,80 @@ import { isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import ProwlarrClient, { ProwlarrSearchResult, ProwlarrIndexer } from '@/clients/prowlarr';
 
-const CATEGORY_MAP: Record<number, string> = {
-  2000: 'Movies',
-  5000: 'TV',
-  3000: 'Audio',
-  4000: 'PC',
-  6000: 'XXX',
-  7000: 'Books',
-  8000: 'Other',
-};
+interface Category {
+  id: number;
+  name: string;
+}
 
 const ProwlarrSearchScreen = () => {
   const router = useRouter();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
-  const [loadingIndexers, setLoadingIndexers] = useState(true);
+  const [loadingData, setLoadingData] = useState(true);
   const [results, setResults] = useState<ProwlarrSearchResult[]>([]);
   const [searched, setSearched] = useState(false);
   
   const [indexers, setIndexers] = useState<ProwlarrIndexer[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [selectedIndexer, setSelectedIndexer] = useState<number | null>(null);
   const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
   useEffect(() => {
-    loadIndexers();
+    loadData();
   }, []);
 
-  const loadIndexers = async () => {
+  const loadData = async () => {
     try {
       const client = new ProwlarrClient();
       await client.initialize();
+      
+      // Load indexers
       const fetchedIndexers = await client.getIndexers();
       setIndexers(fetchedIndexers.filter(i => i.enable));
-      setLoadingIndexers(false);
+      
+      // Extract unique categories from all indexers
+      const categoryMap = new Map<number, string>();
+      
+      // Common category mappings
+      const commonCategories: Record<number, string> = {
+        1000: 'Console',
+        2000: 'Movies',
+        3000: 'Audio',
+        4000: 'PC',
+        5000: 'TV',
+        6000: 'XXX',
+        7000: 'Books',
+        8000: 'Other',
+      };
+      
+      // First, add common categories
+      Object.entries(commonCategories).forEach(([id, name]) => {
+        categoryMap.set(parseInt(id), name);
+      });
+      
+      // Then add categories from indexers
+      fetchedIndexers.forEach(indexer => {
+        indexer.categories.forEach(catId => {
+          if (!categoryMap.has(catId)) {
+            // Try to derive name from ID
+            const mainCat = Math.floor(catId / 1000) * 1000;
+            const baseName = commonCategories[mainCat] || 'Other';
+            categoryMap.set(catId, `${baseName} (${catId})`);
+          }
+        });
+      });
+      
+      // Convert to array and sort
+      const categoriesArray = Array.from(categoryMap.entries())
+        .map(([id, name]) => ({ id, name }))
+        .sort((a, b) => a.id - b.id);
+      
+      setCategories(categoriesArray);
+      setLoadingData(false);
     } catch (error) {
-      console.error('Failed to load indexers:', error);
-      showAlert('Error', 'Failed to load Prowlarr indexers');
-      setLoadingIndexers(false);
+      console.error('Failed to load data:', error);
+      showAlert('Error', 'Failed to load Prowlarr data');
+      setLoadingData(false);
     }
   };
 
@@ -123,9 +160,9 @@ const ProwlarrSearchScreen = () => {
     });
   };
 
-  const getCategoryBadge = (categories: number[]) => {
-    const mainCategory = categories.find(c => c in CATEGORY_MAP);
-    return mainCategory ? CATEGORY_MAP[mainCategory] : 'Other';
+  const getCategoryBadge = (categoryIds: number[]) => {
+    const mainCategory = categoryIds.find(id => categories.some(c => c.id === id));
+    return mainCategory ? categories.find(c => c.id === mainCategory)?.name || 'Other' : 'Other';
   };
 
   const getIndexerMenuActions = () => {
@@ -133,7 +170,7 @@ const ProwlarrSearchScreen = () => {
       {
         id: 'all',
         title: 'All Indexers',
-        state: selectedIndexer === null ? 'on' : 'off' as 'on' | 'off',
+        state: (selectedIndexer === null ? 'on' : 'off') as 'on' | 'off',
       },
       ...indexers.map(indexer => ({
         id: indexer.id.toString(),
@@ -145,11 +182,13 @@ const ProwlarrSearchScreen = () => {
   };
 
   const getCategoryMenuActions = () => {
-    const availableCategories = [2000, 5000, 3000, 7000, 8000];
-    return availableCategories.map(cat => ({
-      id: cat.toString(),
-      title: CATEGORY_MAP[cat] || 'Unknown',
-      state: (selectedCategories.includes(cat) ? 'on' : 'off') as 'on' | 'off',
+    // Only show main categories (ending in 000)
+    const mainCategories = categories.filter(cat => cat.id % 1000 === 0);
+    
+    return mainCategories.map(cat => ({
+      id: cat.id.toString(),
+      title: cat.name,
+      state: (selectedCategories.includes(cat.id) ? 'on' : 'off') as 'on' | 'off',
     }));
   };
 
@@ -158,7 +197,9 @@ const ProwlarrSearchScreen = () => {
     : 'All Indexers';
 
   const selectedCategoriesText = selectedCategories.length > 0
-    ? selectedCategories.map(c => CATEGORY_MAP[c]).join(', ')
+    ? selectedCategories
+        .map(id => categories.find(c => c.id === id)?.name || id.toString())
+        .join(', ')
     : 'All Categories';
 
   return (
@@ -194,7 +235,7 @@ const ProwlarrSearchScreen = () => {
                 placeholderTextColor="#666"
                 returnKeyType="search"
                 onSubmitEditing={handleSearch}
-                submitBehavior={"blurAndSubmit"}
+                submitBehavior="blurAndSubmit"
               />
               {query.length > 0 && (
                 <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
@@ -204,7 +245,7 @@ const ProwlarrSearchScreen = () => {
             </View>
 
             {/* Filters */}
-            {!loadingIndexers && (
+            {!loadingData && (
               <View style={styles.filtersContainer}>
                 {/* Indexer Dropdown */}
                 <MenuView
@@ -254,7 +295,15 @@ const ProwlarrSearchScreen = () => {
               </View>
             )}
 
-            {/* Loading Indicator */}
+            {/* Loading Data Indicator */}
+            {loadingData && (
+              <View style={styles.loadingContainer}>
+                <ActivityIndicator size="large" color="#535aff" />
+                <Text style={styles.loadingText}>Loading indexers...</Text>
+              </View>
+            )}
+
+            {/* Loading Search Indicator */}
             {loading && (
               <View style={styles.loadingContainer}>
                 <ActivityIndicator size="large" color="#535aff" />
@@ -263,7 +312,7 @@ const ProwlarrSearchScreen = () => {
             )}
 
             {/* Results */}
-            {!loading && searched && (
+            {!loading && !loadingData && searched && (
               <View style={styles.resultsContainer}>
                 <Text style={styles.resultsHeader}>
                   {results.length} {results.length === 1 ? 'Result' : 'Results'}
@@ -395,11 +444,6 @@ const styles = StyleSheet.create({
   clearButton: {
     padding: 4,  
   },
-  searchButton: {
-    backgroundColor: '#535aff',
-    padding: 8,
-    borderRadius: 8,
-  },
   filtersContainer: {
     flexDirection: 'row',
     gap: 10,
@@ -440,7 +484,7 @@ const styles = StyleSheet.create({
   },
   resultsHeader: {
     fontSize: 18,
-    fontWeight: 500,
+    fontWeight: '600',
     color: '#fff',
     marginBottom: 16,
   },
@@ -471,7 +515,7 @@ const styles = StyleSheet.create({
   },
   resultTitle: {
     fontSize: 15,
-    fontWeight: 500,
+    fontWeight: '600',
     color: '#fff',
     marginBottom: 14,
     lineHeight: 20,
@@ -511,7 +555,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 11,
-    fontWeight: 500,
+    fontWeight: '600',
     color: '#999',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
