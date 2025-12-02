@@ -1,8 +1,8 @@
-import React, { useCallback, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, ActivityIndicator, Text, StatusBar } from '@/components/Themed';
 import TorrentGrid from '@/components/TorrentGrid';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
@@ -45,68 +45,67 @@ const HomeScreen = () => {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      const fetchTorrents = async () => {
-        setLoading(true);
-        try {
-          const baseUrl = getTorrServerUrl();
-          const authHeader = getTorrServerAuthHeader();
-          const response = await fetch(`${baseUrl}/torrents`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              ...(authHeader || {}),
-            },
-            body: JSON.stringify({ action: 'list' }),
-          });
 
-          const torrents = await response.json();
-          const list = Array.isArray(torrents) ? torrents : Object.values(torrents || {});
+  const fetchTorrents = async () => {
+    setLoading(true);
+    try {
+      const baseUrl = getTorrServerUrl();
+      const authHeader = getTorrServerAuthHeader();
+      const response = await fetch(`${baseUrl}/torrents`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(authHeader || {}),
+        },
+        body: JSON.stringify({ action: 'list' }),
+      });
 
-          const parsed = list.map((item: any) => ({
-            id: item.hash,
-            hash: item.hash,
-            title: item.title || 'Untitled',
-            subtitle: item.description || `Size: ${formatSize(item.torrent_size)}`,
-            poster: item.poster || 'https://dummyimage.com/500x750/1A1A1A/FFFFFF.png&text= ',
-            size: item.torrent_size,
-            category: item.category,
-            type: getCategoryType(item.category),
-          }));
+      const torrents = await response.json();
+      const list = Array.isArray(torrents) ? torrents : Object.values(torrents || {});
 
-          setData(parsed);
+      const parsed = list.map((item: any) => ({
+        id: item.hash,
+        hash: item.hash,
+        title: item.title || 'Untitled',
+        subtitle: item.description || `Size: ${formatSize(item.torrent_size)}`,
+        poster: item.poster || 'https://dummyimage.com/500x750/1A1A1A/FFFFFF.png&text= ',
+        size: item.torrent_size,
+        category: item.category,
+        type: getCategoryType(item.category),
+      }));
 
-          // Apply current filter to new data
-          if (selectedCategory === 'All') {
-            setFilteredData(parsed);
-          } else {
-            const filtered = parsed.filter((item: any) => {
-              const itemCategory = item.category?.toLowerCase() || 'other';
+      setData(parsed);
 
-              switch (selectedCategory) {
-                case 'Movies':
-                  return itemCategory === 'movie';
-                case 'TV':
-                  return itemCategory === 'tv';
-                case 'Other':
-                  return itemCategory !== 'movie' && itemCategory !== 'tv';
-                default:
-                  return true;
-              }
-            });
-            setFilteredData(filtered);
+      // Apply current filter to new data
+      if (selectedCategory === 'All') {
+        setFilteredData(parsed);
+      } else {
+        const filtered = parsed.filter((item: any) => {
+          const itemCategory = item.category?.toLowerCase() || 'other';
+
+          switch (selectedCategory) {
+            case 'Movies':
+              return itemCategory === 'movie';
+            case 'TV':
+              return itemCategory === 'tv';
+            case 'Other':
+              return itemCategory !== 'movie' && itemCategory !== 'tv';
+            default:
+              return true;
           }
-        } catch (error) {
-          console.log('Error fetching torrents:', error);
-        } finally {
-          setLoading(false);
-        }
-      };
+        });
+        setFilteredData(filtered);
+      }
+    } catch (error) {
+      console.log('Error fetching torrents:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-      fetchTorrents();
-    }, [selectedCategory])
-  );
+  useEffect(() => {
+    fetchTorrents();
+  }, []);
 
   const getCategoryType = (category: string | undefined): string => {
     const cat = category?.toLowerCase() || 'other';
