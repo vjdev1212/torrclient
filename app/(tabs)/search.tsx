@@ -176,9 +176,9 @@ const ProwlarrSearchScreen = () => {
           <View style={styles.contentWrapper}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.headerTitle}>Search Torrents</Text>
+              <Text style={styles.headerTitle}>Search</Text>
               <Text style={styles.headerSubtitle}>
-                Search using Prowlarr indexers
+                Search using Prowlarr
               </Text>
             </View>
 
@@ -194,19 +194,13 @@ const ProwlarrSearchScreen = () => {
                 placeholderTextColor="#666"
                 returnKeyType="search"
                 onSubmitEditing={handleSearch}
+                submitBehavior={"blurAndSubmit"}
               />
               {query.length > 0 && (
                 <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
                   <Ionicons name="close-circle" size={20} color="#666" />
                 </TouchableOpacity>
-              )}
-              <TouchableOpacity 
-                onPress={handleSearch} 
-                style={styles.searchButton}
-                disabled={!query.trim() || loading}
-              >
-                <Ionicons name="arrow-forward" size={20} color="#fff" />
-              </TouchableOpacity>
+              )}              
             </View>
 
             {/* Filters */}
@@ -382,7 +376,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#0f0f0f',
-    borderRadius: 14,
+    borderRadius: 25,
     paddingHorizontal: 16,
     paddingVertical: 4,
     borderWidth: 1,
@@ -396,11 +390,10 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     color: '#fff',
-    paddingVertical: 12,
+    paddingVertical: 8,
   },
   clearButton: {
-    padding: 4,
-    marginRight: 8,
+    padding: 4,  
   },
   searchButton: {
     backgroundColor: '#535aff',
