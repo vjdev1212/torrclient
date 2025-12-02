@@ -86,18 +86,6 @@ const ProwlarrSearchScreen = () => {
                 categoryMap.set(parseInt(id), name);
             });
 
-            // Then add categories from indexers
-            fetchedIndexers.forEach(indexer => {
-                indexer.categories.forEach(catId => {
-                    if (!categoryMap.has(catId)) {
-                        // Try to derive name from ID
-                        const mainCat = Math.floor(catId / 1000) * 1000;
-                        const baseName = commonCategories[mainCat] || 'Other';
-                        categoryMap.set(catId, `${baseName} (${catId})`);
-                    }
-                });
-            });
-
             // Convert to array and sort
             const categoriesArray = Array.from(categoryMap.entries())
                 .map(([id, name]) => ({ id, name }))
