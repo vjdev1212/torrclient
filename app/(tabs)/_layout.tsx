@@ -106,7 +106,7 @@ export default function TabLayout() {
         }}
         options={{
           title: 'Add',
-          tabBarIcon: ({ color }) => <TabBarIcon name="download" color={color} />,
+          tabBarIcon: ({ color }) => <TabBarIcon name="edit" color={color} />,
           tabBarIconStyle: { marginVertical: 5 },
         }}
       />
