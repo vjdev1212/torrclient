@@ -25,10 +25,10 @@ const categories = [
 
 const AddTorrentScreen = () => {
   const router = useRouter();
-  const { magnet } = useLocalSearchParams();
+  const { magnet, titleParam, poster } = useLocalSearchParams();
   const [input, setInput] = useState(magnet ? String(magnet) : '');
-  const [title, setTitle] = useState('');
-  const [posterInput, setPosterInput] = useState('');
+  const [title, setTitle] = useState(titleParam ? String(titleParam) : '');
+  const [posterInput, setPosterInput] = useState(poster ? String(poster) : '');
   const [category, setCategory] = useState<'movie' | 'tv' | 'music' | 'other'>('movie');
   const [submitting, setSubmitting] = useState(false);
 
