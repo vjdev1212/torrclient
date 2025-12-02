@@ -15,6 +15,10 @@ const SettingsScreen = () => {
     { title: 'Media Player', route: '/settings/mediaplayer', icon: 'play-circle-outline', description: 'Select preferred media player' },
   ];
 
+  const integrationsList: { title: string, route: string, icon: keyof typeof Ionicons.glyphMap, description?: string }[] = [
+    { title: 'Prowlarr', route: '/settings/prowlarr', icon: 'search-outline', description: 'Manage Prowlarr settings' },
+  ];
+
   // SettingItem Component
   const SettingItem = ({
     title,
@@ -85,7 +89,26 @@ const SettingsScreen = () => {
                   <View style={styles.separator} />
                 )}
               </React.Fragment>
-            ))}
+            ))}            
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>INTEGRATIONS</Text>
+          <View style={styles.settingsGroup}>
+            {integrationsList.map((item, index) => (
+              <React.Fragment key={index}>
+                <SettingItem
+                  title={item.title}
+                  icon={item.icon}
+                  description={item.description}
+                  onPress={() => onSettingsItemPress(item)}
+                />
+                {index < integrationsList.length - 1 && (
+                  <View style={styles.separator} />
+                )}
+              </React.Fragment>
+            ))}            
           </View>
         </View>
 
