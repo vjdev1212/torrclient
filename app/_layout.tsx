@@ -191,7 +191,7 @@ function RootLayoutNav() {
             <Stack.Screen
               name="settings/mediaplayer"
               options={{
-                headerShown: false,
+                headerShown: true,
                 headerTransparent: true,
                 headerBackground: InvisibleHeaderBackground,
                 headerTitle: '',
@@ -206,7 +206,7 @@ function RootLayoutNav() {
             <Stack.Screen
               name="settings/prowlarr"
               options={{
-                headerShown: false,
+                headerShown: true,
                 headerTransparent: true,
                 headerBackground: InvisibleHeaderBackground,
                 headerTitle: '',
