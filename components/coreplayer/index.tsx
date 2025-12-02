@@ -460,7 +460,7 @@ export const ProgressBar: React.FC<{
                         maximumTrackTintColor="rgba(255, 255, 255, 0.3)"
                         thumbTintColor="#fff"
                         thumbSize={20}
-                        trackHeight={5}
+                        trackHeight={6}
                         enabled={isReady}
                     />
                 </View>
