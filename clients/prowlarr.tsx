@@ -209,8 +209,6 @@ class ProwlarrClient {
       const url = this.buildSearchUrl(params);
       const headers = this.getHeaders();
 
-      console.log('Prowlarr search URL:', url);
-
       const response = await fetch(url, {
         method: 'GET',
         headers,

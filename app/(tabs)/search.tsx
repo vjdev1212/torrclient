@@ -29,16 +29,23 @@ const ProwlarrSearchScreen = () => {
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
     const [results, setResults] = useState<ProwlarrSearchResult[]>([]);
+    const [allResults, setAllResults] = useState<ProwlarrSearchResult[]>([]); // Store all results
     const [searched, setSearched] = useState(false);
 
     const [indexers, setIndexers] = useState<ProwlarrIndexer[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [selectedIndexer, setSelectedIndexer] = useState<number | null>(null);
-    const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
 
     useEffect(() => {
         loadData();
     }, []);
+
+    // Filter results when indexer filter changes
+    useEffect(() => {
+        if (allResults.length > 0) {
+            filterResults();
+        }
+    }, [selectedIndexer, allResults]);
 
     const loadData = async () => {
         try {
@@ -47,39 +54,27 @@ const ProwlarrSearchScreen = () => {
 
             // Load indexers
             const fetchedIndexers = await client.getIndexers();
+            
+            // Add validation check
+            if (!fetchedIndexers || !Array.isArray(fetchedIndexers)) {
+                console.error('Invalid indexers data:', fetchedIndexers);
+                showAlert('Error', 'Failed to load indexers from Prowlarr');
+                setLoadingData(false);
+                return;
+            }
+            
             setIndexers(fetchedIndexers.filter(i => i.enable));
 
-            // Extract unique categories from all indexers
+            // Extract unique categories from all indexers for display
             const categoryMap = new Map<number, string>();
 
             const commonCategories: Record<number, string> = {
                 // Movies
                 2000: "Movies",
-                2010: "Movies/Foreign",
-                2020: "Movies/Other",
-                2030: "Movies/SD",
-                2040: "Movies/HD",
-                2045: "Movies/UHD",
-                2050: "Movies/BluRay",
-                2060: "Movies/3D",
-                2070: "Movies/DVD",
-                2080: "Movies/WEB-DL",
-                2090: "Movies/x265",
 
-                // TV
+                // TV Shows
                 5000: "TV",
-                5010: "TV/WEB-DL",
-                5020: "TV/Foreign",
-                5030: "TV/SD",
-                5040: "TV/HD",
-                5045: "TV/UHD",
-                5050: "TV/Other",
-                5060: "TV/Sport",
-                5070: "TV/Anime",
-                5080: "TV/Documentary",
-                5090: "TV/x265"
             };
-
 
             // First, add common categories
             Object.entries(commonCategories).forEach(([id, name]) => {
@@ -95,7 +90,7 @@ const ProwlarrSearchScreen = () => {
             setLoadingData(false);
         } catch (error) {
             console.error('Failed to load data:', error);
-            showAlert('Error', 'Failed to load Prowlarr data');
+            showAlert('Error', 'Failed to load Prowlarr data. Please check your configuration.');
             setLoadingData(false);
         }
     };
@@ -109,6 +104,7 @@ const ProwlarrSearchScreen = () => {
         setLoading(true);
         setSearched(true);
         setResults([]);
+        setAllResults([]);
 
         try {
             const client = new ProwlarrClient();
@@ -116,18 +112,12 @@ const ProwlarrSearchScreen = () => {
 
             const searchResults = await client.search({
                 query: query.trim(),
-                categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+                categories: undefined, // Always search all categories
                 limit: 100,
             });
 
-            // Filter by selected indexer if specified
-            let filtered = searchResults;
-            if (selectedIndexer !== null) {
-                filtered = searchResults.filter(r => r.indexerId === selectedIndexer);
-            }
-
             // Sort by relevance: seeders desc, then size desc, then age asc
-            const sorted = filtered.sort((a, b) => {
+            const sorted = searchResults.sort((a, b) => {
                 const seedersA = a.seeders || 0;
                 const seedersB = b.seeders || 0;
                 if (seedersB !== seedersA) return seedersB - seedersA;
@@ -139,7 +129,8 @@ const ProwlarrSearchScreen = () => {
                 return ageA - ageB;
             });
 
-            setResults(sorted);
+            setAllResults(sorted); // Store all results
+            setResults(sorted); // Display all initially
         } catch (error) {
             console.error('Search error:', error);
             showAlert('Search Error', 'Failed to search torrents. Please check your Prowlarr configuration.');
@@ -148,9 +139,21 @@ const ProwlarrSearchScreen = () => {
         }
     };
 
+    const filterResults = () => {
+        let filtered = [...allResults];
+
+        // Filter by selected indexer if specified
+        if (selectedIndexer !== null) {
+            filtered = filtered.filter(r => r.indexerId === selectedIndexer);
+        }
+
+        setResults(filtered);
+    };
+
     const handleClear = () => {
         setQuery('');
         setResults([]);
+        setAllResults([]);
         setSearched(false);
         if (isHapticsSupported()) Haptics.selectionAsync();
     };
@@ -158,6 +161,7 @@ const ProwlarrSearchScreen = () => {
     const handleSelectTorrent = (result: ProwlarrSearchResult) => {
         if (isHapticsSupported()) Haptics.selectionAsync();
 
+        console.log('Selected Torrent',result)
         const link = result.magnetUrl || result.hash || result.infoHash || result.downloadUrl || result.guid || '';
         router.push({
             pathname: '/(tabs)/add',
@@ -165,9 +169,10 @@ const ProwlarrSearchScreen = () => {
         });
     };
 
-    const getCategoryBadge = (categoryIds: number[]) => {
-        const mainCategory = categoryIds.find(id => categories.some(c => c.id === id));
-        return mainCategory ? categories.find(c => c.id === mainCategory)?.name || 'Other' : 'Other';
+    const getCategoryBadge = (categories: any[]) => {
+        if (!categories || categories.length === 0) return 'Unknown';
+        const categoryMain = categories[0];
+        return categoryMain.name || 'Unknown';
     };
 
     const getIndexerMenuActions = () => {
@@ -175,37 +180,22 @@ const ProwlarrSearchScreen = () => {
             {
                 id: 'all',
                 title: 'All Indexers',
-                state: (selectedIndexer === null ? 'on' : 'off') as 'on' | 'off',
+                state: selectedIndexer === null ? ('on' as const) : ('off' as const),
+                titleColor: selectedIndexer === null ? '#007AFF' : '#FFFFFF',
             },
             ...indexers.map(indexer => ({
                 id: indexer.id.toString(),
                 title: indexer.name,
-                state: (selectedIndexer === indexer.id ? 'on' : 'off') as 'on' | 'off',
+                state: selectedIndexer === indexer.id ? ('on' as const) : ('off' as const),
+                titleColor: selectedIndexer === indexer.id ? '#007AFF' : '#FFFFFF',
             })),
         ];
         return actions;
     };
 
-    const getCategoryMenuActions = () => {
-        // Only show main categories (ending in 000)
-        const mainCategories = categories.filter(cat => cat.id % 1000 === 0);
-
-        return mainCategories.map(cat => ({
-            id: cat.id.toString(),
-            title: cat.name,
-            state: (selectedCategories.includes(cat.id) ? 'on' : 'off') as 'on' | 'off',
-        }));
-    };
-
     const selectedIndexerName = selectedIndexer
         ? indexers.find(i => i.id === selectedIndexer)?.name || 'All Indexers'
         : 'All Indexers';
-
-    const selectedCategoriesText = selectedCategories.length > 0
-        ? selectedCategories
-            .map(id => categories.find(c => c.id === id)?.name || id.toString())
-            .join(', ')
-        : 'All Categories';
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -249,10 +239,9 @@ const ProwlarrSearchScreen = () => {
                             )}
                         </View>
 
-                        {/* Filters */}
+                        {/* Indexer Filter */}
                         {!loadingData && (
                             <View style={styles.filtersContainer}>
-                                {/* Indexer Dropdown */}
                                 <MenuView
                                     onPressAction={({ nativeEvent }) => {
                                         const id = nativeEvent.event;
@@ -270,29 +259,6 @@ const ProwlarrSearchScreen = () => {
                                         <Ionicons name="server-outline" size={16} color="#999" />
                                         <Text style={styles.filterButtonText} numberOfLines={1}>
                                             {selectedIndexerName}
-                                        </Text>
-                                        <Ionicons name="chevron-down" size={16} color="#666" />
-                                    </View>
-                                </MenuView>
-
-                                {/* Category Dropdown */}
-                                <MenuView
-                                    onPressAction={({ nativeEvent }) => {
-                                        const id = parseInt(nativeEvent.event);
-                                        if (selectedCategories.includes(id)) {
-                                            setSelectedCategories(selectedCategories.filter(c => c !== id));
-                                        } else {
-                                            setSelectedCategories([...selectedCategories, id]);
-                                        }
-                                        if (isHapticsSupported()) Haptics.selectionAsync();
-                                    }}
-                                    actions={getCategoryMenuActions()}
-                                    shouldOpenOnLongPress={false}
-                                >
-                                    <View style={styles.filterButton}>
-                                        <Ionicons name="folder-outline" size={16} color="#999" />
-                                        <Text style={styles.filterButtonText} numberOfLines={1}>
-                                            {selectedCategoriesText}
                                         </Text>
                                         <Ionicons name="chevron-down" size={16} color="#666" />
                                     </View>
@@ -450,13 +416,10 @@ const styles = StyleSheet.create({
         padding: 4,
     },
     filtersContainer: {
-        flexDirection: 'row',
-        gap: 10,
         marginBottom: 24,
         backgroundColor: 'transparent',
     },
     filterButton: {
-        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#0f0f0f',

@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, ActivityIndicator, Text, StatusBar } from '@/components/Themed';
 import TorrentGrid from '@/components/TorrentGrid';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
-import { useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
@@ -14,6 +14,14 @@ const HomeScreen = () => {
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedCategory, setSelectedCategory] = useState('All');
+  const [refreshKey, setRefreshKey] = useState(0);
+
+  // Refresh watch history when screen comes into focus
+  useFocusEffect(
+    useCallback(() => {
+      setRefreshKey(prev => prev + 1);
+    }, [])
+  );
 
   const categories = ['All', 'Movies', 'TV', 'Other'];
 
@@ -166,7 +174,7 @@ const HomeScreen = () => {
   return (
     <View style={styles.container}>
       <StatusBar />
-      <ScrollView showsVerticalScrollIndicator={false} key={selectedCategory}>
+      <ScrollView showsVerticalScrollIndicator={false} key={refreshKey}>
         {/* Carousel Section */}
         {!loading && (
           <PosterCarousel
