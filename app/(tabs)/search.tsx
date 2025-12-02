@@ -158,10 +158,11 @@ const ProwlarrSearchScreen = () => {
         if (isHapticsSupported()) Haptics.selectionAsync();
     };
 
-    const handleSelectTorrent = (result: ProwlarrSearchResult) => {
-        if (isHapticsSupported()) Haptics.selectionAsync();
+    const handleSelectTorrent = async(result: ProwlarrSearchResult) => {
+        if (isHapticsSupported()) {
+            await Haptics.selectionAsync();
+        }
 
-        console.log('Selected Torrent',result)
         const link = result.magnetUrl || result.hash || result.infoHash || result.downloadUrl || result.guid || '';
         router.push({
             pathname: '/torrent/add',

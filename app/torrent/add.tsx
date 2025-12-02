@@ -31,6 +31,7 @@ const AddTorrentScreen = () => {
   const [posterInput, setPosterInput] = useState(poster ? String(poster) : '');
   const [category, setCategory] = useState<'movie' | 'tv' | 'music' | 'other'>('movie');
   const [submitting, setSubmitting] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState('');
 
   const extractImdbId = (text: string): string | null => {
     // Match IMDB ID patterns (tt followed by 7-8 digits)
@@ -40,18 +41,18 @@ const AddTorrentScreen = () => {
 
   const getFinalPosterUrl = (): string => {
     if (!posterInput) return '';
-    
+
     const imdbId = extractImdbId(posterInput);
-    
+
     if (imdbId && posterInput.trim() === imdbId) {
       return `https://images.metahub.space/poster/medium/${imdbId}/img`;
     }
-    
+
     if (imdbId && posterInput.includes('metahub.space')) {
       return `https://images.metahub.space/poster/medium/${imdbId}/img`;
     }
     console.log('Using custom poster URL:', posterInput);
-    
+
     return posterInput;
   };
 
@@ -76,7 +77,7 @@ const AddTorrentScreen = () => {
     try {
       const baseUrl = getTorrServerUrl();
       const finalPosterUrl = getFinalPosterUrl();
-      
+
       const payload = {
         action: 'add',
         category,
@@ -127,7 +128,9 @@ const AddTorrentScreen = () => {
     }
   };
 
-  const previewUrl = getFinalPosterUrl();
+  useEffect(() => {
+    setPreviewUrl(getFinalPosterUrl());
+  }, [posterInput]);
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -225,7 +228,7 @@ const AddTorrentScreen = () => {
                 />
                 {posterInput && (
                   <Text style={styles.helperText}>
-                    {extractImdbId(posterInput) 
+                    {extractImdbId(posterInput)
                       ? `Using IMDB ID: ${extractImdbId(posterInput)}`
                       : 'Using custom URL'}
                   </Text>
