@@ -19,7 +19,7 @@ interface CarouselItem {
     type: string;
 }
 
-interface PosterCarousel {
+interface PosterCarouselProps {
     filter: string;
     onItemPress?: (item: CarouselItem) => void;
     autoPlay?: boolean;
@@ -32,11 +32,9 @@ export default function PosterCarousel({
     onItemPress,
     autoPlay = true,
     autoPlayInterval = 5000,
-    carouselData = [] as CarouselItem[],
-}: PosterCarousel) {
+    carouselData = [],
+}: PosterCarouselProps) {
     const [activeIndex, setActiveIndex] = useState(0);
-    const [data, setData] = useState<CarouselItem[]>(carouselData);
-    const [loading, setLoading] = useState(true);
     const [dimensions, setDimensions] = useState(() => {
         const { width, height } = Dimensions.get('window');
         return { width, height, isLandscape: width > height };
@@ -80,10 +78,10 @@ export default function PosterCarousel({
 
     // Auto-play functionality with proper cleanup
     useEffect(() => {
-        if (autoPlay && data.length > 1) {
+        if (autoPlay && carouselData.length > 1) {
             autoPlayRef.current = setInterval(() => {
                 setActiveIndex((prevIndex) => {
-                    const nextIndex = (prevIndex + 1) % data.length;
+                    const nextIndex = (prevIndex + 1) % carouselData.length;
                     flatListRef.current?.scrollToIndex({
                         index: nextIndex,
                         animated: true
@@ -99,12 +97,20 @@ export default function PosterCarousel({
                 autoPlayRef.current = null;
             }
         };
-    }, [autoPlay, autoPlayInterval, data.length]);
+    }, [autoPlay, autoPlayInterval, carouselData.length]);
+
+    // Reset active index when data changes
+    useEffect(() => {
+        setActiveIndex(0);
+        if (flatListRef.current && carouselData.length > 0) {
+            flatListRef.current.scrollToOffset({ offset: 0, animated: false });
+        }
+    }, [carouselData]);
 
     const handleScroll = (event: any) => {
         const scrollPosition = event.nativeEvent.contentOffset.x;
         const index = Math.round(scrollPosition / responsiveDims.itemWidth);
-        if (index !== activeIndex && index >= 0 && index < data.length) {
+        if (index !== activeIndex && index >= 0 && index < carouselData.length) {
             setActiveIndex(index);
         }
     };
@@ -119,7 +125,7 @@ export default function PosterCarousel({
     };
 
     const scrollToIndex = (index: number) => {
-        if (flatListRef.current && index >= 0 && index < data.length) {
+        if (flatListRef.current && index >= 0 && index < carouselData.length) {
             flatListRef.current.scrollToIndex({
                 index,
                 animated: true,
@@ -148,7 +154,7 @@ export default function PosterCarousel({
                     activeOpacity={0.9}
                 >
                     <ImageBackground
-                        key={`${item.id}-${index}`} 
+                        key={`${item.id}-${index}`}
                         source={{ uri: item.poster }}
                         style={styles.backdropImage}
                         resizeMode="cover"
@@ -171,7 +177,7 @@ export default function PosterCarousel({
                             }]}>
                                 <Text style={[styles.title, {
                                     fontSize: dims.titleSize
-                                }]} numberOfLines={1}>
+                                }]} numberOfLines={2}>
                                     {item.title}
                                 </Text>
                                 {item.subtitle && (
@@ -216,12 +222,13 @@ export default function PosterCarousel({
         />
     );
 
-    if (loading || !data.length) {
+    if (!carouselData.length) {
         return (
             <View style={[styles.container, styles.loadingContainer, {
                 height: responsiveDims.carouselHeight
             }]}>
-                <ActivityIndicator color="#535aff"></ActivityIndicator>
+                <ActivityIndicator color="#535aff" />
+                <Text style={styles.loadingText}>Loading carousel...</Text>
             </View>
         );
     }
@@ -230,9 +237,9 @@ export default function PosterCarousel({
         <View style={[styles.container, { height: responsiveDims.carouselHeight }]}>
             <FlatList
                 ref={flatListRef}
-                data={data}
+                data={carouselData}
                 renderItem={renderCarouselItem}
-                keyExtractor={(item, index) => `${item.id}-${index}`} // More reliable key
+                keyExtractor={(item, index) => `${item.id}-${index}`}
                 horizontal
                 pagingEnabled
                 showsHorizontalScrollIndicator={false}
@@ -241,7 +248,7 @@ export default function PosterCarousel({
                 snapToInterval={responsiveDims.itemWidth}
                 snapToAlignment="start"
                 style={styles.carousel}
-                removeClippedSubviews={false} // Prevent image loading issues
+                removeClippedSubviews={false}
                 initialNumToRender={3}
                 maxToRenderPerBatch={3}
                 windowSize={5}
@@ -253,14 +260,14 @@ export default function PosterCarousel({
             />
 
             {/* Pagination dots */}
-            {data.length > 1 && (
+            {carouselData.length > 1 && (
                 <View style={[styles.paginationContainer, {
                     bottom: dimensions.isLandscape ? 15 : 20,
                     left: dimensions.isLandscape ? 35 : 20,
                 }]}>
                     <BlurView intensity={20} style={[styles.paginationBlur]}>
                         <View style={styles.paginationDots}>
-                            {data.map((_, index) => renderPaginationDot(index))}
+                            {carouselData.map((_, index) => renderPaginationDot(index))}
                         </View>
                     </BlurView>
                 </View>
@@ -365,6 +372,7 @@ const styles = StyleSheet.create({
     loadingText: {
         color: '#fff',
         fontSize: 16,
+        marginTop: 12,
     },
     paginationContainer: {
         position: 'absolute',
