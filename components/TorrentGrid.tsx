@@ -30,10 +30,10 @@ const FilmTapePlaceholder = ({ width, height }: { width: number; height: number 
     <Svg width={width} height={height} viewBox="0 0 500 750">
         {/* Background */}
         <Rect width="500" height="750" fill="#2a2a2a" />
-        
+
         {/* Movie frame/screen */}
         <Rect x="100" y="220" width="300" height="220" fill="none" stroke="#666" strokeWidth="6" rx="8" />
-        
+
         {/* Film strip on left */}
         <Rect x="100" y="220" width="20" height="220" fill="#666" />
         <Rect x="105" y="230" width="10" height="15" fill="#2a2a2a" rx="2" />
@@ -44,7 +44,7 @@ const FilmTapePlaceholder = ({ width, height }: { width: number; height: number 
         <Rect x="105" y="355" width="10" height="15" fill="#2a2a2a" rx="2" />
         <Rect x="105" y="380" width="10" height="15" fill="#2a2a2a" rx="2" />
         <Rect x="105" y="405" width="10" height="15" fill="#2a2a2a" rx="2" />
-        
+
         {/* Film strip on right */}
         <Rect x="380" y="220" width="20" height="220" fill="#666" />
         <Rect x="385" y="230" width="10" height="15" fill="#2a2a2a" rx="2" />
@@ -55,7 +55,7 @@ const FilmTapePlaceholder = ({ width, height }: { width: number; height: number 
         <Rect x="385" y="355" width="10" height="15" fill="#2a2a2a" rx="2" />
         <Rect x="385" y="380" width="10" height="15" fill="#2a2a2a" rx="2" />
         <Rect x="385" y="405" width="10" height="15" fill="#2a2a2a" rx="2" />
-        
+
         {/* Play button triangle */}
         <Polygon points="220,300 220,360 270,330" fill="#666" />
     </Svg>
@@ -124,7 +124,7 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
 
         // Check if poster exists and is valid
         const hasValidPoster = item.poster && item.poster.trim() !== '' && !imageError;
-        
+
         return (
             <Pressable
                 style={[styles.card, { width: posterWidth }]}
@@ -191,7 +191,6 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
 
 const styles = StyleSheet.create({
     scrollContent: {
-        paddingTop: 8,
         paddingBottom: 24,
     },
     grid: {

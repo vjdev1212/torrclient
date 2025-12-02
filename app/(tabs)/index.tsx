@@ -62,7 +62,7 @@ const HomeScreen = () => {
           });
 
           const torrents = await response.json();
-          console.log('Fetched torrents:', torrents); 
+          console.log('Fetched torrents:', torrents);
           const list = Array.isArray(torrents) ? torrents : Object.values(torrents || {});
 
           const parsed = list.map((item: any) => ({
@@ -149,24 +149,26 @@ const HomeScreen = () => {
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.filterScrollContent}
           >
-            {categories.map((category) => (
-              <TouchableOpacity
-                key={category}
-                style={[
-                  styles.chip,
-                  selectedCategory === category && styles.chipActive
-                ]}
-                onPress={() => handleCategoryPress(category)}
-                activeOpacity={0.7}
-              >
-                <Text style={[
-                  styles.chipText,
-                  selectedCategory === category && styles.chipTextActive
-                ]}>
-                  {category}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            <View style={styles.categoryChipsContainer}>
+              {categories.map((category) => (
+                <TouchableOpacity
+                  key={category}
+                  style={[
+                    styles.chip,
+                    selectedCategory === category && styles.chipActive
+                  ]}
+                  onPress={() => handleCategoryPress(category)}
+                  activeOpacity={0.7}
+                >
+                  <Text style={[
+                    styles.chipText,
+                    selectedCategory === category && styles.chipTextActive
+                  ]}>
+                    {category}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
           </ScrollView>
         </View>
 
@@ -218,6 +220,11 @@ const styles = StyleSheet.create({
     marginTop: 4,
     fontWeight: '400',
   },
+  categoryChipsContainer: {
+    flexDirection: 'row',
+    gap: 15,
+    marginVertical: 20,
+  },
   filterSection: {
     paddingBottom: 20,
     backgroundColor: 'transparent',
@@ -227,10 +234,10 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   chip: {
-    paddingHorizontal: 18,
-    paddingVertical: 9,
-    borderRadius: 20,
-    backgroundColor: '#101010',
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    borderRadius: 25,
+    backgroundColor: '#1a1a1a',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#202020',
   },
@@ -239,12 +246,13 @@ const styles = StyleSheet.create({
     borderColor: '#535aff',
   },
   chipText: {
-    fontSize: 14,
     fontWeight: '500',
-    color: '#ccc',
+    color: '#fff',
+    fontSize: 16
   },
   chipTextActive: {
     color: '#fff',
+    fontWeight: 500
   },
   loadingContainer: {
     position: 'absolute',
