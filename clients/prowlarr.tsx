@@ -24,6 +24,8 @@ export interface ProwlarrSearchResult {
   size: number;
   publishDate: string;
   downloadUrl: string;
+  infoHash?: string;
+  hash?: string;
   magnetUrl?: string;
   infoUrl?: string;
   seeders?: number;

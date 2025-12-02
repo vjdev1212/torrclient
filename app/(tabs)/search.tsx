@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   TextInput,
   StyleSheet,
@@ -11,36 +11,55 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
+import { Ionicons } from '@expo/vector-icons';
+import { MenuView } from '@react-native-menu/menu';
 import { Text, View } from '@/components/Themed';
 import { isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
-import ProwlarrClient, { ProwlarrSearchResult } from '@/clients/prowlarr';
+import ProwlarrClient, { ProwlarrSearchResult, ProwlarrIndexer } from '@/clients/prowlarr';
 
-const searchTypes = [
-  { key: 'movie', label: 'Movie' },
-  { key: 'tv', label: 'TV Show' },
-];
-
-const queryTypes = [
-  { key: 'name', label: 'Name' },
-  { key: 'imdb', label: 'IMDB ID' },
-  { key: 'tmdb', label: 'TMDB ID' },
-];
+const CATEGORY_MAP: Record<number, string> = {
+  2000: 'Movies',
+  5000: 'TV',
+  3000: 'Audio',
+  4000: 'PC',
+  6000: 'XXX',
+  7000: 'Books',
+  8000: 'Other',
+};
 
 const ProwlarrSearchScreen = () => {
   const router = useRouter();
-  const [searchType, setSearchType] = useState<'movie' | 'tv'>('movie');
-  const [queryType, setQueryType] = useState<'name' | 'imdb' | 'tmdb'>('name');
   const [query, setQuery] = useState('');
-  const [season, setSeason] = useState('');
-  const [episode, setEpisode] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingIndexers, setLoadingIndexers] = useState(true);
   const [results, setResults] = useState<ProwlarrSearchResult[]>([]);
   const [searched, setSearched] = useState(false);
+  
+  const [indexers, setIndexers] = useState<ProwlarrIndexer[]>([]);
+  const [selectedIndexer, setSelectedIndexer] = useState<number | null>(null);
+  const [selectedCategories, setSelectedCategories] = useState<number[]>([]);
+
+  useEffect(() => {
+    loadIndexers();
+  }, []);
+
+  const loadIndexers = async () => {
+    try {
+      const client = new ProwlarrClient();
+      await client.initialize();
+      const fetchedIndexers = await client.getIndexers();
+      setIndexers(fetchedIndexers.filter(i => i.enable));
+      setLoadingIndexers(false);
+    } catch (error) {
+      console.error('Failed to load indexers:', error);
+      showAlert('Error', 'Failed to load Prowlarr indexers');
+      setLoadingIndexers(false);
+    }
+  };
 
   const handleSearch = async () => {
     if (!query.trim()) {
-      showAlert('Missing Query', 'Please enter a search term, IMDB ID, or TMDB ID.');
       return;
     }
 
@@ -53,31 +72,20 @@ const ProwlarrSearchScreen = () => {
       const client = new ProwlarrClient();
       await client.initialize();
 
-      let searchResults: ProwlarrSearchResult[] = [];
+      const searchResults = await client.search({
+        query: query.trim(),
+        categories: selectedCategories.length > 0 ? selectedCategories : undefined,
+        limit: 100,
+      });
 
-      if (searchType === 'movie') {
-        if (queryType === 'name') {
-          searchResults = await client.searchMovieByName(query.trim());
-        } else if (queryType === 'imdb') {
-          searchResults = await client.searchMovieByImdbId(query.trim());
-        } else if (queryType === 'tmdb') {
-          searchResults = await client.searchMovieByTmdbId(query.trim());
-        }
-      } else {
-        const seasonNum = season ? parseInt(season) : undefined;
-        const episodeNum = episode ? parseInt(episode) : undefined;
-
-        if (queryType === 'name') {
-          searchResults = await client.searchTVShowByName(query.trim(), seasonNum, episodeNum);
-        } else if (queryType === 'imdb') {
-          searchResults = await client.searchTVShowByImdbId(query.trim(), seasonNum, episodeNum);
-        } else if (queryType === 'tmdb') {
-          searchResults = await client.searchTVShowByTmdbId(query.trim(), seasonNum, episodeNum);
-        }
+      // Filter by selected indexer if specified
+      let filtered = searchResults;
+      if (selectedIndexer !== null) {
+        filtered = searchResults.filter(r => r.indexerId === selectedIndexer);
       }
 
       // Sort by relevance: seeders desc, then size desc, then age asc
-      const sorted = searchResults.sort((a, b) => {
+      const sorted = filtered.sort((a, b) => {
         const seedersA = a.seeders || 0;
         const seedersB = b.seeders || 0;
         if (seedersB !== seedersA) return seedersB - seedersA;
@@ -98,21 +106,60 @@ const ProwlarrSearchScreen = () => {
     }
   };
 
+  const handleClear = () => {
+    setQuery('');
+    setResults([]);
+    setSearched(false);
+    if (isHapticsSupported()) Haptics.selectionAsync();
+  };
+
   const handleSelectTorrent = (result: ProwlarrSearchResult) => {
     if (isHapticsSupported()) Haptics.selectionAsync();
     
-    const link = result.magnetUrl || result.downloadUrl || '';
+    const link = result.magnetUrl || result.hash || result.infoHash || result.downloadUrl || result.guid || '';
     router.push({
-      pathname: '/add',
+      pathname: '/(tabs)/add',
       params: { magnet: link },
     });
   };
 
   const getCategoryBadge = (categories: number[]) => {
-    if (categories.includes(2000)) return 'Movie';
-    if (categories.includes(5000)) return 'TV';
-    return 'Other';
+    const mainCategory = categories.find(c => c in CATEGORY_MAP);
+    return mainCategory ? CATEGORY_MAP[mainCategory] : 'Other';
   };
+
+  const getIndexerMenuActions = () => {
+    const actions = [
+      {
+        id: 'all',
+        title: 'All Indexers',
+        state: selectedIndexer === null ? 'on' : 'off' as 'on' | 'off',
+      },
+      ...indexers.map(indexer => ({
+        id: indexer.id.toString(),
+        title: indexer.name,
+        state: (selectedIndexer === indexer.id ? 'on' : 'off') as 'on' | 'off',
+      })),
+    ];
+    return actions;
+  };
+
+  const getCategoryMenuActions = () => {
+    const availableCategories = [2000, 5000, 3000, 7000, 8000];
+    return availableCategories.map(cat => ({
+      id: cat.toString(),
+      title: CATEGORY_MAP[cat] || 'Unknown',
+      state: (selectedCategories.includes(cat) ? 'on' : 'off') as 'on' | 'off',
+    }));
+  };
+
+  const selectedIndexerName = selectedIndexer 
+    ? indexers.find(i => i.id === selectedIndexer)?.name || 'All Indexers'
+    : 'All Indexers';
+
+  const selectedCategoriesText = selectedCategories.length > 0
+    ? selectedCategories.map(c => CATEGORY_MAP[c]).join(', ')
+    : 'All Categories';
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -135,131 +182,83 @@ const ProwlarrSearchScreen = () => {
               </Text>
             </View>
 
-            {/* Search Form */}
-            <View style={styles.form}>
-              {/* Content Type */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Content Type</Text>
-                <View style={styles.chipContainer}>
-                  {searchTypes.map((type) => (
-                    <TouchableOpacity
-                      key={type.key}
-                      style={[
-                        styles.chip,
-                        searchType === type.key && styles.chipActive,
-                      ]}
-                      onPress={() => {
-                        setSearchType(type.key as 'movie' | 'tv');
-                        if (isHapticsSupported()) Haptics.selectionAsync();
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.chipText,
-                          searchType === type.key && styles.chipTextActive,
-                        ]}
-                      >
-                        {type.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              {/* Query Type */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Search By</Text>
-                <View style={styles.chipContainer}>
-                  {queryTypes.map((type) => (
-                    <TouchableOpacity
-                      key={type.key}
-                      style={[
-                        styles.chip,
-                        queryType === type.key && styles.chipActive,
-                      ]}
-                      onPress={() => {
-                        setQueryType(type.key as 'name' | 'imdb' | 'tmdb');
-                        if (isHapticsSupported()) Haptics.selectionAsync();
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.chipText,
-                          queryType === type.key && styles.chipTextActive,
-                        ]}
-                      >
-                        {type.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              {/* Query Input */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>
-                  {queryType === 'name' ? 'Search Query' : queryType === 'imdb' ? 'IMDB ID' : 'TMDB ID'}
-                </Text>
-                <TextInput
-                  style={styles.input}
-                  value={query}
-                  onChangeText={setQuery}
-                  placeholder={
-                    queryType === 'name' 
-                      ? 'Enter title...' 
-                      : queryType === 'imdb' 
-                      ? 'tt1234567' 
-                      : '12345'
-                  }
-                  autoCapitalize="none"
-                  placeholderTextColor="#666"
-                  submitBehavior="blurAndSubmit"
-                  onSubmitEditing={handleSearch}
-                />
-              </View>
-
-              {/* Season & Episode (TV only) */}
-              {searchType === 'tv' && (
-                <View style={styles.rowInputGroup}>
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>Season <Text style={styles.optional}>(optional)</Text></Text>
-                    <TextInput
-                      style={styles.input}
-                      value={season}
-                      onChangeText={setSeason}
-                      placeholder="1"
-                      keyboardType="number-pad"
-                      placeholderTextColor="#666"
-                    />
-                  </View>
-                  <View style={[styles.inputGroup, { flex: 1 }]}>
-                    <Text style={styles.label}>Episode <Text style={styles.optional}>(optional)</Text></Text>
-                    <TextInput
-                      style={styles.input}
-                      value={episode}
-                      onChangeText={setEpisode}
-                      placeholder="1"
-                      keyboardType="number-pad"
-                      placeholderTextColor="#666"
-                    />
-                  </View>
-                </View>
+            {/* Search Bar */}
+            <View style={styles.searchBarContainer}>
+              <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+              <TextInput
+                style={styles.searchInput}
+                value={query}
+                onChangeText={setQuery}
+                placeholder="Search for movies, shows, music..."
+                autoCapitalize="none"
+                placeholderTextColor="#666"
+                returnKeyType="search"
+                onSubmitEditing={handleSearch}
+              />
+              {query.length > 0 && (
+                <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
+                  <Ionicons name="close-circle" size={20} color="#666" />
+                </TouchableOpacity>
               )}
-
-              {/* Search Button */}
-              <TouchableOpacity
-                style={[styles.searchButton, loading && styles.searchButtonDisabled]}
-                onPress={handleSearch}
-                disabled={loading}
-                activeOpacity={0.8}
+              <TouchableOpacity 
+                onPress={handleSearch} 
+                style={styles.searchButton}
+                disabled={!query.trim() || loading}
               >
-                <Text style={styles.searchButtonText}>
-                  {loading ? 'Searching...' : 'Search'}
-                </Text>
+                <Ionicons name="arrow-forward" size={20} color="#fff" />
               </TouchableOpacity>
             </View>
+
+            {/* Filters */}
+            {!loadingIndexers && (
+              <View style={styles.filtersContainer}>
+                {/* Indexer Dropdown */}
+                <MenuView
+                  onPressAction={({ nativeEvent }) => {
+                    const id = nativeEvent.event;
+                    if (id === 'all') {
+                      setSelectedIndexer(null);
+                    } else {
+                      setSelectedIndexer(parseInt(id));
+                    }
+                    if (isHapticsSupported()) Haptics.selectionAsync();
+                  }}
+                  actions={getIndexerMenuActions()}
+                  shouldOpenOnLongPress={false}
+                >
+                  <View style={styles.filterButton}>
+                    <Ionicons name="server-outline" size={16} color="#999" />
+                    <Text style={styles.filterButtonText} numberOfLines={1}>
+                      {selectedIndexerName}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color="#666" />
+                  </View>
+                </MenuView>
+
+                {/* Category Dropdown */}
+                <MenuView
+                  onPressAction={({ nativeEvent }) => {
+                    const id = parseInt(nativeEvent.event);
+                    if (selectedCategories.includes(id)) {
+                      setSelectedCategories(selectedCategories.filter(c => c !== id));
+                    } else {
+                      setSelectedCategories([...selectedCategories, id]);
+                    }
+                    if (isHapticsSupported()) Haptics.selectionAsync();
+                  }}
+                  actions={getCategoryMenuActions()}
+                  shouldOpenOnLongPress={false}
+                >
+                  <View style={styles.filterButton}>
+                    <Ionicons name="folder-outline" size={16} color="#999" />
+                    <Text style={styles.filterButtonText} numberOfLines={1}>
+                      {selectedCategoriesText}
+                    </Text>
+                    <Ionicons name="chevron-down" size={16} color="#666" />
+                  </View>
+                </MenuView>
+              </View>
+            )}
 
             {/* Loading Indicator */}
             {loading && (
@@ -278,8 +277,9 @@ const ProwlarrSearchScreen = () => {
                 
                 {results.length === 0 ? (
                   <View style={styles.emptyState}>
+                    <Ionicons name="search-outline" size={48} color="#333" />
                     <Text style={styles.emptyStateText}>No torrents found</Text>
-                    <Text style={styles.emptyStateSubtext}>Try a different search term</Text>
+                    <Text style={styles.emptyStateSubtext}>Try a different search term or filter</Text>
                   </View>
                 ) : (
                   results.map((result, index) => (
@@ -364,7 +364,7 @@ const styles = StyleSheet.create({
   },
   header: {
     paddingTop: 20,
-    paddingBottom: 32,
+    paddingBottom: 24,
     backgroundColor: 'transparent',
   },
   headerTitle: {
@@ -378,82 +378,58 @@ const styles = StyleSheet.create({
     color: '#999',
     marginTop: 6,
   },
-  form: {
-    backgroundColor: 'transparent',
-    marginBottom: 24,
-  },
-  inputGroup: {
-    marginBottom: 20,
-    backgroundColor: 'transparent',
-  },
-  rowInputGroup: {
+  searchBarContainer: {
     flexDirection: 'row',
-    gap: 12,
-    marginBottom: 20,
-    backgroundColor: 'transparent',
-  },
-  label: {
-    fontSize: 15,
-    fontWeight: '500',
-    color: '#ccc',
-    marginBottom: 10,
-  },
-  optional: {
-    fontSize: 13,
-    fontWeight: '400',
-    color: '#777',
-  },
-  input: {
-    backgroundColor: '#0f0f0f',
-    borderRadius: 12,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-    fontSize: 15,
-    color: '#fff',
-    borderWidth: 1,
-    borderColor: '#1f1f1f',
-  },
-  chipContainer: {
-    flexDirection: 'row',
-    gap: 10,
-    backgroundColor: 'transparent',
-  },
-  chip: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 10,
-    backgroundColor: '#0f0f0f',
     alignItems: 'center',
+    backgroundColor: '#0f0f0f',
+    borderRadius: 14,
+    paddingHorizontal: 16,
+    paddingVertical: 4,
     borderWidth: 1,
     borderColor: '#1f1f1f',
+    marginBottom: 16,
   },
-  chipActive: {
-    backgroundColor: '#535aff',
-    borderColor: '#535aff',
+  searchIcon: {
+    marginRight: 10,
   },
-  chipText: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#888',
-  },
-  chipTextActive: {
+  searchInput: {
+    flex: 1,
+    fontSize: 15,
     color: '#fff',
+    paddingVertical: 12,
+  },
+  clearButton: {
+    padding: 4,
+    marginRight: 8,
   },
   searchButton: {
     backgroundColor: '#535aff',
-    paddingVertical: 16,
-    borderRadius: 12,
+    padding: 8,
+    borderRadius: 8,
+  },
+  filtersContainer: {
+    flexDirection: 'row',
+    gap: 10,
+    marginBottom: 24,
+    backgroundColor: 'transparent',
+  },
+  filterButton: {
+    flex: 1,
+    flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 8,
+    backgroundColor: '#0f0f0f',
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: '#1f1f1f',
+    gap: 8,
   },
-  searchButtonDisabled: {
-    opacity: 0.5,
-  },
-  searchButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  filterButtonText: {
+    flex: 1,
+    fontSize: 14,
+    color: '#ccc',
+    fontWeight: '500',
   },
   loadingContainer: {
     alignItems: 'center',
@@ -485,6 +461,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: '500',
     color: '#999',
+    marginTop: 16,
   },
   emptyStateSubtext: {
     fontSize: 14,
