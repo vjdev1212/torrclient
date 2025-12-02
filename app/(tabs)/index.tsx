@@ -1,5 +1,5 @@
 import React, { useCallback, useState } from 'react';
-import { View, ActivityIndicator, Text } from '@/components/Themed';
+import { View, ActivityIndicator, Text, StatusBar } from '@/components/Themed';
 import TorrentGrid from '@/components/TorrentGrid';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { useFocusEffect } from 'expo-router';
@@ -7,6 +7,7 @@ import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import PosterCarousel from '@/components/PosterCarousel';
 
 const HomeScreen = () => {
   const [data, setData] = useState<any[]>([]);
@@ -49,8 +50,8 @@ const HomeScreen = () => {
       const fetchTorrents = async () => {
         setLoading(true);
         try {
-          const baseUrl = await getTorrServerUrl();
-          const authHeader = await getTorrServerAuthHeader();
+          const baseUrl = getTorrServerUrl();
+          const authHeader = getTorrServerAuthHeader();
           const response = await fetch(`${baseUrl}/torrents`, {
             method: 'POST',
             headers: {
@@ -61,14 +62,18 @@ const HomeScreen = () => {
           });
 
           const torrents = await response.json();
+          console.log('Fetched torrents:', torrents); 
           const list = Array.isArray(torrents) ? torrents : Object.values(torrents || {});
 
           const parsed = list.map((item: any) => ({
+            id: item.hash,
             hash: item.hash,
             title: item.title || 'Untitled',
-            poster: item.poster || 'https://via.placeholder.com/150x225?text=No+Image',
+            subtitle: item.description || `Size: ${formatSize(item.torrent_size)}`,
+            poster: item.poster || 'https://dummyimage.com/500x750/1A1A1A/FFFFFF.png&text= ',
             size: item.torrent_size,
             category: item.category,
+            type: getCategoryType(item.category),
           }));
 
           setData(parsed);
@@ -104,16 +109,38 @@ const HomeScreen = () => {
     }, [selectedCategory])
   );
 
+  const getCategoryType = (category: string | undefined): string => {
+    const cat = category?.toLowerCase() || 'other';
+    if (cat === 'movie') return 'Movie';
+    if (cat === 'tv') return 'TV Show';
+    return 'Media';
+  };
+
+  const formatSize = (bytes: number | undefined): string => {
+    if (!bytes) return 'Unknown size';
+    const gb = bytes / (1024 ** 3);
+    return `${gb.toFixed(2)} GB`;
+  };
+
+  const handleCarouselItemPress = (item: any) => {
+    // Handle item press - navigate to detail view or start playback
+    console.log('Carousel item pressed:', item);
+  };
+
   return (
-    <SafeAreaView style={styles.safeArea} edges={['top']}>
-      <View style={styles.container}>
-        {/* Header Section */}
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Library</Text>
-          <Text style={styles.headerSubtitle}>
-            {filteredData.length} {filteredData.length === 1 ? 'item' : 'items'}
-          </Text>
-        </View>
+    <View style={styles.container}>
+      <StatusBar />
+      <ScrollView showsVerticalScrollIndicator={false} key={selectedCategory}>
+        {/* Carousel Section */}
+        {!loading && filteredData.length > 0 && (
+          <PosterCarousel
+            filter={selectedCategory}
+            onItemPress={handleCarouselItemPress}
+            autoPlay={true}
+            autoPlayInterval={6000}
+            carouselData={filteredData}
+          />
+        )}
 
         {/* Category Filter Chips */}
         <View style={styles.filterSection}>
@@ -159,8 +186,8 @@ const HomeScreen = () => {
         ) : (
           <TorrentGrid list={filteredData} />
         )}
-      </View>
-    </SafeAreaView>
+      </ScrollView>
+    </View>
   );
 };
 
@@ -189,7 +216,7 @@ const styles = StyleSheet.create({
     fontSize: 14,
     color: '#999',
     marginTop: 4,
-    fontWeight: 400,
+    fontWeight: '400',
   },
   filterSection: {
     paddingBottom: 20,
@@ -213,7 +240,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 14,
-    fontWeight: 500,
+    fontWeight: '500',
     color: '#ccc',
   },
   chipTextActive: {
@@ -233,7 +260,7 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 15,
     color: '#999',
-    fontWeight: 400,
+    fontWeight: '400',
   },
   emptyContainer: {
     flex: 1,
@@ -244,7 +271,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 20,
-    fontWeight: 500,
+    fontWeight: '500',
     color: '#fff',
     marginBottom: 8,
   },
