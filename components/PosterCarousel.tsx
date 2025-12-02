@@ -191,9 +191,10 @@ export default function PosterCarousel({
                                     </Text>
                                 )}
                                 <View style={[styles.metaContainer, {
-                                    flexDirection: dimensions.isLandscape ? 'row' : 'row',
-                                    alignItems: dimensions.isLandscape ? 'flex-start' : 'center',
-                                    gap: dimensions.isLandscape ? 8 : 0,
+                                    flexDirection: 'row',
+                                    alignItems: 'center',
+                                    justifyContent: 'flex-end',
+                                    gap: 8,
                                 }]}>                                    
                                     <View style={styles.typeIndicator}>
                                         <Text style={[styles.typeText, {
@@ -344,7 +345,6 @@ const styles = StyleSheet.create({
         maxWidth: 600
     },
     metaContainer: {
-        justifyContent: 'space-between',
         marginTop: 10,
     },
     metaText: {
