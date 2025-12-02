@@ -616,7 +616,7 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#fff',
     marginBottom: 16,
   },
@@ -657,7 +657,7 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 15,
     color: '#fff',
-    fontWeight: '600',
+    fontWeight: 500,
     letterSpacing: -0.2,
   },
 
@@ -667,9 +667,7 @@ const styles = StyleSheet.create({
   },
   filesSectionHeader: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 14,
-    gap: 8,
+    gap: 10,    
   },
   fileCard: {
     backgroundColor: '#141414',
@@ -708,14 +706,14 @@ const styles = StyleSheet.create({
 
   // Action Buttons
   actionsContainerLandscape: {
-    marginTop: 20,
-    gap: 10,
+    marginTop: 30,
+    gap: 15,
   },
   actionsContainerPortrait: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 12,
+    gap: 30,
     paddingBottom: 20,
   },
   actionButton: {
@@ -724,7 +722,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     paddingHorizontal: 20,
-    borderRadius: 10,
+    borderRadius: 25,
     gap: 8,
     flex: 1,
   },
@@ -737,7 +735,7 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: '#fff',
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: 500,
   },
 
   // Loading States

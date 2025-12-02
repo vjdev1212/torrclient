@@ -519,7 +519,6 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
                 player={player}
                 fullscreenOptions={{ enable: true, orientation: 'landscape' }}
                 allowsPictureInPicture
-                nativeControls={Platform.OS === 'web' ? true : false}
                 contentFit={contentFit}
             />
 
