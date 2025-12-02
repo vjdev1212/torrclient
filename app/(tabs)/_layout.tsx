@@ -96,6 +96,22 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="search"
+        listeners={{
+          tabPress: async () => {
+            if (isHapticsSupported()) {
+              await Haptics.selectionAsync();
+            }
+          },
+        }}
+        options={{
+          title: 'Search',
+          tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,
+          tabBarIconStyle: { marginVertical: 5 },
+        }}
+      />
+
+      <Tabs.Screen
         name="add"
         listeners={{
           tabPress: async () => {
