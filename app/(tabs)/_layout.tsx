@@ -80,6 +80,22 @@ export default function TabLayout() {
       />
 
       <Tabs.Screen
+        name="library"
+        listeners={{
+          tabPress: async () => {
+            if (isHapticsSupported()) {
+              await Haptics.selectionAsync();
+            }
+          },
+        }}
+        options={{
+          title: 'Library',
+          tabBarIcon: ({ color }) => <TabBarIcon name="folder-open-o" color={color} />,
+          tabBarIconStyle: { marginVertical: 5 },
+        }}
+      />
+
+      <Tabs.Screen
         name="add"
         listeners={{
           tabPress: async () => {
@@ -91,22 +107,6 @@ export default function TabLayout() {
         options={{
           title: 'Add',
           tabBarIcon: ({ color }) => <TabBarIcon name="download" color={color} />,
-          tabBarIconStyle: { marginVertical: 5 },
-        }}
-      />
-
-      <Tabs.Screen
-        name="search"
-        listeners={{
-          tabPress: async () => {
-            if (isHapticsSupported()) {
-              await Haptics.selectionAsync();
-            }
-          },
-        }}
-        options={{
-          title: 'Search',
-          tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,
           tabBarIconStyle: { marginVertical: 5 },
         }}
       />

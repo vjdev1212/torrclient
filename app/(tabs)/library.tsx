@@ -7,8 +7,10 @@ import { isHapticsSupported } from '@/utils/platform';
 import TorrentGrid from '@/components/TorrentGrid';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 
 const SearchScreen = () => {
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [allTorrents, setAllTorrents] = useState<any[]>([]);
@@ -78,13 +80,24 @@ const SearchScreen = () => {
     setFilteredResults([]);
   };
 
+  const handleTorrentItemPress = async (item: any) => {
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+    }
+
+    router.push({
+      pathname: '/torrent/details',
+      params: { hash: item.hash },
+    });
+  };
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar />
-      
+
       {/* Header Section */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Search</Text>
+        <Text style={styles.headerTitle}>Library</Text>
         <Text style={styles.headerSubtitle}>
           {allTorrents.length} {allTorrents.length === 1 ? 'item' : 'items'} available
         </Text>
@@ -96,7 +109,7 @@ const SearchScreen = () => {
           <Ionicons name="search-outline" size={20} color="#888" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search movies, series or songs..."
+            placeholder="Search movies or tv shows..."
             placeholderTextColor="#888888"
             value={query}
             onChangeText={setQuery}
@@ -131,14 +144,14 @@ const SearchScreen = () => {
           <View style={styles.emptyStateIcon}>
             <Ionicons name="compass-outline" color="#535aff" size={56} />
           </View>
-          <Text style={styles.emptyStateTitle}>Start searching</Text>
+          <Text style={styles.emptyStateTitle}>Find movies or tv shows</Text>
           <Text style={styles.emptyStateSubtitle}>
-            Enter a keyword to find movies, series or songs
+            Enter a keyword to find movies or tv shows in your library
           </Text>
         </View>
       ) : (
-        <ScrollView 
-          showsVerticalScrollIndicator={false} 
+        <ScrollView
+          showsVerticalScrollIndicator={false}
           style={styles.contentContainer}
           contentContainerStyle={styles.contentWrapper}
         >
@@ -146,7 +159,7 @@ const SearchScreen = () => {
             <Text style={styles.resultsCount}>
               {filteredResults.length} {filteredResults.length === 1 ? 'result' : 'results'}
             </Text>
-            <TorrentGrid list={filteredResults} />
+            <TorrentGrid list={filteredResults} onTorrentItemPress={handleTorrentItemPress} />
           </View>
         </ScrollView>
       )}
@@ -187,7 +200,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#101010',
     borderRadius: 12,
-    paddingHorizontal: 15,    
+    paddingHorizontal: 15,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#202020',
   },
