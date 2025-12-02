@@ -18,7 +18,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 const categories = [
   { key: 'movie', label: 'Movie' },
-  { key: 'tv', label: 'Series' },
+  { key: 'tv', label: 'TV' },
   { key: 'music', label: 'Music' },
   { key: 'other', label: 'Other' },
 ];
@@ -50,6 +50,7 @@ const AddTorrentScreen = () => {
     if (imdbId && posterInput.includes('metahub.space')) {
       return `https://images.metahub.space/poster/medium/${imdbId}/img`;
     }
+    console.log('Using custom poster URL:', posterInput);
     
     return posterInput;
   };

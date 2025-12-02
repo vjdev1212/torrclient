@@ -164,7 +164,7 @@ const ProwlarrSearchScreen = () => {
         console.log('Selected Torrent',result)
         const link = result.magnetUrl || result.hash || result.infoHash || result.downloadUrl || result.guid || '';
         router.push({
-            pathname: '/(tabs)/add',
+            pathname: '/torrent/add',
             params: { magnet: link, titleParam: result.title },
         });
     };

@@ -109,23 +109,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,
           tabBarIconStyle: { marginVertical: 5 },
         }}
-      />
-
-      <Tabs.Screen
-        name="add"
-        listeners={{
-          tabPress: async () => {
-            if (isHapticsSupported()) {
-              await Haptics.selectionAsync();
-            }
-          },
-        }}
-        options={{
-          title: 'Add',
-          tabBarIcon: ({ color }) => <TabBarIcon name="edit" color={color} />,
-          tabBarIconStyle: { marginVertical: 5 },
-        }}
-      />
+      />      
 
       <Tabs.Screen
         name="settings"

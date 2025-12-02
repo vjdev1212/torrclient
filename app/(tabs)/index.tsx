@@ -19,6 +19,8 @@ const HomeScreen = () => {
   // Refresh watch history when screen comes into focus
   useFocusEffect(
     useCallback(() => {
+      setSelectedCategory('All');
+      fetchTorrents();
       setRefreshKey(prev => prev + 1);
     }, [])
   );
