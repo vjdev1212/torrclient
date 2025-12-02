@@ -117,7 +117,17 @@ const HomeScreen = () => {
   const emptyCarouselData = [{
     id: 0,
     hash: '',
-    title: 'No items available',
+    title: 'Nothing here yet',
+    subtitle: '',
+    poster: '',
+    size: 0,
+    category: 'other',
+    type: getCategoryType(selectedCategory),
+  },
+  {
+    id: 1,
+    hash: '',
+    title: 'Nothing here yet',
     subtitle: '',
     poster: '',
     size: 0,
