@@ -14,7 +14,6 @@ import { BlurView } from 'expo-blur';
 interface CarouselItem {
     id: string;
     title: string;
-    subtitle?: string;
     poster: string;
     type: string;
 }
@@ -175,26 +174,12 @@ export default function PosterCarousel({
                             <View style={[styles.textContainer, {
                                 flex: 1,
                             }]}>
-                                <Text style={[styles.title, {
-                                    fontSize: dims.titleSize
-                                }]} numberOfLines={2}>
-                                    {item.title}
-                                </Text>
-                                {item.subtitle && (
-                                    <Text
-                                        style={[styles.subtitle, {
-                                            fontSize: dims.subtitleSize
-                                        }]}
-                                        numberOfLines={dimensions.isLandscape ? 2 : 2}
-                                    >
-                                        {item.subtitle}
-                                    </Text>
-                                )}
                                 <View style={[styles.metaContainer, {
                                     flexDirection: 'row',
                                     alignItems: 'center',
-                                    justifyContent: 'flex-end',
+                                    justifyContent: 'flex-start',
                                     gap: 8,
+                                    marginBottom: 12,
                                 }]}>                                    
                                     <View style={styles.typeIndicator}>
                                         <Text style={[styles.typeText, {
@@ -204,6 +189,11 @@ export default function PosterCarousel({
                                         </Text>
                                     </View>
                                 </View>
+                                <Text style={[styles.title, {
+                                    fontSize: dims.titleSize
+                                }]} numberOfLines={1}>
+                                    {item.title}
+                                </Text>
                             </View>
                         </View>
                     </ImageBackground>
@@ -345,7 +335,7 @@ const styles = StyleSheet.create({
         maxWidth: 600
     },
     metaContainer: {
-        marginTop: 10,
+        marginTop: 0,
     },
     metaText: {
         color: 'rgba(255,255,255,0.9)',
