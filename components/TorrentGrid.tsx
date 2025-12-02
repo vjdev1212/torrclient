@@ -9,8 +9,6 @@ import {
 } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
-import { isHapticsSupported } from '@/utils/platform';
 import Svg, { Rect, Polygon } from 'react-native-svg';
 
 interface Torrent {
@@ -23,6 +21,7 @@ interface Torrent {
 
 interface TorrentGridProps {
     list: Torrent[];
+    onTorrentItemPress: (item: Torrent) => void;
 }
 
 // Film Tape Placeholder Component
@@ -61,7 +60,7 @@ const FilmTapePlaceholder = ({ width, height }: { width: number; height: number 
     </Svg>
 );
 
-const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
+const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress }) => {
     const router = useRouter();
     const { width, height } = useWindowDimensions();
     const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -109,18 +108,7 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
     const posterHeight = posterWidth * 1.5;
 
     const TorrentItem = ({ item }: { item: Torrent }) => {
-        const [imageError, setImageError] = useState(false);
-
-        const handlePress = async () => {
-            if (isHapticsSupported()) {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-            }
-
-            router.push({
-                pathname: '/torrent/details',
-                params: { hash: item.hash },
-            });
-        };
+        const [imageError, setImageError] = useState(false);       
 
         // Check if poster exists and is valid
         const hasValidPoster = item.poster && item.poster.trim() !== '' && !imageError;
@@ -128,7 +116,7 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list }) => {
         return (
             <Pressable
                 style={[styles.card, { width: posterWidth }]}
-                onPress={handlePress}
+                onPress={() => onTorrentItemPress(item)}
                 android_ripple={{ color: 'rgba(83, 90, 255, 0.2)' }}
             >
                 {({ pressed }) => (

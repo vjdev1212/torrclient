@@ -152,6 +152,17 @@ const HomeScreen = () => {
     });
   };
 
+  const handleTorrentItemPress = async (item: any) => {
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+    }
+
+    router.push({
+      pathname: '/torrent/details',
+      params: { hash: item.hash },
+    });
+  };
+
   return (
     <View style={styles.container}>
       <StatusBar />
@@ -211,7 +222,7 @@ const HomeScreen = () => {
             </Text>
           </View>
         ) : (
-          <TorrentGrid list={filteredData} />
+          <TorrentGrid list={filteredData} onTorrentItemPress={handleTorrentItemPress} />
         )}
       </ScrollView>
     </View>
