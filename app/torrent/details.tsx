@@ -23,6 +23,7 @@ const TorrentDetails = () => {
   const [defaultMediaPlayer, setDefaultMediaPlayer] = useState<string>('default');
   const { width, height } = useWindowDimensions();
   const isPortrait = height >= width;
+  const isMobile = width < 768;
   const ref = useRef<ScrollView | null>(null);
 
   useEffect(() => {
@@ -325,7 +326,7 @@ const TorrentDetails = () => {
       return (
         <View style={styles.detailsSection}>
           <Text style={styles.sectionTitle}>Torrent Details</Text>
-          <View style={styles.statsGrid}>
+          <View style={[styles.statsGrid, isMobile && isPortrait && styles.statsGridMobile]}>
             <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
             <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
             <View style={styles.statCard}>
@@ -344,7 +345,7 @@ const TorrentDetails = () => {
       return (
         <View style={styles.detailsSection}>
           <Text style={styles.sectionTitle}>Torrent Details</Text>
-          <View style={styles.statsGrid}>
+          <View style={[styles.statsGrid, isMobile && isPortrait && styles.statsGridMobile]}>
             <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
             <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
             <StatCard label="Status" value="Loading..." icon="information-circle-outline" />
@@ -356,7 +357,7 @@ const TorrentDetails = () => {
     return (
       <View style={styles.detailsSection}>
         <Text style={styles.sectionTitle}>Torrent Details</Text>
-        <View style={styles.statsGrid}>
+        <View style={[styles.statsGrid, isMobile && isPortrait && styles.statsGridMobile]}>
           <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
           <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
           <StatCard label="Status" value={cacheData.Torrent.stat_string} icon="information-circle-outline" />
@@ -379,7 +380,7 @@ const TorrentDetails = () => {
   });
 
   const StatCard = ({ label, value, icon }: { label: string, value: any, icon: any }) => (
-    <View style={styles.statCard}>
+    <View style={[styles.statCard, isMobile && isPortrait && styles.statCardMobile]}>
       <View style={styles.statHeader}>
         <Ionicons name={icon} size={18} color="#535aff" />
         <Text style={styles.statLabel}>{label}</Text>
@@ -458,6 +459,31 @@ const TorrentDetails = () => {
               </View>
             )}
 
+            {/* Action Buttons - Portrait Only */}
+            {isPortrait && (
+              <View style={styles.actionsContainerPortrait}>
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.deleteButton]}
+                  onPress={handleWipe}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="trash-outline" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>Delete</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={[styles.actionButton, styles.dropButton]}
+                  onPress={handleDrop}
+                  activeOpacity={0.8}
+                >
+                  <Ionicons name="remove-circle-outline" size={20} color="#fff" />
+                  <Text style={styles.actionButtonText}>Drop</Text>
+                </TouchableOpacity>
+              </View>
+            )}
+
+            <CacheInfo cacheData={cacheData} cacheLoading={cacheLoading} />
+
             {/* Files Section */}
             {videoFiles.length > 0 && (
               <View style={styles.filesSection}>
@@ -488,31 +514,6 @@ const TorrentDetails = () => {
                 ))}
               </View>
             )}
-
-            {/* Action Buttons - Portrait Only */}
-            {isPortrait && (
-              <View style={styles.actionsContainerPortrait}>
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.deleteButton]}
-                  onPress={handleWipe}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="trash-outline" size={20} color="#fff" />
-                  <Text style={styles.actionButtonText}>Delete</Text>
-                </TouchableOpacity>
-
-                <TouchableOpacity
-                  style={[styles.actionButton, styles.dropButton]}
-                  onPress={handleDrop}
-                  activeOpacity={0.8}
-                >
-                  <Ionicons name="remove-circle-outline" size={20} color="#fff" />
-                  <Text style={styles.actionButtonText}>Drop</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-
-            <CacheInfo cacheData={cacheData} cacheLoading={cacheLoading} />
 
           </View>
         </View>
@@ -626,6 +627,9 @@ const styles = StyleSheet.create({
     flexWrap: 'wrap',
     gap: 10,
   },
+  statsGridMobile: {
+    gap: 8,
+  },
   statCard: {
     backgroundColor: '#141414',
     borderRadius: 10,
@@ -635,6 +639,9 @@ const styles = StyleSheet.create({
     flexBasis: '30%',
     borderWidth: 1,
     borderColor: '#222',
+  },
+  statCardMobile: {
+    flexBasis: '45%',
   },
   statHeader: {
     flexDirection: 'row',
