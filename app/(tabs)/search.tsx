@@ -447,7 +447,7 @@ const styles = StyleSheet.create({
   },
   resultsHeader: {
     fontSize: 18,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#fff',
     marginBottom: 16,
   },
@@ -478,7 +478,7 @@ const styles = StyleSheet.create({
   },
   resultTitle: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#fff',
     marginBottom: 14,
     lineHeight: 20,
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
   },
   categoryText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: 500,
     color: '#999',
     textTransform: 'uppercase',
     letterSpacing: 0.5,
