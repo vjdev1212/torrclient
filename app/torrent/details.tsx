@@ -762,10 +762,10 @@ const styles = StyleSheet.create({
     marginVertical: 5
   },
   dropButton: {
-    backgroundColor: 'rgba(83, 90, 255, 0.5)',
+    backgroundColor: 'rgba(83, 90, 255, 0.9)',
   },
   deleteButton: {
-    backgroundColor: 'rgba(231, 76, 60, 0.5)',
+    backgroundColor: 'rgba(231, 76, 60, 0.9)',
   },
   actionButtonText: {
     color: '#fff',

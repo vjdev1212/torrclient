@@ -2,14 +2,14 @@ import React, { useCallback, useState } from 'react';
 import { View, ActivityIndicator, Text, StatusBar } from '@/components/Themed';
 import TorrentGrid from '@/components/TorrentGrid';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import PosterCarousel from '@/components/PosterCarousel';
 
 const HomeScreen = () => {
+  const router = useRouter();
   const [data, setData] = useState<any[]>([]);
   const [filteredData, setFilteredData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -62,7 +62,6 @@ const HomeScreen = () => {
           });
 
           const torrents = await response.json();
-          console.log('Fetched torrents:', torrents);
           const list = Array.isArray(torrents) ? torrents : Object.values(torrents || {});
 
           const parsed = list.map((item: any) => ({
@@ -116,15 +115,32 @@ const HomeScreen = () => {
     return 'Media';
   };
 
+  const emptyCarouselData = [{
+    id: 0,
+    hash: '',
+    title: 'No items available',
+    subtitle: '',
+    poster: '',
+    size: 0,
+    category: 'other',
+    type: getCategoryType(selectedCategory),
+  }];
+
   const formatSize = (bytes: number | undefined): string => {
     if (!bytes) return 'Unknown size';
     const gb = bytes / (1024 ** 3);
     return `${gb.toFixed(2)} GB`;
   };
 
-  const handleCarouselItemPress = (item: any) => {
-    // Handle item press - navigate to detail view or start playback
-    console.log('Carousel item pressed:', item);
+  const handleCarouselItemPress = async (item: any) => {
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+    }
+
+    router.push({
+      pathname: '/torrent/details',
+      params: { hash: item.hash },
+    });
   };
 
   return (
@@ -132,13 +148,13 @@ const HomeScreen = () => {
       <StatusBar />
       <ScrollView showsVerticalScrollIndicator={false} key={selectedCategory}>
         {/* Carousel Section */}
-        {!loading && filteredData.length > 0 && (
+        {!loading && (
           <PosterCarousel
             filter={selectedCategory}
             onItemPress={handleCarouselItemPress}
             autoPlay={true}
             autoPlayInterval={6000}
-            carouselData={filteredData}
+            carouselData={filteredData.length > 0 ? filteredData : emptyCarouselData}
           />
         )}
 

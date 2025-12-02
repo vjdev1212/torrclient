@@ -77,7 +77,7 @@ export default function PosterCarousel({
 
     // Auto-play functionality with proper cleanup
     useEffect(() => {
-        if (autoPlay && carouselData.length > 1) {
+        if (autoPlay) {
             autoPlayRef.current = setInterval(() => {
                 setActiveIndex((prevIndex) => {
                     const nextIndex = (prevIndex + 1) % carouselData.length;
@@ -101,7 +101,7 @@ export default function PosterCarousel({
     // Reset active index when data changes
     useEffect(() => {
         setActiveIndex(0);
-        if (flatListRef.current && carouselData.length > 0) {
+        if (flatListRef.current) {
             flatListRef.current.scrollToOffset({ offset: 0, animated: false });
         }
     }, [carouselData]);
@@ -180,7 +180,7 @@ export default function PosterCarousel({
                                     justifyContent: 'flex-start',
                                     gap: 8,
                                     marginBottom: 12,
-                                }]}>                                    
+                                }]}>
                                     <View style={styles.typeIndicator}>
                                         <Text style={[styles.typeText, {
                                             fontSize: dimensions.isLandscape ? 10 : 12,
@@ -251,7 +251,7 @@ export default function PosterCarousel({
             />
 
             {/* Pagination dots */}
-            {carouselData.length > 1 && (
+            {
                 <View style={[styles.paginationContainer, {
                     bottom: dimensions.isLandscape ? 15 : 20,
                     left: dimensions.isLandscape ? 35 : 20,
@@ -262,7 +262,7 @@ export default function PosterCarousel({
                         </View>
                     </BlurView>
                 </View>
-            )}
+            }
         </View>
     );
 }
