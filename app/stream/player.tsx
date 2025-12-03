@@ -122,7 +122,7 @@ const MediaPlayerScreen: React.FC = () => {
       setIsLoadingSubtitles(true);
       
       const response = await openSubtitlesClient.searchByFileName(
-        '',
+        title as string,
         ['en'],
         {
           format: 'srt',
