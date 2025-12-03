@@ -6,9 +6,11 @@ import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import Constants from 'expo-constants';
 
 const SettingsScreen = () => {
   const router = useRouter();
+  const appVersion = Constants.expoConfig?.version;
 
   const preferencesList: { title: string, route: string, icon: keyof typeof Ionicons.glyphMap, description?: string }[] = [
     { title: 'TorrServer', route: '/settings/torrserver', icon: 'server-outline', description: 'Configure server connection' },
@@ -89,7 +91,7 @@ const SettingsScreen = () => {
                   <View style={styles.separator} />
                 )}
               </React.Fragment>
-            ))}            
+            ))}
           </View>
         </View>
 
@@ -108,7 +110,7 @@ const SettingsScreen = () => {
                   <View style={styles.separator} />
                 )}
               </React.Fragment>
-            ))}            
+            ))}
           </View>
         </View>
 
@@ -118,7 +120,7 @@ const SettingsScreen = () => {
           <View style={styles.infoCard}>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Version</Text>
-              <Text style={styles.infoValue}>1.0.0</Text>
+              <Text style={styles.infoValue}>{appVersion}</Text>
             </View>
           </View>
         </View>
@@ -226,12 +228,12 @@ const styles = StyleSheet.create({
   infoLabel: {
     fontSize: 15,
     color: '#888',
-    fontWeight: 500,
+    fontWeight: '500',
   },
   infoValue: {
     fontSize: 15,
-    color: '#fff',
-    fontWeight: 500,
+    color: '#ccc',
+    fontWeight: '500',
   },
 });
 

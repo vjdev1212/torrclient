@@ -144,9 +144,9 @@ const SearchScreen = () => {
           <View style={styles.emptyStateIcon}>
             <Ionicons name="compass-outline" color="#535aff" size={56} />
           </View>
-          <Text style={styles.emptyStateTitle}>Find movies or tv shows</Text>
+          <Text style={styles.emptyStateTitle}>Find a Movie or TV Show</Text>
           <Text style={styles.emptyStateSubtitle}>
-            Enter a keyword to find movies or tv shows in your library
+            Enter a keyword to find the media from your library
           </Text>
         </View>
       ) : (
