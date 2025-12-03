@@ -15,9 +15,11 @@ interface BackEvent {
 interface UpdateProgressEvent {
   progress: number
 }
+
 interface PlaybackErrorEvent {
   error: string;
 }
+
 interface WatchHistoryItem {
   title: string;
   videoUrl: string;
@@ -39,7 +41,6 @@ const MediaPlayerScreen: React.FC = () => {
 
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [isLoadingStream, setIsLoadingStream] = useState<boolean>(true);
-  const [streamError, setStreamError] = useState<string>('');
 
   // Player fallback state
   const [currentPlayerType, setCurrentPlayerType] = useState<"native" | "vlc">("native");
@@ -65,7 +66,6 @@ const MediaPlayerScreen: React.FC = () => {
   useEffect(() => {
     if (currentPlayerType === "vlc" && hasTriedNative) {
       console.log('Switching to VLC player');
-      setStreamError('');
       setIsLoadingStream(false);
     }
   }, [currentPlayerType, hasTriedNative]);
@@ -82,7 +82,6 @@ const MediaPlayerScreen: React.FC = () => {
       console.log('Native player failed, falling back to VLC');
 
       setHasTriedNative(true);
-      setStreamError('');
       setCurrentPlayerType("vlc");
       setTimeout(() => {
         // Trigger re-load with current video URL
@@ -97,7 +96,6 @@ const MediaPlayerScreen: React.FC = () => {
         : (event.error || 'Playback failed');
 
       console.log('Final playback error:', errorMessage);
-      setStreamError(errorMessage);
       setIsLoadingStream(false);
     }
   };
@@ -273,13 +271,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center'
   },
-  backdropImage: {
-    position: 'absolute',
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
-    opacity: 0.2
-  },
   loadingOverlay: {
     justifyContent: 'center',
     alignItems: 'center',
@@ -289,142 +280,6 @@ const styles = StyleSheet.create({
     marginTop: 20,
     fontSize: 16,
     fontWeight: 500,
-  },
-  errorContainer: {
-    flex: 1,
-    backgroundColor: '#1a1a1a',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  errorOverlay: {
-    flex: 1,
-    width: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 20,
-  },
-  errorCard: {
-    borderRadius: 24,
-    padding: 32,
-    width: '90%',
-    maxWidth: 400,
-    alignItems: 'center'
-  },
-  errorIconContainer: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  errorIcon: {
-    fontSize: 48,
-  },
-  errorTitle: {
-    color: '#fff',
-    fontSize: 24,
-    fontWeight: 600,
-    marginBottom: 12,
-    textAlign: 'center',
-  },
-  errorMessage: {
-    color: '#ff6b6b',
-    fontSize: 15,
-    textAlign: 'center',
-    marginBottom: 8,
-    lineHeight: 22,
-  },
-  errorSubMessage: {
-    color: '#999',
-    fontSize: 13,
-    textAlign: 'center',
-    marginBottom: 28,
-    lineHeight: 20,
-  },
-  errorButtonsContainer: {
-    width: '100%',
-    gap: 12,
-  },
-  retryButton: {
-    backgroundColor: '#535aff',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 14,
-    width: '100%',
-    alignItems: 'center',
-    shadowColor: '#535aff',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
-  },
-  retryButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 600,
-    letterSpacing: 0.5,
-  },
-  backButton: {
-    backgroundColor: 'rgba(255, 255, 255, 0.08)',
-    paddingVertical: 14,
-    paddingHorizontal: 32,
-    borderRadius: 14,
-    width: '100%',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
-  },
-  backButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: 600,
-  },
-  bottomSheetBackground: {
-    backgroundColor: '#101010',
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-  },
-  bottomSheetIndicator: {
-    backgroundColor: 'rgba(255, 255, 255, 0.9)',
-    width: 40,
-  },
-  bottomSheetContent: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingBottom: 20,
-    marginBottom: 20
-  },
-  statusContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 20,
-    backgroundColor: 'transparent',
-  },
-  bottomSheetLoader: {
-    marginBottom: 20,
-  },
-  statusText: {
-    fontSize: 16,
-    color: '#ffffff',
-    textAlign: 'center',
-    marginBottom: 30,
-    paddingHorizontal: 20,
-    lineHeight: 22,
-  },
-  cancelButton: {
-    backgroundColor: '#535aff',
-    paddingVertical: 12,
-    paddingHorizontal: 40,
-    borderRadius: 8,
-    minWidth: 120,
-    alignItems: 'center',
-  },
-  cancelButtonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 600,
   },
 });
 
