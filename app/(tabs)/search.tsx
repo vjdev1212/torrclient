@@ -130,13 +130,24 @@ const ProwlarrSearchScreen = () => {
             });
 
             setAllResults(sorted); // Store all results
-            setResults(sorted); // Display all initially
+            filterResultsAfterSearch(sorted); // Apply current filter to new results
         } catch (error) {
             console.error('Search error:', error);
             showAlert('Search Error', 'Failed to search torrents. Please check your Prowlarr configuration.');
         } finally {
             setLoading(false);
         }
+    };
+
+    const filterResultsAfterSearch = (searchResults: ProwlarrSearchResult[]) => {
+        let filtered = [...searchResults];
+
+        // Filter by selected indexer if specified
+        if (selectedIndexer !== null) {
+            filtered = filtered.filter(r => r.indexerId === selectedIndexer);
+        }
+
+        setResults(filtered);
     };
 
     const filterResults = () => {
@@ -170,10 +181,16 @@ const ProwlarrSearchScreen = () => {
         });
     };
 
-    const getCategoryBadge = (categories: any[]) => {
-        if (!categories || categories.length === 0) return 'Unknown';
-        const categoryMain = categories[0];
-        return categoryMain.name || 'Unknown';
+    const getCategoryBadge = (categoryIds: number[]) => {
+        if (!categoryIds || categoryIds.length === 0) return 'Unknown';
+        
+        const categoryId = categoryIds[0];
+        const categoryMap: Record<number, string> = {
+            2000: 'Movies',
+            5000: 'TV',
+        };
+        
+        return categoryMap[categoryId] || 'Other';
     };
 
     const getIndexerMenuActions = () => {
@@ -182,16 +199,27 @@ const ProwlarrSearchScreen = () => {
                 id: 'all',
                 title: 'All Indexers',
                 state: selectedIndexer === null ? ('on' as const) : ('off' as const),
-                titleColor: selectedIndexer === null ? '#007AFF' : '#FFFFFF',
+                titleColor: selectedIndexer === null ? '#007AFF' : undefined,
             },
             ...indexers.map(indexer => ({
                 id: indexer.id.toString(),
                 title: indexer.name,
                 state: selectedIndexer === indexer.id ? ('on' as const) : ('off' as const),
-                titleColor: selectedIndexer === indexer.id ? '#007AFF' : '#FFFFFF',
+                titleColor: selectedIndexer === indexer.id ? '#007AFF' : undefined,
             })),
         ];
         return actions;
+    };
+
+    const handleIndexerSelect = async (indexerId: string) => {
+        if (indexerId === 'all') {
+            setSelectedIndexer(null);
+        } else {
+            setSelectedIndexer(parseInt(indexerId));
+        }
+        if (isHapticsSupported()) {
+            await Haptics.selectionAsync();
+        }
     };
 
     const selectedIndexerName = selectedIndexer
@@ -245,13 +273,7 @@ const ProwlarrSearchScreen = () => {
                             <View style={styles.filtersContainer}>
                                 <MenuView
                                     onPressAction={({ nativeEvent }) => {
-                                        const id = nativeEvent.event;
-                                        if (id === 'all') {
-                                            setSelectedIndexer(null);
-                                        } else {
-                                            setSelectedIndexer(parseInt(id));
-                                        }
-                                        if (isHapticsSupported()) Haptics.selectionAsync();
+                                        handleIndexerSelect(nativeEvent.event);
                                     }}
                                     actions={getIndexerMenuActions()}
                                     shouldOpenOnLongPress={false}
@@ -288,13 +310,18 @@ const ProwlarrSearchScreen = () => {
                             <View style={styles.resultsContainer}>
                                 <Text style={styles.resultsHeader}>
                                     {results.length} {results.length === 1 ? 'Result' : 'Results'}
+                                    {selectedIndexer && ` (${selectedIndexerName})`}
                                 </Text>
 
                                 {results.length === 0 ? (
                                     <View style={styles.emptyState}>
                                         <Ionicons name="search-outline" size={48} color="#333" />
                                         <Text style={styles.emptyStateText}>No torrents found</Text>
-                                        <Text style={styles.emptyStateSubtext}>Try a different search term or filter</Text>
+                                        <Text style={styles.emptyStateSubtext}>
+                                            {selectedIndexer 
+                                                ? 'Try selecting a different indexer or search term'
+                                                : 'Try a different search term'}
+                                        </Text>
                                     </View>
                                 ) : (
                                     results.map((result, index) => (
@@ -473,6 +500,8 @@ const styles = StyleSheet.create({
         fontSize: 14,
         color: '#666',
         marginTop: 8,
+        textAlign: 'center',
+        paddingHorizontal: 20,
     },
     resultCard: {
         backgroundColor: '#0f0f0f',
