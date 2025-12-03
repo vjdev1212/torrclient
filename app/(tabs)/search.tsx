@@ -331,44 +331,48 @@ const ProwlarrSearchScreen = () => {
                                             onPress={() => handleSelectTorrent(result)}
                                             activeOpacity={0.7}
                                         >
-                                            {/* Title */}
-                                            <Text style={styles.resultTitle} numberOfLines={10}>
-                                                {result.title}
-                                            </Text>
-
-                                            {/* Meta Row 1 */}
-                                            <View style={styles.metaRow}>
-                                                <View style={styles.metaItem}>
-                                                    <Text style={styles.metaLabel}>Indexer</Text>
-                                                    <Text style={styles.metaValue}>{result.indexer}</Text>
-                                                </View>
-                                                <View style={styles.metaItem}>
-                                                    <Text style={styles.metaLabel}>Size</Text>
-                                                    <Text style={styles.metaValue}>
-                                                        {ProwlarrClient.formatFileSize(result.size)}
-                                                    </Text>
-                                                </View>
-                                            </View>
-
-                                            {/* Meta Row 2 */}
-                                            <View style={styles.metaRow}>
-                                                <View style={styles.metaItem}>
-                                                    <Text style={styles.metaLabel}>Peers</Text>
-                                                    <Text style={[styles.metaValue, styles.peersText]}>
-                                                        {result.seeders || 0} / {result.leechers || 0}
-                                                    </Text>
-                                                </View>
-                                                <View style={styles.metaItem}>
-                                                    <Text style={styles.metaLabel}>Age</Text>
-                                                    <Text style={styles.metaValue}>
-                                                        {ProwlarrClient.formatAge(result.ageMinutes)}
-                                                    </Text>
-                                                </View>
+                                            {/* Header with Category Badge */}
+                                            <View style={styles.cardHeader}>
                                                 <View style={styles.categoryBadge}>
                                                     <Text style={styles.categoryText}>
                                                         {getCategoryBadge(result.categories)}
                                                     </Text>
                                                 </View>
+                                                <View style={styles.qualityBadge}>
+                                                    <Ionicons name="arrow-up" size={12} color="#4ade80" />
+                                                    <Text style={styles.seedersText}>{result.seeders || 0}</Text>
+                                                </View>
+                                            </View>
+
+                                            {/* Title */}
+                                            <Text style={styles.resultTitle} numberOfLines={3}>
+                                                {result.title}
+                                            </Text>
+
+                                            {/* Meta Info */}
+                                            <View style={styles.metaContainer}>
+                                                <View style={styles.metaChip}>
+                                                    <Ionicons name="server" size={12} color="#666" />
+                                                    <Text style={styles.metaChipText}>{result.indexer}</Text>
+                                                </View>
+                                                <View style={styles.metaChip}>
+                                                    <Ionicons name="cube" size={12} color="#666" />
+                                                    <Text style={styles.metaChipText}>
+                                                        {ProwlarrClient.formatFileSize(result.size)}
+                                                    </Text>
+                                                </View>
+                                                <View style={styles.metaChip}>
+                                                    <Ionicons name="time" size={12} color="#666" />
+                                                    <Text style={styles.metaChipText}>
+                                                        {ProwlarrClient.formatAge(result.ageMinutes)}
+                                                    </Text>
+                                                </View>
+                                            </View>
+
+                                            {/* Download Indicator */}
+                                            <View style={styles.downloadIndicator}>
+                                                <Ionicons name="download-outline" size={14} color="#535aff" />
+                                                <Text style={styles.downloadText}>Tap to add</Text>
                                             </View>
                                         </TouchableOpacity>
                                     ))
@@ -505,57 +509,87 @@ const styles = StyleSheet.create({
     },
     resultCard: {
         backgroundColor: '#0f0f0f',
-        borderRadius: 16,
-        padding: 16,
-        marginBottom: 12,
+        borderRadius: 14,
+        padding: 14,
+        marginBottom: 10,
         borderWidth: 1,
-        borderColor: '#1f1f1f',
+        borderColor: '#1a1a1a',
+    },
+    cardHeader: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginBottom: 10,
+        backgroundColor: 'transparent',
     },
     resultTitle: {
         fontSize: 15,
         fontWeight: '600',
         color: '#fff',
-        marginBottom: 14,
-        lineHeight: 20,
+        marginBottom: 12,
+        lineHeight: 21,
     },
-    metaRow: {
+    metaContainer: {
+        flexDirection: 'row',
+        flexWrap: 'wrap',
+        gap: 8,
+        marginBottom: 10,
+        backgroundColor: 'transparent',
+    },
+    metaChip: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 8,
-        backgroundColor: 'transparent',
+        backgroundColor: '#1a1a1a',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
+        gap: 5,
     },
-    metaItem: {
-        flex: 1,
-        backgroundColor: 'transparent',
-    },
-    metaLabel: {
+    metaChipText: {
         fontSize: 12,
-        color: '#666',
-        marginBottom: 4,
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    metaValue: {
-        fontSize: 14,
+        color: '#999',
         fontWeight: '500',
-        color: '#ccc',
-    },
-    peersText: {
-        color: '#535aff',
     },
     categoryBadge: {
         backgroundColor: '#1a1a1a',
         paddingHorizontal: 10,
-        paddingVertical: 6,
+        paddingVertical: 5,
         borderRadius: 6,
-        borderWidth: 1,
-        borderColor: '#2a2a2a',
     },
     categoryText: {
         fontSize: 11,
-        fontWeight: '600',
-        color: '#999',
+        fontWeight: '700',
+        color: '#fff',
         textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        letterSpacing: 0.8,
+    },
+    qualityBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1a1a1a',
+        paddingHorizontal: 8,
+        paddingVertical: 5,
+        borderRadius: 6,
+        gap: 4,
+    },
+    seedersText: {
+        fontSize: 12,
+        fontWeight: '700',
+        color: '#4ade80',
+    },
+    downloadIndicator: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: 'transparent',
+        paddingTop: 8,
+        borderTopWidth: 1,
+        borderTopColor: '#1a1a1a',
+        gap: 6,
+    },
+    downloadText: {
+        fontSize: 12,
+        fontWeight: '600',
+        color: '#aaaaaa',
     },
 });
