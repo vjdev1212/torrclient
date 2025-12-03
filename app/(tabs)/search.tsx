@@ -415,7 +415,7 @@ const styles = StyleSheet.create({
     },
     headerTitle: {
         fontSize: 32,
-        fontWeight: '700',
+        fontWeight: '500',
         color: '#fff',
         letterSpacing: -0.5,
     },
@@ -484,7 +484,7 @@ const styles = StyleSheet.create({
     },
     resultsHeader: {
         fontSize: 18,
-        fontWeight: '600',
+        fontWeight: '500',
         color: '#fff',
         marginBottom: 16,
     },
@@ -524,7 +524,7 @@ const styles = StyleSheet.create({
     },
     resultTitle: {
         fontSize: 15,
-        fontWeight: '600',
+        fontWeight: '500',
         color: '#fff',
         marginBottom: 12,
         lineHeight: 21,
@@ -558,8 +558,8 @@ const styles = StyleSheet.create({
     },
     categoryText: {
         fontSize: 11,
-        fontWeight: '700',
-        color: '#fff',
+        fontWeight: '500',
+        color: '#ccc',
         textTransform: 'uppercase',
         letterSpacing: 0.8,
     },
@@ -574,7 +574,7 @@ const styles = StyleSheet.create({
     },
     seedersText: {
         fontSize: 12,
-        fontWeight: '700',
+        fontWeight: '500',
         color: '#4ade80',
     },
     downloadIndicator: {
@@ -589,7 +589,7 @@ const styles = StyleSheet.create({
     },
     downloadText: {
         fontSize: 12,
-        fontWeight: '600',
+        fontWeight: '500',
         color: '#aaaaaa',
     },
 });
