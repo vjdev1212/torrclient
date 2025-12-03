@@ -6,7 +6,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { MenuComponentRef, MenuView } from '@react-native-menu/menu';
 import { styles } from "../coreplayer/styles";
 import { playHaptic } from "../coreplayer/utils";
-import { usePlayerState, useSubtitleState, useUIState, usePlayerSettings, useTimers, usePlayerAnimations, hideControls, CONSTANTS, setupOrientation, cleanupOrientation, calculateProgress, performSeek, buildSpeedActions, buildSubtitleActions, buildAudioActions, calculateSliderValues, ArtworkBackground, WaitingLobby, SubtitleDisplay, CenterControls, ProgressBar, ContentFitLabel, SubtitleSource, ErrorDisplay } from "../coreplayer";
+import { usePlayerState, useSubtitleState, useUIState, usePlayerSettings, useTimers, usePlayerAnimations, hideControls, CONSTANTS, setupOrientation, cleanupOrientation, loadSubtitle, handleSubtitleError, findActiveSubtitle, calculateProgress, performSeek, buildSpeedActions, buildSubtitleActions, buildAudioActions, calculateSliderValues, WaitingLobby, SubtitleDisplay, CenterControls, ProgressBar, ContentFitLabel, SubtitleSource, ErrorDisplay } from "../coreplayer";
 import { View, Text } from "../Themed";
 import { MediaPlayerProps } from "../coreplayer/models";
 
@@ -14,6 +14,8 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
     videoUrl,
     title,
     back: onBack,
+    subtitles = [],
+    openSubtitlesClient,
     updateProgress,
     onPlaybackError
 }) => {
@@ -53,7 +55,7 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
     const [isPiPActive, setIsPiPActive] = useState(false);
     const [videoError, setVideoError] = useState<string | null>(null);
 
-    const useCustomSubtitles = false;
+    const useCustomSubtitles = subtitles.length > 0;
 
     // Initialize player (memoized to prevent recreation)
     const player = useVideoPlayer({
@@ -111,6 +113,62 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
             player.playbackRate = settings.playbackSpeed;
         }
     }, [player, settings.isMuted, settings.playbackSpeed]);
+
+    // Load subtitles - optimized with better dependency tracking
+    useEffect(() => {
+        if (!useCustomSubtitles || settings.selectedSubtitle < 0 || settings.selectedSubtitle >= subtitles.length) {
+            subtitleState.setParsedSubtitles([]);
+            subtitleState.setCurrentSubtitle('');
+            return;
+        }
+
+        let isMounted = true;
+
+        const loadSub = async () => {
+            subtitleState.setIsLoadingSubtitles(true);
+            try {
+                const parsed = await loadSubtitle(subtitles[settings.selectedSubtitle] as SubtitleSource, openSubtitlesClient);
+                if (isMounted) {
+                    subtitleState.setParsedSubtitles(parsed);
+                }
+            } catch (error: any) {
+                if (isMounted) {
+                    handleSubtitleError(error);
+                    subtitleState.setParsedSubtitles([]);
+                }
+            } finally {
+                if (isMounted) {
+                    subtitleState.setIsLoadingSubtitles(false);
+                    subtitleState.setCurrentSubtitle('');
+                }
+            }
+        };
+
+        loadSub();
+
+        return () => {
+            isMounted = false;
+        };
+    }, [settings.selectedSubtitle, subtitles, openSubtitlesClient, useCustomSubtitles]);
+
+    // Update subtitle display - optimized interval
+    useEffect(() => {
+        if (subtitleState.parsedSubtitles.length === 0) {
+            subtitleState.setCurrentSubtitle('');
+            return;
+        }
+
+        const updateSubtitle = () => {
+            const text = findActiveSubtitle(player.currentTime, subtitleState.parsedSubtitles);
+            if (text !== subtitleState.currentSubtitle) {
+                subtitleState.setCurrentSubtitle(text);
+            }
+        };
+
+        updateSubtitle();
+        const interval = setInterval(updateSubtitle, CONSTANTS.SUBTITLE_UPDATE_INTERVAL);
+        return () => clearInterval(interval);
+    }, [subtitleState.parsedSubtitles, player.currentTime, subtitleState.currentSubtitle]);
 
     // Player event handlers
     const playingChange = useEvent(player, "playingChange");
@@ -417,14 +475,12 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
 
     // Memoize menu actions to prevent rebuilding on every render
     const speedActions = useMemo(() => buildSpeedActions(settings.playbackSpeed), [settings.playbackSpeed]);
-
     const subtitleActions = useMemo(() => buildSubtitleActions(
-        [],
+        subtitles as SubtitleSource[],
         settings.selectedSubtitle,
         useCustomSubtitles,
         player.availableSubtitleTracks
-    ), [subtitleState, settings.selectedSubtitle, useCustomSubtitles, player.availableSubtitleTracks]);
-
+    ), [subtitles, settings.selectedSubtitle, useCustomSubtitles, player.availableSubtitleTracks]);
     const audioActions = useMemo(() => buildAudioActions(
         player.availableAudioTracks,
         settings.selectedAudioTrack
