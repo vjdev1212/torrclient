@@ -171,7 +171,7 @@ const TorrentDetails = () => {
         titleTextStyle: { color: '#007aff' },
         containerStyle: { backgroundColor: '#101010' },
         cancelButtonTintColor: '#ff4757',
-        userInterfaceStyle: 'dark',
+        userInterfaceStyle: 'dark',        
       },
       async (index) => {
         const encodedPath = encodeURIComponent(file.path);

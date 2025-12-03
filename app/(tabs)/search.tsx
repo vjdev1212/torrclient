@@ -277,6 +277,7 @@ const ProwlarrSearchScreen = () => {
                                     }}
                                     actions={getIndexerMenuActions()}
                                     shouldOpenOnLongPress={false}
+                                    themeVariant="dark"
                                 >
                                     <View style={styles.filterButton}>
                                         <Ionicons name="server-outline" size={16} color="#999" />
