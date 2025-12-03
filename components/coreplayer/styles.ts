@@ -243,7 +243,7 @@ export const styles = StyleSheet.create({
 
     subtitleBackground: {
         maxWidth: '90%',
-        borderRadius: 8,
+        borderRadius: 6,
         overflow: 'hidden',
     },
 
