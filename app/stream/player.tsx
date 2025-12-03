@@ -1,9 +1,8 @@
 import { Subtitle } from "@/components/coreplayer/models";
 import { StorageKeys, storageService } from "@/utils/StorageService";
-import { getPlatformSpecificPlayers, Players } from "@/utils/MediaPlayer";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import React, { useEffect, useState, useRef, useMemo } from "react";
-import { Platform, ActivityIndicator, View, Text, StyleSheet, Pressable, Image } from "react-native";
+import React, { useEffect, useState } from "react";
+import { Platform, ActivityIndicator, View, Text, StyleSheet } from "react-native";
 import OpenSubtitlesClient, { SubtitleResult } from "@/clients/opensubtitles";
 import { getLanguageName } from "@/utils/Helpers";
 
@@ -38,14 +37,9 @@ const MediaPlayerScreen: React.FC = () => {
   const [openSubtitlesClient, setOpenSubtitlesClient] = useState<OpenSubtitlesClient | null>(null);
   const [progress, setProgress] = useState(watchHistoryProgress || 0);
 
-  const [currentStreamIndex, setCurrentStreamIndex] = useState<number>(0);
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [isLoadingStream, setIsLoadingStream] = useState<boolean>(true);
   const [streamError, setStreamError] = useState<string>('');
-  const [selectedServerId, setSelectedServerId] = useState<string | null>(null);
-  const [players, setPlayers] = useState<{ name: string; scheme: string; encodeUrl: boolean }[]>([]);
-  const [selectedPlayer, setSelectedPlayer] = useState<string | null>(null);
-  const [isTorrent, setIsTorrent] = useState<boolean>(false);
 
   // Player fallback state
   const [currentPlayerType, setCurrentPlayerType] = useState<"native" | "vlc">("native");
@@ -221,7 +215,7 @@ const MediaPlayerScreen: React.FC = () => {
     }
   };
     
-  const handleBack = async (event: BackEvent): Promise<void> => {
+  const handleBack = async (): Promise<void> => {
     router.back();
   };
 
