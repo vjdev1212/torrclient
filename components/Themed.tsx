@@ -49,28 +49,3 @@ export function StatusBar(props: StatusBarProps) {
   const { ...otherProps } = props;
   return <DefaultStatusBar style='light' translucent backgroundColor="transparent" {...otherProps} />;
 }
-
-export function Card(props: ViewProps) {
-  const { style, ...otherProps } = props;
-
-  // Dynamically adjust border and shadow based on the color scheme
-
-  const backgroundColor = '#101010';
-  const borderColor = '#101010';
-  const shadowColor = '#101010';
-
-  return (
-    <DefaultView
-      style={[
-        {
-          backgroundColor,
-          borderColor,
-          borderWidth: 1,
-          overflow: 'hidden',
-        },
-        style,
-      ]}
-      {...otherProps}
-    />
-  );
-}
