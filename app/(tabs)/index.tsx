@@ -173,20 +173,31 @@ const HomeScreen = () => {
     });
   };
 
+  // Show centered loader during initial load
+  if (loading && data.length === 0) {
+    return (
+      <View style={styles.container}>
+        <StatusBar />
+        <View style={styles.centeredLoadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Loading your library...</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar />
       <ScrollView showsVerticalScrollIndicator={false} key={refreshKey}>
-        {/* Carousel Section */}
-        {!loading && (
-          <PosterCarousel
-            filter={selectedCategory}
-            onItemPress={handleCarouselItemPress}
-            autoPlay={true}
-            autoPlayInterval={6000}
-            carouselData={filteredData.length > 0 ? filteredData : emptyCarouselData}
-          />
-        )}
+        {/* Carousel Section - Always rendered to prevent layout shift */}
+        <PosterCarousel
+          filter={selectedCategory}
+          onItemPress={handleCarouselItemPress}
+          autoPlay={true}
+          autoPlayInterval={6000}
+          carouselData={filteredData.length > 0 ? filteredData : emptyCarouselData}
+        />
 
         {/* Category Filter Chips - iOS Segmented Control Style */}
         <View style={styles.filterSection}>
@@ -219,12 +230,7 @@ const HomeScreen = () => {
         </View>
 
         {/* Content */}
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#007AFF" />
-            <Text style={styles.loadingText}>Loading your library...</Text>
-          </View>
-        ) : filteredData.length === 0 ? (
+        {filteredData.length === 0 ? (
           <View style={styles.emptyContainer}>
             <Text style={styles.emptyTitle}>No Items</Text>
             <Text style={styles.emptySubtitle}>
@@ -245,6 +251,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
+  },
+  centeredLoadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   filterSection: {
     paddingTop: 16,
@@ -280,13 +292,6 @@ const styles = StyleSheet.create({
   chipTextActive: {
     color: '#FFFFFF',
     fontWeight: '600',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingVertical: 80,
-    backgroundColor: 'transparent',
   },
   loadingText: {
     marginTop: 16,
