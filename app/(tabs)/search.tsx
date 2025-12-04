@@ -23,6 +23,7 @@ const ProwlarrSearchScreen = () => {
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [results, setResults] = useState<ProwlarrSearchResult[]>([]);
     const [searched, setSearched] = useState(false);
 
@@ -37,6 +38,8 @@ const ProwlarrSearchScreen = () => {
     }, []);
 
     const loadData = async () => {
+        setLoadingData(true);
+        setError(null);
         try {
             const client = new ProwlarrClient();
             await client.initialize();
@@ -45,13 +48,16 @@ const ProwlarrSearchScreen = () => {
             const fetchedIndexers = await client.getIndexers();
 
             if (!fetchedIndexers || !Array.isArray(fetchedIndexers)) {
-                console.error('Invalid indexers data:', fetchedIndexers);
-                showAlert('Error', 'Failed to load indexers from Prowlarr');
-                setLoadingData(false);
-                return;
+                throw new Error('Invalid indexers data received from Prowlarr');
             }
 
-            setIndexers(fetchedIndexers.filter(i => i.enable));
+            const enabledIndexers = fetchedIndexers.filter(i => i.enable);
+            
+            if (enabledIndexers.length === 0) {
+                throw new Error('No enabled indexers found in Prowlarr');
+            }
+
+            setIndexers(enabledIndexers);
 
             // Load categories from Prowlarr API
             const fetchedCategories = await client.getCategories();
@@ -65,7 +71,7 @@ const ProwlarrSearchScreen = () => {
             setLoadingData(false);
         } catch (error) {
             console.error('Failed to load data:', error);
-            showAlert('Error', 'Failed to load Prowlarr data. Please check your configuration.');
+            setError(error instanceof Error ? error.message : 'Failed to load Prowlarr data');
             setLoadingData(false);
         }
     };
@@ -118,6 +124,13 @@ const ProwlarrSearchScreen = () => {
         setResults([]);
         setSearched(false);
         if (isHapticsSupported()) Haptics.selectionAsync();
+    };
+
+    const handleRetry = async () => {
+        if (isHapticsSupported()) {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        }
+        loadData();
     };
 
     const handleSelectTorrent = async (result: ProwlarrSearchResult) => {
@@ -241,6 +254,43 @@ const ProwlarrSearchScreen = () => {
         ? indexers.find(i => i.id === selectedIndexer)?.name || 'All Indexers'
         : 'All Indexers';
 
+    // Initial loading state - centered
+    if (loadingData && indexers.length === 0 && !error) {
+        return (
+            <SafeAreaView style={styles.container} edges={['top']}>
+                <View style={styles.centeredContainer}>
+                    <ActivityIndicator size="large" color="#007AFF" />
+                    <Text style={styles.centeredText}>Loading indexers...</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
+    // Error state
+    if (error && indexers.length === 0) {
+        return (
+            <SafeAreaView style={styles.container} edges={['top']}>
+                <View style={styles.centeredContainer}>
+                    <View style={styles.errorIcon}>
+                        <Ionicons name="server-outline" color="#FF3B30" size={48} />
+                    </View>
+                    <Text style={styles.errorTitle}>Connection Failed</Text>
+                    <Text style={styles.errorSubtitle}>{error}</Text>
+                    <Text style={styles.errorHint}>
+                        Check your Prowlarr configuration in settings
+                    </Text>
+                    <TouchableOpacity 
+                        style={styles.retryButton}
+                        onPress={handleRetry}
+                        activeOpacity={0.7}
+                    >
+                        <Text style={styles.retryButtonText}>Try Again</Text>
+                    </TouchableOpacity>
+                </View>
+            </SafeAreaView>
+        );
+    }
+
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <KeyboardAvoidingView
@@ -284,51 +334,41 @@ const ProwlarrSearchScreen = () => {
                         </View>
 
                         {/* Filters */}
-                        {!loadingData && (
-                            <View style={styles.filtersContainer}>
-                                <MenuView
-                                    onPressAction={({ nativeEvent }) => {
-                                        handleIndexerSelect(nativeEvent.event);
-                                    }}
-                                    actions={getIndexerMenuActions()}
-                                    shouldOpenOnLongPress={false}
-                                    themeVariant="dark"
-                                >
-                                    <View style={[styles.filterButton]}>
-                                        <Ionicons name="server-outline" size={18} color="#8E8E93" />
-                                        <Text style={styles.filterButtonText} numberOfLines={1}>
-                                            {selectedIndexerName}
-                                        </Text>
-                                        <Ionicons name="chevron-down" size={16} color="#8E8E93" />
-                                    </View>
-                                </MenuView>
+                        <View style={styles.filtersContainer}>
+                            <MenuView
+                                onPressAction={({ nativeEvent }) => {
+                                    handleIndexerSelect(nativeEvent.event);
+                                }}
+                                actions={getIndexerMenuActions()}
+                                shouldOpenOnLongPress={false}
+                                themeVariant="dark"
+                            >
+                                <View style={[styles.filterButton]}>
+                                    <Ionicons name="server-outline" size={18} color="#8E8E93" />
+                                    <Text style={styles.filterButtonText} numberOfLines={1}>
+                                        {selectedIndexerName}
+                                    </Text>
+                                    <Ionicons name="chevron-down" size={16} color="#8E8E93" />
+                                </View>
+                            </MenuView>
 
-                                <MenuView
-                                    onPressAction={({ nativeEvent }) => {
-                                        handleCategorySelect(nativeEvent.event);
-                                    }}
-                                    actions={getCategoryMenuActions()}
-                                    shouldOpenOnLongPress={false}
-                                    themeVariant="dark"
-                                >
-                                    <View style={[styles.filterButton]}>
-                                        <Ionicons name="film-outline" size={18} color="#8E8E93" />
-                                        <Text style={styles.filterButtonText} numberOfLines={1}>
-                                            {selectedCategoryName}
-                                        </Text>
-                                        <Ionicons name="chevron-down" size={16} color="#8E8E93" />
-                                    </View>
-                                </MenuView>
-                            </View>
-                        )}
-
-                        {/* Loading Data Indicator */}
-                        {loadingData && (
-                            <View style={styles.loadingContainer}>
-                                <ActivityIndicator size="large" color="#007AFF" />
-                                <Text style={styles.loadingText}>Loading indexers...</Text>
-                            </View>
-                        )}
+                            <MenuView
+                                onPressAction={({ nativeEvent }) => {
+                                    handleCategorySelect(nativeEvent.event);
+                                }}
+                                actions={getCategoryMenuActions()}
+                                shouldOpenOnLongPress={false}
+                                themeVariant="dark"
+                            >
+                                <View style={[styles.filterButton]}>
+                                    <Ionicons name="film-outline" size={18} color="#8E8E93" />
+                                    <Text style={styles.filterButtonText} numberOfLines={1}>
+                                        {selectedCategoryName}
+                                    </Text>
+                                    <Ionicons name="chevron-down" size={16} color="#8E8E93" />
+                                </View>
+                            </MenuView>
+                        </View>
 
                         {/* Loading Search Indicator */}
                         {loading && (
@@ -338,8 +378,21 @@ const ProwlarrSearchScreen = () => {
                             </View>
                         )}
 
+                        {/* Empty state - No search yet */}
+                        {!loading && !searched && (
+                            <View style={styles.emptyState}>
+                                <View style={styles.emptyStateIcon}>
+                                    <Ionicons name="search-outline" size={48} color="#007AFF" />
+                                </View>
+                                <Text style={styles.emptyStateTitle}>Search Torrents</Text>
+                                <Text style={styles.emptyStateSubtext}>
+                                    Enter a movie or TV show name to search across {indexers.length} indexers
+                                </Text>
+                            </View>
+                        )}
+
                         {/* Results */}
-                        {!loading && !loadingData && searched && (
+                        {!loading && searched && (
                             <View style={styles.resultsContainer}>
                                 <Text style={styles.resultsHeader}>
                                     {results.length.toLocaleString()} {results.length === 1 ? 'RESULT' : 'RESULTS'}
@@ -439,6 +492,67 @@ const styles = StyleSheet.create({
         width: '100%',
         alignSelf: 'center',
         backgroundColor: 'transparent',
+    },
+    centeredContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        paddingHorizontal: 40,
+    },
+    centeredText: {
+        marginTop: 16,
+        fontSize: 17,
+        color: '#8E8E93',
+        fontWeight: '400',
+        letterSpacing: -0.41,
+    },
+    errorIcon: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: 'rgba(255, 59, 48, 0.15)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    errorTitle: {
+        fontSize: 22,
+        fontWeight: '600',
+        color: '#fff',
+        marginBottom: 8,
+        textAlign: 'center',
+        letterSpacing: 0.35,
+    },
+    errorSubtitle: {
+        fontSize: 17,
+        color: '#8E8E93',
+        textAlign: 'center',
+        lineHeight: 22,
+        fontWeight: '400',
+        letterSpacing: -0.41,
+        marginBottom: 8,
+    },
+    errorHint: {
+        fontSize: 15,
+        color: '#8E8E93',
+        textAlign: 'center',
+        fontWeight: '400',
+        letterSpacing: -0.24,
+        marginBottom: 24,
+    },
+    retryButton: {
+        backgroundColor: '#007AFF',
+        paddingHorizontal: 24,
+        paddingVertical: 12,
+        borderRadius: 12,
+        minWidth: 120,
+    },
+    retryButtonText: {
+        color: '#fff',
+        fontSize: 17,
+        fontWeight: '600',
+        textAlign: 'center',
+        letterSpacing: -0.41,
     },
     header: {
         paddingTop: 8,
