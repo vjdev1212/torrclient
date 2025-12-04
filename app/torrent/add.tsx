@@ -66,7 +66,6 @@ const AddTorrentScreen = () => {
     }
 
     let hash = '';
-    let link = '';
 
     if (action === 'set') {
       // In set mode, use the existing hash
@@ -75,12 +74,10 @@ const AddTorrentScreen = () => {
       // In add mode, determine if input is hash or link
       if (/^[a-fA-F0-9]{40}$/.test(input.trim())) {
         hash = input.trim().toLowerCase();
-      } else {
-        link = input.trim();
       }
     }
 
-    if (!title || (!link && !hash)) {
+    if (!title || !hash) {
       showAlert('Missing fields', 'Please enter a title and a valid magnet link or info hash.');
       return;
     }
@@ -95,13 +92,13 @@ const AddTorrentScreen = () => {
       const payload = {
         action,
         category,
-        data: '',
         hash,
-        link,
         poster: finalPosterUrl,
         save_to_db: true,
         title,
       };
+
+      console.log('Submitting payload:', payload);
 
       const authHeader = getTorrServerAuthHeader();
       const response = await fetch(`${baseUrl}/torrents`, {
@@ -113,8 +110,9 @@ const AddTorrentScreen = () => {
         body: JSON.stringify(payload),
       });
 
-      const result = await response.json();
-      showAlert('Success', action === 'set' ? 'Torrent updated successfully.' : 'Torrent added successfully.');
+      if (response.ok) {
+        showAlert('Success', action === 'set' ? 'Torrent updated successfully.' : 'Torrent added successfully.');
+      }
       setInput('');
       setTitle('');
       setPosterInput('');
