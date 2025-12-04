@@ -501,7 +501,7 @@ const TorrentDetails = () => {
                 {videoFiles.map((file: any, index: number) => (
                   <MenuView
                     key={index}
-                    title="File Actions"
+                    title="File Actions"                    
                     onPressAction={({ nativeEvent }) => {
                       handleMenuAction(file, nativeEvent.event);
                     }}
@@ -516,7 +516,7 @@ const TorrentDetails = () => {
                         title: 'Preload'
                       },
                     ]}
-                    shouldOpenOnLongPress={true}
+                    shouldOpenOnLongPress={false}
                   >
                     <TouchableOpacity
                       style={styles.fileCard}
