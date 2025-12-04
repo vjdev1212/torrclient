@@ -69,7 +69,7 @@ const ProwlarrSearchScreen = () => {
                     category.subCategories.forEach(sub => {
                         moviesTVCategories.push({ 
                             id: sub.id, 
-                            name: sub.name.replace('Movies/', '') 
+                            name: `Movies - ${sub.name.replace('Movies/', '')}` 
                         });
                     });
                 } else if (category.id === 5000) { // TV
@@ -77,7 +77,7 @@ const ProwlarrSearchScreen = () => {
                     category.subCategories.forEach(sub => {
                         moviesTVCategories.push({ 
                             id: sub.id, 
-                            name: sub.name.replace('TV/', '') 
+                            name: `TV - ${sub.name.replace('TV/', '')}` 
                         });
                     });
                 }
@@ -292,7 +292,7 @@ const ProwlarrSearchScreen = () => {
                                         shouldOpenOnLongPress={false}
                                         themeVariant="dark"
                                     >
-                                        <View style={styles.filterButton}>
+                                        <View style={[styles.filterButton]}>
                                             <Ionicons name="server-outline" size={16} color="#999" />
                                             <Text style={styles.filterButtonText} numberOfLines={1}>
                                                 {selectedIndexerName}
@@ -309,7 +309,7 @@ const ProwlarrSearchScreen = () => {
                                         shouldOpenOnLongPress={false}
                                         themeVariant="dark"
                                     >
-                                        <View style={styles.filterButton}>
+                                        <View style={[styles.filterButton]}>
                                             <Ionicons name="film-outline" size={16} color="#999" />
                                             <Text style={styles.filterButtonText} numberOfLines={1}>
                                                 {selectedCategoryName}
