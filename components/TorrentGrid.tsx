@@ -22,6 +22,7 @@ interface Torrent {
 interface TorrentGridProps {
     list: Torrent[];
     onTorrentItemPress: (item: Torrent) => void;
+    horizontal?: boolean;
 }
 
 // Film Tape Placeholder Component with iOS styling
@@ -60,7 +61,7 @@ const FilmTapePlaceholder = ({ width, height }: { width: number; height: number 
     </Svg>
 );
 
-const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress }) => {
+const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress, horizontal = false }) => {
     const router = useRouter();
     const { width, height } = useWindowDimensions();
     const [keyboardVisible, setKeyboardVisible] = useState(false);
@@ -91,11 +92,10 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress }) =
     const calculationHeight = keyboardVisible ? staticDimensions.height : height;
     const isPortrait = calculationHeight >= calculationWidth;
 
-    // Determine fixed number of columns (iOS standard grid layouts)
     const getNumColumns = () => {
-        if (calculationWidth < 600) return isPortrait ? 3 : 5;  // Mobile
-        if (calculationWidth < 1024) return 5;                  // Tablet
-        return isPortrait ? 5 : 8;                              // Laptop/Desktop
+            if (calculationWidth < 600) return isPortrait ? 3 : 5;  // Mobile
+            if (calculationWidth < 1024) return 5;                  // Tablet
+            return isPortrait ? 5 : 8;                              // Laptop/Desktop
     };
 
     const numColumns = getNumColumns();
@@ -115,7 +115,11 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress }) =
 
         return (
             <Pressable
-                style={[styles.card, { width: posterWidth }]}
+                style={[
+                    styles.card, 
+                    { width: posterWidth },
+                    horizontal && { marginRight: itemSpacing }
+                ]}
                 onPress={() => onTorrentItemPress(item)}
                 android_ripple={{ color: 'rgba(0, 122, 255, 0.2)' }}
             >
@@ -157,13 +161,25 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress }) =
         );
     }
 
+    if (horizontal) {
+        return (
+            <ScrollView
+                horizontal
+                contentContainerStyle={styles.horizontalScrollContent}
+                showsHorizontalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+            >
+                {list.map((item, index) => (
+                    <TorrentItem key={item.hash || index.toString()} item={item} />
+                ))}
+            </ScrollView>
+        );
+    }
+
     return (
         <ScrollView
-            contentContainerStyle={[
-                styles.scrollContent,
-                { paddingHorizontal: horizontalPadding }
-            ]}
-            showsVerticalScrollIndicator={false}
+            contentContainerStyle={styles.scrollContent}
+            showsVerticalScrollIndicator={true}
             keyboardShouldPersistTaps="handled"
         >
             <View style={[styles.grid, { gap: itemSpacing }]}>
@@ -177,8 +193,14 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress }) =
 
 const styles = StyleSheet.create({
     scrollContent: {
+        paddingHorizontal: 16,
         paddingTop: 16,
         paddingBottom: 32,
+    },
+    horizontalScrollContent: {
+        paddingLeft: 16,
+        paddingRight: 16,
+        flexDirection: 'row',
     },
     grid: {
         flexDirection: 'row',
@@ -190,9 +212,9 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     imageWrapper: {
-        borderRadius: 10, // iOS standard corner radius
+        borderRadius: 10,
         overflow: 'hidden',
-        backgroundColor: '#1C1C1E', // iOS dark background
+        backgroundColor: '#1C1C1E',
         shadowColor: '#000',
         shadowOffset: { width: 0, height: 2 },
         shadowOpacity: 0.2,
@@ -210,7 +232,7 @@ const styles = StyleSheet.create({
     title: {
         marginTop: 6,
         fontSize: 13,
-        fontWeight: '400', // iOS standard weight
+        fontWeight: '400',
         color: '#FFFFFF',
         lineHeight: 17,
     },
@@ -223,7 +245,7 @@ const styles = StyleSheet.create({
     },
     emptyText: {
         fontSize: 17,
-        color: '#8E8E93', // iOS secondary label color
+        color: '#8E8E93',
         fontWeight: '400',
         textAlign: 'center',
     },

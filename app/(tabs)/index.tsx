@@ -3,7 +3,7 @@ import { View, ActivityIndicator, Text, StatusBar } from '@/components/Themed';
 import TorrentGrid from '@/components/TorrentGrid';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import { StyleSheet, ScrollView } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import PosterCarousel from '@/components/PosterCarousel';
@@ -11,50 +11,27 @@ import PosterCarousel from '@/components/PosterCarousel';
 const HomeScreen = () => {
   const router = useRouter();
   const [data, setData] = useState<any[]>([]);
-  const [filteredData, setFilteredData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selectedCategory, setSelectedCategory] = useState('All');
   const [refreshKey, setRefreshKey] = useState(0);
 
   // Refresh watch history when screen comes into focus
   useFocusEffect(
     useCallback(() => {
-      setSelectedCategory('All');
       fetchTorrents();
       setRefreshKey(prev => prev + 1);
     }, [])
   );
 
-  const categories = ['All', 'Movies', 'TV', 'Other'];
+  const getCategorizedData = () => {
+    const movies = data.filter((item: any) => item.category?.toLowerCase() === 'movie');
+    const tvShows = data.filter((item: any) => item.category?.toLowerCase() === 'tv');
+    const other = data.filter((item: any) => {
+      const cat = item.category?.toLowerCase();
+      return cat !== 'movie' && cat !== 'tv';
+    });
 
-  const handleCategoryPress = async (category: string) => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-
-    setSelectedCategory(category);
-
-    if (category === 'All') {
-      setFilteredData(data);
-    } else {
-      const filtered = data.filter((item: any) => {
-        const itemCategory = item.category?.toLowerCase() || 'other';
-
-        switch (category) {
-          case 'Movies':
-            return itemCategory === 'movie';
-          case 'TV':
-            return itemCategory === 'tv';
-          case 'Other':
-            return itemCategory !== 'movie' && itemCategory !== 'tv';
-          default:
-            return true;
-        }
-      });
-      setFilteredData(filtered);
-    }
+    return { movies, tvShows, other };
   };
-
 
   const fetchTorrents = async () => {
     setLoading(true);
@@ -85,27 +62,6 @@ const HomeScreen = () => {
       }));
 
       setData(parsed);
-
-      // Apply current filter to new data
-      if (selectedCategory === 'All') {
-        setFilteredData(parsed);
-      } else {
-        const filtered = parsed.filter((item: any) => {
-          const itemCategory = item.category?.toLowerCase() || 'other';
-
-          switch (selectedCategory) {
-            case 'Movies':
-              return itemCategory === 'movie';
-            case 'TV':
-              return itemCategory === 'tv';
-            case 'Other':
-              return itemCategory !== 'movie' && itemCategory !== 'tv';
-            default:
-              return true;
-          }
-        });
-        setFilteredData(filtered);
-      }
     } catch (error) {
       console.log('Error fetching torrents:', error);
     } finally {
@@ -132,7 +88,7 @@ const HomeScreen = () => {
     poster: '',
     size: 0,
     category: 'other',
-    type: getCategoryType(selectedCategory),
+    type: 'Media',
   },
   {
     id: 1,
@@ -142,7 +98,7 @@ const HomeScreen = () => {
     poster: '',
     size: 0,
     category: 'other',
-    type: getCategoryType(selectedCategory),
+    type: 'Media',
   }];
 
   const formatSize = (bytes: number | undefined): string => {
@@ -186,60 +142,72 @@ const HomeScreen = () => {
     );
   }
 
+  const { movies, tvShows, other } = getCategorizedData();
+  const hasAnyContent = movies.length > 0 || tvShows.length > 0 || other.length > 0;
+
   return (
     <View style={styles.container}>
       <StatusBar />
       <ScrollView showsVerticalScrollIndicator={false} key={refreshKey}>
-        {/* Carousel Section - Always rendered to prevent layout shift */}
+        {/* Carousel Section */}
         <PosterCarousel
-          filter={selectedCategory}
+          filter="All"
           onItemPress={handleCarouselItemPress}
           autoPlay={true}
           autoPlayInterval={6000}
-          carouselData={filteredData.length > 0 ? filteredData : emptyCarouselData}
+          carouselData={data.length > 0 ? data : emptyCarouselData}
         />
 
-        {/* Category Filter Chips - iOS Segmented Control Style */}
-        <View style={styles.filterSection}>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.filterScrollContent}
-          >
-            <View style={styles.categoryChipsContainer}>
-              {categories.map((category) => (
-                <TouchableOpacity
-                  key={category}
-                  style={[
-                    styles.chip,
-                    selectedCategory === category && styles.chipActive
-                  ]}
-                  onPress={() => handleCategoryPress(category)}
-                  activeOpacity={0.6}
-                >
-                  <Text style={[
-                    styles.chipText,
-                    selectedCategory === category && styles.chipTextActive
-                  ]}>
-                    {category}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          </ScrollView>
-        </View>
-
-        {/* Content */}
-        {filteredData.length === 0 ? (
+        {/* Content Sections by Category */}
+        {!hasAnyContent ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>No Items</Text>
+            <Text style={styles.emptyTitle}>No Items in Library</Text>
             <Text style={styles.emptySubtitle}>
-              Try selecting a different category
+              Add torrents to start building your collection
             </Text>
           </View>
         ) : (
-          <TorrentGrid list={filteredData} onTorrentItemPress={handleTorrentItemPress} />
+          <>
+            {/* Movies Section */}
+            {movies.length > 0 && (
+              <View style={styles.categorySection}>
+                <Text style={styles.categoryTitle}>Movies</Text>
+                <TorrentGrid 
+                  list={movies} 
+                  onTorrentItemPress={handleTorrentItemPress}
+                  horizontal={true}
+                />
+              </View>
+            )}
+
+            {/* TV Shows Section */}
+            {tvShows.length > 0 && (
+              <View style={styles.categorySection}>
+                <Text style={styles.categoryTitle}>TV Shows</Text>
+                <TorrentGrid 
+                  list={tvShows} 
+                  onTorrentItemPress={handleTorrentItemPress}
+                  horizontal={true}
+                />
+              </View>
+            )}
+
+            {/* Other Section */}
+            {other.length > 0 && (
+              <View style={styles.categorySection}>
+                <Text style={styles.categoryTitle}>Other</Text>
+                <TorrentGrid 
+                  list={other} 
+                  onTorrentItemPress={handleTorrentItemPress}
+                  horizontal={true}
+                />
+              </View>
+            )}
+          </>
         )}
+
+        {/* Bottom Padding */}
+        <View style={styles.bottomPadding} />
       </ScrollView>
     </View>
   );
@@ -258,46 +226,22 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: 'transparent',
   },
-  filterSection: {
-    paddingTop: 16,
-    paddingBottom: 12,
-    backgroundColor: 'transparent',
-  },
-  filterScrollContent: {
-    paddingHorizontal: 16,
-  },
-  categoryChipsContainer: {
-    flexDirection: 'row',
-    gap: 20,
-    backgroundColor: 'transparent',
-  },
-  chip: {
-    paddingHorizontal: 20,
-    paddingVertical: 8,
-    borderRadius: 20,
-    backgroundColor: 'rgba(118, 118, 128, 0.25)',
-    minHeight: 36,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  chipActive: {
-    backgroundColor: '#007AFF',
-  },
-  chipText: {
-    fontWeight: '400',
-    color: '#FFFFFF',
-    fontSize: 15,
-    letterSpacing: -0.24,
-  },
-  chipTextActive: {
-    color: '#FFFFFF',
-    fontWeight: '500',
-  },
   loadingText: {
     marginTop: 16,
     fontSize: 17,
     color: '#8E8E93',
     fontWeight: '400',
+  },
+  categorySection: {
+    marginTop: 32,
+    backgroundColor: 'transparent',
+  },
+  categoryTitle: {
+    fontSize: 22,
+    fontWeight: '500',
+    color: '#FFFFFF',
+    marginBottom: 16,
+    paddingHorizontal: 16,
   },
   emptyContainer: {
     flex: 1,
@@ -309,7 +253,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 22,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#FFFFFF',
     marginBottom: 8,
     letterSpacing: 0.35,
@@ -319,5 +263,9 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     textAlign: 'center',
     lineHeight: 22,
+  },
+  bottomPadding: {
+    height: 40,
+    backgroundColor: 'transparent',
   },
 });
