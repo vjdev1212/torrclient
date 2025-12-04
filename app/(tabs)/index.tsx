@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
   },
   chipTextActive: {
     color: '#FFFFFF',
-    fontWeight: '600',
+    fontWeight: '500',
   },
   loadingText: {
     marginTop: 16,
@@ -309,7 +309,7 @@ const styles = StyleSheet.create({
   },
   emptyTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#FFFFFF',
     marginBottom: 8,
     letterSpacing: 0.35,

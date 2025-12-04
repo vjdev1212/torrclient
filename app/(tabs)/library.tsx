@@ -252,7 +252,7 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#fff',
     marginBottom: 8,
     textAlign: 'center',
@@ -277,7 +277,7 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#fff',
     fontSize: 17,
-    fontWeight: '600',
+    fontWeight: '500',
     textAlign: 'center',
     letterSpacing: -0.41,
   },
@@ -350,7 +350,7 @@ const styles = StyleSheet.create({
   },
   emptyStateTitle: {
     fontSize: 22,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#fff',
     marginBottom: 8,
     textAlign: 'center',
@@ -371,7 +371,7 @@ const styles = StyleSheet.create({
   resultsCount: {
     fontSize: 13,
     color: '#8E8E93',
-    fontWeight: '600',
+    fontWeight: '500',
     marginBottom: 12,
     paddingHorizontal: 20,    
   },

@@ -739,7 +739,7 @@ const styles = StyleSheet.create({
     saveButtonText: {
         color: '#FFFFFF',
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: '500',
         letterSpacing: -0.41,
     },
 });

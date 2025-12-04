@@ -492,7 +492,7 @@ const styles = StyleSheet.create({
   },
   activeBadgeText: {
     fontSize: 11,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#007AFF',
     letterSpacing: 0.6,
   },
@@ -591,7 +591,7 @@ const styles = StyleSheet.create({
   saveButtonText: {
     color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '500',
     letterSpacing: -0.41,
   },
   infoCard: {

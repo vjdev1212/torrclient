@@ -303,7 +303,7 @@ const styles = StyleSheet.create({
         backdropFilter: 'blur(10px)',
     },
     typeText: {
-        fontWeight: '600',
+        fontWeight: '500',
         color: '#FFFFFF',
         fontSize: 11,
         letterSpacing: 0.6,

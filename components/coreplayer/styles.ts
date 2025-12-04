@@ -175,7 +175,7 @@ export const styles = StyleSheet.create({
     contentFitLabelText: {
         color: 'white',
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: '500',
         marginLeft: 8,
     },
 
@@ -276,7 +276,7 @@ export const styles = StyleSheet.create({
     errorTitle: {
         color: '#ff6b6b',
         fontSize: 24,
-        fontWeight: '600',
+        fontWeight: '500',
         marginTop: 16,
         marginBottom: 12,
         textAlign: 'center',
@@ -300,7 +300,7 @@ export const styles = StyleSheet.create({
     retryButtonText: {
         color: 'white',
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: '500',
     },
 
     errorBackButton: {
@@ -329,7 +329,7 @@ export const styles = StyleSheet.create({
     seekFeedbackText: {
         color: 'white',
         fontSize: 14,
-        fontWeight: '600',
+        fontWeight: '500',
         marginTop: 8,
     },
 
@@ -367,7 +367,7 @@ export const styles = StyleSheet.create({
     panelTitle: {
         color: 'white',
         fontSize: 20,
-        fontWeight: '600',
+        fontWeight: '500',
         marginBottom: 20,
         textAlign: 'center',
     },

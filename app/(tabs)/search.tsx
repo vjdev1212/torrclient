@@ -517,7 +517,7 @@ const styles = StyleSheet.create({
     },
     errorTitle: {
         fontSize: 22,
-        fontWeight: '600',
+        fontWeight: '500',
         color: '#fff',
         marginBottom: 8,
         textAlign: 'center',
@@ -550,7 +550,7 @@ const styles = StyleSheet.create({
     retryButtonText: {
         color: '#fff',
         fontSize: 17,
-        fontWeight: '600',
+        fontWeight: '500',
         textAlign: 'center',
         letterSpacing: -0.41,
     },
@@ -635,7 +635,7 @@ const styles = StyleSheet.create({
     },
     resultsHeader: {
         fontSize: 13,
-        fontWeight: '600',
+        fontWeight: '500',
         color: '#8E8E93',
         marginBottom: 12,
     },
@@ -656,7 +656,7 @@ const styles = StyleSheet.create({
     },
     emptyStateTitle: {
         fontSize: 22,
-        fontWeight: '600',
+        fontWeight: '500',
         color: '#fff',
         marginBottom: 8,
         letterSpacing: 0.35,
@@ -685,7 +685,7 @@ const styles = StyleSheet.create({
     },
     resultTitle: {
         fontSize: 16,
-        fontWeight: '600',
+        fontWeight: '500',
         color: '#fff',
         marginBottom: 12,
         lineHeight: 22,
@@ -720,7 +720,7 @@ const styles = StyleSheet.create({
     },
     categoryText: {
         fontSize: 11,
-        fontWeight: '600',
+        fontWeight: '500',
         color: '#8E8E93',
         textTransform: 'uppercase',
         letterSpacing: 0.6,
@@ -736,7 +736,7 @@ const styles = StyleSheet.create({
     },
     seedersText: {
         fontSize: 13,
-        fontWeight: '600',
+        fontWeight: '500',
         color: '#34C759',  
     },
     downloadIndicator: {
@@ -751,7 +751,7 @@ const styles = StyleSheet.create({
     },
     downloadText: {
         fontSize: 15,
-        fontWeight: '600',
+        fontWeight: '500',
         color: '#007AFF',
         letterSpacing: -0.24,
     },

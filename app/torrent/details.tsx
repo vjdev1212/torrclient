@@ -624,7 +624,7 @@ const styles = StyleSheet.create({
   },
   actionButtonText: {
     fontSize: 15,
-    fontWeight: '600',
+    fontWeight: '500',
     color: '#007AFF',
   },
 
