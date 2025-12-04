@@ -25,7 +25,7 @@ const categories = [
 
 const AddTorrentScreen = () => {
   const router = useRouter();
-  const { magnet, titleParam, poster, hash: existingHash, action: actionParam } = useLocalSearchParams();
+  const { magnet, title: titleParam, poster, hash: existingHash, action: actionParam } = useLocalSearchParams();
   const action = actionParam ? String(actionParam) : (existingHash ? 'set' : 'add');
   const isUpdateMode = action === 'set';
   const [input, setInput] = useState(magnet ? String(magnet) : (existingHash ? String(existingHash) : ''));
@@ -274,8 +274,8 @@ const AddTorrentScreen = () => {
                 activeOpacity={0.8}
               >
                 <Text style={styles.submitButtonText}>
-                  {submitting 
-                    ? (isUpdateMode ? 'Updating...' : 'Adding Torrent...') 
+                  {submitting
+                    ? (isUpdateMode ? 'Updating...' : 'Adding Torrent...')
                     : (isUpdateMode ? 'Update Torrent' : 'Add Torrent')}
                 </Text>
               </TouchableOpacity>

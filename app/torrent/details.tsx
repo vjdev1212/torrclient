@@ -1,14 +1,15 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Image, Linking, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, TextInput } from 'react-native';
+import { Alert, Image, Linking, Platform, ScrollView, Share, StyleSheet, TouchableOpacity, useWindowDimensions, View, TextInput } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
-import { ActivityIndicator, StatusBar, View, Text } from '@/components/Themed';
+import { ActivityIndicator, StatusBar, Text } from '@/components/Themed';
 import * as Haptics from 'expo-haptics';
-import { confirmAction, isHapticsSupported, showAlert } from '@/utils/platform';
+import { getOriginalPlatform, isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { Ionicons } from '@expo/vector-icons';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { useActionSheet } from '@expo/react-native-action-sheet';
+import * as Clipboard from 'expo-clipboard';
 import { storageService, StorageKeys } from '@/utils/StorageService';
 
 const TorrentDetails = () => {
@@ -20,10 +21,6 @@ const TorrentDetails = () => {
   const [loading, setLoading] = useState(true);
   const [cacheLoading, setCacheLoading] = useState(true);
   const [defaultMediaPlayer, setDefaultMediaPlayer] = useState<string>('default');
-  const [isEditing, setIsEditing] = useState(false);
-  const [editedTitle, setEditedTitle] = useState('');
-  const [editedPoster, setEditedPoster] = useState('');
-  const [editedCategory, setEditedCategory] = useState('');
   const { width, height } = useWindowDimensions();
   const isPortrait = height >= width;
   const isMobile = width < 768;
@@ -80,9 +77,6 @@ const TorrentDetails = () => {
         };
 
         setTorrentData(torrentInfo);
-        setEditedTitle(torrentInfo.title);
-        setEditedPoster(torrentInfo.poster);
-        setEditedCategory(torrentInfo.category);
       } catch (error) {
         console.error('Error fetching torrent details:', error);
       } finally {
@@ -181,7 +175,7 @@ const TorrentDetails = () => {
         titleTextStyle: { color: '#007aff' },
         containerStyle: { backgroundColor: '#101010' },
         cancelButtonTintColor: '#ff4757',
-        userInterfaceStyle: 'dark',
+        userInterfaceStyle: 'dark',        
       },
       async (index) => {
         const encodedPath = encodeURIComponent(file.path);
@@ -247,60 +241,43 @@ const TorrentDetails = () => {
     }
   };
 
+  const confirmAction = async (
+    title: string,
+    message: string,
+    confirmText: string
+  ): Promise<boolean> => {
+    if (Platform.OS === 'web') {
+      return window.confirm(`${title}\n\n${message}`);
+    }
+
+    return new Promise((resolve) => {
+      Alert.alert(
+        title,
+        message,
+        [
+          { text: 'Cancel', style: 'cancel', onPress: () => resolve(false) },
+          { text: confirmText, style: 'destructive', onPress: () => resolve(true) },
+        ]
+      );
+    });
+  };
+
   const handleEdit = async () => {
     if (isHapticsSupported()) {
       await Haptics.impactAsync(ImpactFeedbackStyle.Light);
     }
-    setIsEditing(true);
-  };
-
-  const handleSaveEdit = async () => {
-    try {
-      if (isHapticsSupported()) {
-        await Haptics.impactAsync(ImpactFeedbackStyle.Medium);
-      }
-
-      const authHeader = getTorrServerAuthHeader();
-      await fetch(`${baseUrl}/torrents`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(authHeader || {}),
-        },
-        body: JSON.stringify({
-          action: 'set',
-          link: torrentData.magnet,
-          hash: torrentData.hash,
-          title: editedTitle,
-          poster: editedPoster,
-          category: editedCategory,
-          save: true,
-        }),
-      });
-
-      setTorrentData({
-        ...torrentData,
-        title: editedTitle,
-        poster: editedPoster,
-        category: editedCategory,
-      });
-
-      setIsEditing(false);
-      showAlert('Success', 'Torrent details updated successfully.');
-    } catch (error) {
-      console.error('Update failed:', error);
-      showAlert('Error', 'Failed to update torrent details.');
-    }
-  };
-
-  const handleCancelEdit = async () => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(ImpactFeedbackStyle.Light);
-    }
-    setEditedTitle(torrentData.title);
-    setEditedPoster(torrentData.poster);
-    setEditedCategory(torrentData.category);
-    setIsEditing(false);
+    
+    router.push({
+      pathname: '/torrent/add',
+      params: {
+        action: 'set',
+        hash: torrentData.hash,
+        magnet: torrentData.magnet,
+        title: torrentData.title,
+        poster: torrentData.poster,
+        category: torrentData.category,
+      },
+    });
   };
 
   const handleDrop = async () => {
@@ -449,24 +426,13 @@ const TorrentDetails = () => {
         {isPortrait && (
           <View style={styles.heroPosterContainer}>
             <Image
-              source={{ uri: isEditing ? editedPoster : torrentData.poster }}
+              source={{ uri: torrentData.poster }}
               style={styles.heroPosterImage}
               resizeMode="cover"
             />
             <View style={styles.heroPosterOverlay} />
             <View style={styles.heroPosterContent}>
-              {isEditing ? (
-                <TextInput
-                  style={styles.heroTitleInput}
-                  value={editedTitle}
-                  onChangeText={setEditedTitle}
-                  placeholder="Enter title"
-                  placeholderTextColor="#999"
-                  multiline
-                />
-              ) : (
-                <Text style={styles.heroTitle} numberOfLines={2}>{torrentData.title}</Text>
-              )}
+              <Text style={styles.heroTitle} numberOfLines={2}>{torrentData.title}</Text>
             </View>
           </View>
         )}
@@ -478,7 +444,7 @@ const TorrentDetails = () => {
             <View style={styles.posterSection}>
               <View style={styles.posterContainer}>
                 <Image
-                  source={{ uri: isEditing ? editedPoster : torrentData.poster }}
+                  source={{ uri: torrentData.poster }}
                   style={styles.posterImage}
                   resizeMode="cover"
                 />
@@ -486,48 +452,27 @@ const TorrentDetails = () => {
               </View>
 
               <View style={styles.actionsContainerLandscape}>
-                {isEditing ? (
-                  <>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleSaveEdit}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="checkmark-circle" size={28} color="#10b981" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleCancelEdit}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="close-circle" size={28} color="#ef4444" />
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleEdit}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="create-outline" size={24} color="#535aff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleDrop}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="remove-circle-outline" size={24} color="#f59e0b" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleWipe}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="trash-outline" size={24} color="#ef4444" />
-                    </TouchableOpacity>
-                  </>
-                )}
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={handleEdit}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="create-outline" size={24} color="#535aff" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={handleDrop}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="remove-circle-outline" size={24} color="#f59e0b" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={handleWipe}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="trash-outline" size={24} color="#ef4444" />
+                </TouchableOpacity>
               </View>
             </View>
           )}
@@ -536,92 +481,34 @@ const TorrentDetails = () => {
           <View style={!isPortrait ? styles.infoSectionLandscape : styles.infoSectionPortrait}>
             {!isPortrait && (
               <View style={styles.headerSection}>
-                {isEditing ? (
-                  <TextInput
-                    style={styles.titleInput}
-                    value={editedTitle}
-                    onChangeText={setEditedTitle}
-                    placeholder="Enter title"
-                    placeholderTextColor="#666"
-                    multiline
-                  />
-                ) : (
-                  <Text style={styles.title} numberOfLines={2}>{torrentData.title}</Text>
-                )}
+                <Text style={styles.title} numberOfLines={2}>{torrentData.title}</Text>
               </View>
             )}
 
             {/* Action Buttons - Portrait Only */}
             {isPortrait && (
               <View style={styles.actionsContainerPortrait}>
-                {isEditing ? (
-                  <>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleSaveEdit}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="checkmark-circle" size={32} color="#10b981" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleCancelEdit}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="close-circle" size={32} color="#ef4444" />
-                    </TouchableOpacity>
-                  </>
-                ) : (
-                  <>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleEdit}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="create-outline" size={28} color="#535aff" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleDrop}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="remove-circle-outline" size={28} color="#f59e0b" />
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      style={styles.iconButton}
-                      onPress={handleWipe}
-                      activeOpacity={0.7}
-                    >
-                      <Ionicons name="trash-outline" size={28} color="#ef4444" />
-                    </TouchableOpacity>
-                  </>
-                )}
-              </View>
-            )}
-
-            {/* Edit Form */}
-            {isEditing && (
-              <View style={styles.editSection}>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Poster URL</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={editedPoster}
-                    onChangeText={setEditedPoster}
-                    placeholder="Enter poster URL"
-                    placeholderTextColor="#666"
-                  />
-                </View>
-                <View style={styles.inputGroup}>
-                  <Text style={styles.inputLabel}>Category</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={editedCategory}
-                    onChangeText={setEditedCategory}
-                    placeholder="e.g., Movie, TV"
-                    placeholderTextColor="#666"
-                  />
-                </View>
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={handleEdit}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="create-outline" size={28} color="#535aff" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={handleDrop}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="remove-circle-outline" size={28} color="#f59e0b" />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.iconButton}
+                  onPress={handleWipe}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name="trash-outline" size={28} color="#ef4444" />
+                </TouchableOpacity>
               </View>
             )}
 
@@ -705,16 +592,6 @@ const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 10,
   },
-  heroTitleInput: {
-    fontSize: 26,
-    fontWeight: '600',
-    color: '#fff',
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    padding: 12,
-    borderRadius: 8,
-    borderWidth: 2,
-    borderColor: '#535aff',
-  },
 
   // Poster Section - Desktop
   posterSection: {
@@ -761,41 +638,6 @@ const styles = StyleSheet.create({
     color: '#fff',
     letterSpacing: -0.5,
     lineHeight: 38,
-  },
-  titleInput: {
-    fontSize: 30,
-    fontWeight: '600',
-    color: '#fff',
-    backgroundColor: '#1a1a1a',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: '#535aff',
-  },
-
-  // Edit Section
-  editSection: {
-    marginBottom: 24,
-    gap: 16,
-  },
-  inputGroup: {
-    gap: 8,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#999',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  input: {
-    backgroundColor: '#141414',
-    borderRadius: 10,
-    padding: 14,
-    fontSize: 15,
-    color: '#fff',
-    borderWidth: 1,
-    borderColor: '#333',
   },
 
   // Details Section
