@@ -72,7 +72,7 @@ function RootLayoutNav() {
       console.log('Magnet link received:', url);
 
       router.push({
-        pathname: '/(tabs)/add',
+        pathname: '/torrent/add',
         params: { magnet: url },
       });
     }
