@@ -386,7 +386,7 @@ const ProwlarrSearchScreen = () => {
                                 </View>
                                 <Text style={styles.emptyStateTitle}>Search Torrents</Text>
                                 <Text style={styles.emptyStateSubtext}>
-                                    Enter a movie or TV show name to search across {indexers.length} indexers
+                                    Enter a movie or TV show name to search across indexers
                                 </Text>
                             </View>
                         )}
