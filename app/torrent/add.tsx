@@ -43,21 +43,22 @@ const AddTorrentScreen = () => {
     return imdbMatch ? imdbMatch[0] : null;
   };
 
-  const getFinalPosterUrl = (): string => {
-    if (!posterInput) return '';
+  const getFinalPosterUrl = (inputValue?: string): string => {
+    const posterValue = inputValue || posterInput;
+    if (!posterValue) return '';
 
-    const imdbId = extractImdbId(posterInput);
+    const imdbId = extractImdbId(posterValue);
 
-    if (imdbId && posterInput.trim() === imdbId) {
+    if (imdbId && posterValue.trim() === imdbId) {
       return `https://images.metahub.space/poster/medium/${imdbId}/img`;
     }
 
-    if (imdbId && posterInput.includes('metahub.space')) {
+    if (imdbId && posterValue.includes('metahub.space')) {
       return `https://images.metahub.space/poster/medium/${imdbId}/img`;
     }
-    console.log('Using custom poster URL:', posterInput);
+    console.log('Using custom poster URL:', posterValue);
 
-    return posterInput;
+    return posterValue;
   };
 
   const handleSubmit = async () => {
@@ -135,39 +136,17 @@ const AddTorrentScreen = () => {
   };
 
   useEffect(() => {
-    const finalUrl = getFinalPosterUrl();
-    setPreviewUrl(finalUrl);
-  }, [posterInput]);
-
-  // Initialize preview on mount if poster param exists
-  useEffect(() => {
+    // Initialize preview on mount if poster param exists (update mode)
     if (poster) {
-      const imdbId = extractImdbId(String(poster));
-      if (imdbId) {
-        setPreviewUrl(`https://images.metahub.space/poster/medium/${imdbId}/img`);
-      } else {
-        setPreviewUrl(String(poster));
-      }
+      const posterStr = String(poster);
+      const finalUrl = getFinalPosterUrl(posterStr);
+      console.log('Initial poster URL:', finalUrl);
+      setPreviewUrl(finalUrl);
     }
   }, []);
 
   return (
     <View style={styles.container}>
-      {/* Background Poster */}
-      {previewUrl && (
-        <>
-          <Image
-            source={{ uri: previewUrl }}
-            style={styles.backgroundImage}
-            blurRadius={50}
-          />
-          <LinearGradient
-            colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.85)', 'rgba(0,0,0,0.95)']}
-            style={styles.gradient}
-          />
-        </>
-      )}
-
       <SafeAreaView style={styles.safeArea} edges={['top']}>
         <KeyboardAvoidingView
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -262,6 +241,13 @@ const AddTorrentScreen = () => {
                     style={styles.input}
                     value={posterInput}
                     onChangeText={setPosterInput}
+                    onBlur={() => {
+                      const finalUrl = getFinalPosterUrl();
+                      console.log('Poster onBlur, loading URL:', finalUrl);
+                      if (finalUrl) {
+                        setPreviewUrl(finalUrl);
+                      }
+                    }}
                     placeholder="tt0133093 or https://example.com/poster.jpg"
                     autoCapitalize="none"
                     placeholderTextColor="#888"
@@ -275,6 +261,17 @@ const AddTorrentScreen = () => {
                     </Text>
                   )}
                 </View>
+
+                {/* Poster Preview */}
+                {previewUrl ? (
+                  <View style={styles.previewContainer}>
+                    <Image
+                      source={{ uri: previewUrl }}
+                      style={styles.previewImage}
+                      resizeMode="cover"
+                    />
+                  </View>
+                ) : null}
 
                 {/* Submit Button */}
                 <TouchableOpacity
@@ -305,23 +302,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-  },
-  backgroundImage: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    width: '100%',
-    height: '100%',
-    opacity: 0.3,
-  },
-  gradient: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
   },
   safeArea: {
     flex: 1,
@@ -425,6 +405,18 @@ const styles = StyleSheet.create({
   },
   categoryChipTextActive: {
     color: '#fff',
+  },
+  previewContainer: {
+    alignItems: 'center',
+    marginTop: 8,
+    marginBottom: 24,
+    backgroundColor: 'transparent',
+  },
+  previewImage: {
+    width: 150,
+    height: 225,
+    borderRadius: 12,
+    backgroundColor: 'rgba(28, 28, 30, 0.85)',
   },
   submitButton: {
     backgroundColor: '#0A84FF',
