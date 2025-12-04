@@ -64,12 +64,9 @@ export default function PosterCarousel({
             screenHeight: height,
             carouselHeight: isLandscape ? height * 0.9 : height * 0.5,
             itemWidth: width,
-            posterWidth: isLandscape ? 180 : 120,
-            posterHeight: isLandscape ? 270 : 120,
-            titleSize: isLandscape ? 28 : 26,
-            subtitleSize: isLandscape ? 14 : 14,
-            contentPadding: isLandscape ? 40 : 20,
-            bottomPadding: isLandscape ? 40 : 40,
+            titleSize: isLandscape ? 34 : 28,
+            contentPadding: 16, // iOS standard
+            bottomPadding: isLandscape ? 32 : 40,
         };
     };
 
@@ -150,7 +147,7 @@ export default function PosterCarousel({
                 <TouchableOpacity
                     style={styles.carouselTouchable}
                     onPress={() => handleItemPress(item)}
-                    activeOpacity={0.9}
+                    activeOpacity={0.85}
                 >
                     <ImageBackground
                         key={`${item.id}-${index}`}
@@ -158,9 +155,9 @@ export default function PosterCarousel({
                         style={styles.backdropImage}
                         resizeMode="cover"
                     >
-                        {/* Gradient overlay */}
+                        {/* iOS-style gradient overlay */}
                         <LinearGradient
-                            colors={['transparent', 'rgba(0,0,0,0.3)', 'rgba(0,0,0,0.8)']}
+                            colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
                             style={styles.gradient}
                         />
 
@@ -168,30 +165,18 @@ export default function PosterCarousel({
                         <View style={[styles.contentContainer, {
                             paddingHorizontal: dims.contentPadding,
                             paddingBottom: dims.bottomPadding,
-                            flexDirection: dimensions.isLandscape ? 'row' : 'row',
                         }]}>
-
-                            <View style={[styles.textContainer, {
-                                flex: 1,
-                            }]}>
-                                <View style={[styles.metaContainer, {
-                                    flexDirection: 'row',
-                                    alignItems: 'center',
-                                    justifyContent: 'flex-start',
-                                    gap: 8,
-                                    marginBottom: 12,
-                                }]}>
+                            <View style={styles.textContainer}>
+                                <View style={styles.metaContainer}>
                                     <View style={styles.typeIndicator}>
-                                        <Text style={[styles.typeText, {
-                                            fontSize: dimensions.isLandscape ? 10 : 12,
-                                        }]}>
+                                        <Text style={styles.typeText}>
                                             {item.type.toUpperCase()}
                                         </Text>
                                     </View>
                                 </View>
                                 <Text style={[styles.title, {
                                     fontSize: dims.titleSize
-                                }]} numberOfLines={1}>
+                                }]} numberOfLines={2}>
                                     {item.title}
                                 </Text>
                             </View>
@@ -210,6 +195,7 @@ export default function PosterCarousel({
                 activeIndex === index && styles.paginationDotActive
             ]}
             onPress={() => scrollToIndex(index)}
+            activeOpacity={0.7}
         />
     );
 
@@ -218,8 +204,8 @@ export default function PosterCarousel({
             <View style={[styles.container, styles.loadingContainer, {
                 height: responsiveDims.carouselHeight
             }]}>
-                <ActivityIndicator color="#535aff" />
-                <Text style={styles.loadingText}>Loading carousel...</Text>
+                <ActivityIndicator color="#007AFF" size="large" />
+                <Text style={styles.loadingText}>Loading...</Text>
             </View>
         );
     }
@@ -250,19 +236,16 @@ export default function PosterCarousel({
                 })}
             />
 
-            {/* Pagination dots */}
-            {
-                <View style={[styles.paginationContainer, {
-                    bottom: dimensions.isLandscape ? 15 : 20,
-                    left: dimensions.isLandscape ? 35 : 20,
-                }]}>
-                    <BlurView intensity={20} style={[styles.paginationBlur]}>
-                        <View style={styles.paginationDots}>
-                            {carouselData.map((_, index) => renderPaginationDot(index))}
-                        </View>
-                    </BlurView>
-                </View>
-            }
+            {/* iOS-style pagination dots */}
+            <View style={[styles.paginationContainer, {
+                bottom: dimensions.isLandscape ? 16 : 20,
+            }]}>
+                <BlurView intensity={30} tint="dark" style={styles.paginationBlur}>
+                    <View style={styles.paginationDots}>
+                        {carouselData.map((_, index) => renderPaginationDot(index))}
+                    </View>
+                </BlurView>
+            </View>
         </View>
     );
 }
@@ -270,13 +253,13 @@ export default function PosterCarousel({
 const styles = StyleSheet.create({
     container: {
         position: 'relative',
-        backgroundColor: '#101010'
+        backgroundColor: '#000'
     },
     carousel: {
         flex: 1,
     },
     carouselItem: {
-        marginBottom: 10
+        overflow: 'hidden',
     },
     carouselTouchable: {
         flex: 1,
@@ -293,66 +276,37 @@ const styles = StyleSheet.create({
         bottom: 0,
     },
     contentContainer: {
-        alignItems: 'flex-end',
+        alignItems: 'flex-start',
         zIndex: 1,
-    },
-    posterContainer: {
-        position: 'relative',
-    },
-    posterImage: {
-        borderRadius: 12,
-        borderWidth: 2,
-        borderColor: 'rgba(255,255,255,0.1)',
-    },
-    posterShadow: {
-        position: 'absolute',
-        top: 8,
-        left: 8,
-        right: -8,
-        bottom: -8,
-        backgroundColor: 'rgba(0,0,0,0.3)',
-        borderRadius: 10,
-        zIndex: -1,
     },
     textContainer: {
         justifyContent: 'flex-end',
-        paddingBottom: 10,
+        maxWidth: '85%',
     },
     title: {
         fontWeight: '700',
-        color: '#fff',
-        marginBottom: 6,
-        textShadowColor: 'rgba(0,0,0,0.8)',
-        textShadowOffset: { width: 0, height: 2 },
-        textShadowRadius: 4,
-    },
-    subtitle: {
-        color: 'rgba(255,255,255,0.8)',
-        lineHeight: 22,
-        textShadowColor: 'rgba(0,0,0,0.6)',
-        textShadowOffset: { width: 0, height: 1 },
-        textShadowRadius: 2,
-        maxWidth: 600
+        color: '#FFFFFF',
+        lineHeight: 36,
+        letterSpacing: 0.35,
+        marginTop: 8,
     },
     metaContainer: {
-        marginTop: 0,
-    },
-    metaText: {
-        color: 'rgba(255,255,255,0.9)',
-        fontWeight: '500',
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8,
     },
     typeIndicator: {
-        backgroundColor: 'rgba(255,255,255,0.2)',
+        backgroundColor: 'rgba(255,255,255,0.15)',
         paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 10,
-        borderWidth: 1,
-        borderColor: 'rgba(255,255,255,0.1)',
+        paddingVertical: 5,
+        borderRadius: 6,
+        backdropFilter: 'blur(10px)',
     },
     typeText: {
         fontWeight: '600',
-        color: '#fff',
-        letterSpacing: 1,
+        color: '#FFFFFF',
+        fontSize: 11,
+        letterSpacing: 0.6,
     },
     loadingContainer: {
         justifyContent: 'center',
@@ -360,34 +314,37 @@ const styles = StyleSheet.create({
         backgroundColor: '#000',
     },
     loadingText: {
-        color: '#fff',
-        fontSize: 16,
+        color: '#8E8E93',
+        fontSize: 17,
         marginTop: 12,
+        fontWeight: '400',
     },
     paginationContainer: {
         position: 'absolute',
-        borderRadius: 20,
-        overflow: 'hidden'
+        alignSelf: 'center',
+        borderRadius: 16,
+        overflow: 'hidden',
     },
     paginationBlur: {
-        paddingHorizontal: 8,
+        paddingHorizontal: 12,
         paddingVertical: 8,
+        borderRadius: 16,
     },
     paginationDots: {
         flexDirection: 'row',
         alignItems: 'center',
+        gap: 6,
     },
     paginationDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: 'rgba(255,255,255,0.4)',
-        marginHorizontal: 4,
+        width: 7,
+        height: 7,
+        borderRadius: 3.5,
+        backgroundColor: 'rgba(255,255,255,0.5)',
     },
     paginationDotActive: {
-        backgroundColor: '#fff',
-        width: 12,
-        height: 8,
-        borderRadius: 4,
+        backgroundColor: '#FFFFFF',
+        width: 20,
+        height: 7,
+        borderRadius: 3.5,
     },
 });
