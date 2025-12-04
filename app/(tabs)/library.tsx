@@ -1,6 +1,6 @@
 import { Text, ActivityIndicator, TextInput, View, StatusBar } from '@/components/Themed';
-import { useState, useEffect } from 'react';
-import { StyleSheet, Pressable, ScrollView } from 'react-native';
+import { useState, useEffect, useRef } from 'react';
+import { StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
@@ -8,15 +8,19 @@ import TorrentGrid from '@/components/TorrentGrid';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { MenuView, MenuComponentRef, MenuAction } from '@react-native-menu/menu';
 
 const LibraryScreen = () => {
   const router = useRouter();
+  const categoryMenuRef = useRef<MenuComponentRef>(null);
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [allTorrents, setAllTorrents] = useState<any[]>([]);
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
   const [debounceTimeout, setDebounceTimeout] = useState<any>(null);
+  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [categories, setCategories] = useState<string[]>(['all']);
 
   const fetchTorrents = async () => {
     setLoading(true);
@@ -45,10 +49,14 @@ const LibraryScreen = () => {
         title: item.title || 'Untitled',
         poster: item.poster || 'https://via.placeholder.com/150x225?text=No+Image',
         size: item.torrent_size,
-        category: item.category,
+        category: item.category || 'Uncategorized',
       }));
 
       setAllTorrents(parsed);
+
+      // Extract unique categories
+      const uniqueCategories = ['all', ...new Set(parsed.map((t: any) => t.category))];
+      setCategories(uniqueCategories);
     } catch (error) {
       console.error('Error fetching torrents:', error);
       setError(error instanceof Error ? error.message : 'Failed to load library');
@@ -63,28 +71,38 @@ const LibraryScreen = () => {
 
   useEffect(() => {
     if (debounceTimeout) clearTimeout(debounceTimeout);
-    if (query.trim().length === 0) {
+    if (query.trim().length === 0 && selectedCategory === 'all') {
       setFilteredResults([]);
       return;
     }
 
     const timeout = setTimeout(() => {
-      const filtered = allTorrents.filter(item =>
-        item.title.toLowerCase().includes(query.trim().toLowerCase())
-      );
+      let filtered = allTorrents;
+
+      // Filter by category
+      if (selectedCategory !== 'all') {
+        filtered = filtered.filter(item => item.category === selectedCategory);
+      }
+
+      // Filter by search query
+      if (query.trim().length > 0) {
+        filtered = filtered.filter(item =>
+          item.title.toLowerCase().includes(query.trim().toLowerCase())
+        );
+      }
+
       setFilteredResults(filtered);
     }, 300);
 
     setDebounceTimeout(timeout);
     return () => clearTimeout(timeout);
-  }, [query, allTorrents]);
+  }, [query, allTorrents, selectedCategory]);
 
   const clearSearch = async () => {
     if (isHapticsSupported()) {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
     }
     setQuery('');
-    setFilteredResults([]);
   };
 
   const handleRetry = async () => {
@@ -104,6 +122,33 @@ const LibraryScreen = () => {
       params: { hash: item.hash },
     });
   };
+
+  const handleAddTorrent = async () => {
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    // Navigate to add torrent screen
+    router.push('/torrent/add');
+  };
+
+  const handleCategorySelect = async (categoryId: string) => {
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+    setSelectedCategory(categoryId);
+  };
+
+  const getCategoryDisplayName = (category: string) => {
+    if (category === 'all') return 'All';
+    return category.charAt(0).toUpperCase() + category.slice(1);
+  };
+
+  // Build menu actions for categories
+  const categoryActions = categories.map(cat => ({
+    id: cat,
+    title: getCategoryDisplayName(cat),
+    state: selectedCategory === cat ? 'on' : 'off',   
+  }));
 
   // Initial loading state - centered loader
   if (loading && allTorrents.length === 0 && !error) {
@@ -140,67 +185,101 @@ const LibraryScreen = () => {
     );
   }
 
+  const displayResults = query.length > 0 || selectedCategory !== 'all' ? filteredResults : allTorrents;
+  const shouldShowResults = query.length > 0 || selectedCategory !== 'all';
+
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar />
 
       {/* Header Section */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Library</Text>
-        <Text style={styles.headerSubtitle}>
-          {allTorrents.length} {allTorrents.length === 1 ? 'item' : 'items'} available
-        </Text>
-      </View>
-
-      {/* Search Bar */}
-      <View style={styles.searchContainer}>
-        <View style={styles.searchInputWrapper} pointerEvents="box-none">
-          <Ionicons name="search-outline" size={20} color="#8E8E93" style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="Search"
-            placeholderTextColor="#8E8E93"
-            value={query}
-            onChangeText={setQuery}
-            submitBehavior="blurAndSubmit"
-          />
-          {query.length > 0 && (
-            <Pressable onPress={clearSearch} style={styles.clearButton}>
-              <Ionicons name="close-circle" size={20} color="#8E8E93" />
-            </Pressable>
-          )}
+        <View style={styles.headerTop}>
+          <View style={styles.headerTextContainer}>
+            <Text style={styles.headerTitle}>Library</Text>
+            <Text style={styles.headerSubtitle}>
+              {allTorrents.length} {allTorrents.length === 1 ? 'item' : 'items'}
+            </Text>
+          </View>
+          <Pressable 
+            style={styles.addButton}
+            onPress={handleAddTorrent}
+          >
+            <Ionicons name="add" size={24} color="#fff" />
+          </Pressable>
         </View>
       </View>
 
+      {/* Search and Filter Bar */}
+      <View style={styles.searchFilterContainer}>
+        <View style={styles.searchContainer}>
+          <View style={styles.searchInputWrapper} pointerEvents="box-none">
+            <Ionicons name="search-outline" size={20} color="#8E8E93" style={styles.searchIcon} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="Search"
+              placeholderTextColor="#8E8E93"
+              value={query}
+              onChangeText={setQuery}
+              submitBehavior="blurAndSubmit"
+            />
+            {query.length > 0 && (
+              <Pressable onPress={clearSearch} style={styles.clearButton}>
+                <Ionicons name="close-circle" size={20} color="#8E8E93" />
+              </Pressable>
+            )}
+          </View>
+        </View>
+
+        {/* Category Filter */}
+        <MenuView
+          ref={categoryMenuRef}
+          title="Filter by Category"
+          onPressAction={({ nativeEvent }) => {
+            handleCategorySelect(nativeEvent.event);
+          }}
+          actions={categoryActions as MenuAction[]}
+          shouldOpenOnLongPress={false}
+        >
+          <Pressable style={styles.filterButton}>
+            <Ionicons name="funnel-outline" size={18} color="#0A84FF" />
+            <Text style={styles.filterButtonText}>
+              {selectedCategory === 'all' ? 'Filter' : getCategoryDisplayName(selectedCategory)}
+            </Text>
+            <Ionicons name="chevron-down" size={16} color="#0A84FF" />
+          </Pressable>
+        </MenuView>
+      </View>
+
       {/* Content Area */}
-      {query.length > 0 && filteredResults.length === 0 ? (
+      {!shouldShowResults && allTorrents.length > 0 ? (
+        <View style={styles.emptyStateContainer}>
+          <View style={styles.emptyStateIcon}>
+            <Ionicons name="film-outline" color="#0A84FF" size={48} />
+          </View>
+          <Text style={styles.emptyStateTitle}>Your Library</Text>
+          <Text style={styles.emptyStateSubtitle}>
+            Search or filter to find content
+          </Text>
+        </View>
+      ) : shouldShowResults && displayResults.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyStateIcon}>
             <Ionicons name="search-outline" color="#0A84FF" size={48} />
           </View>
           <Text style={styles.emptyStateTitle}>No Results</Text>
           <Text style={styles.emptyStateSubtitle}>
-            Try a different search
+            Try adjusting your search or filter
           </Text>
         </View>
-      ) : query.length === 0 && allTorrents.length > 0 ? (
-        <View style={styles.emptyStateContainer}>
-          <View style={styles.emptyStateIcon}>
-            <Ionicons name="film-outline" color="#0A84FF" size={48} />
-          </View>
-          <Text style={styles.emptyStateTitle}>Search Your Library</Text>
-          <Text style={styles.emptyStateSubtitle}>
-            Find movies and TV shows
-          </Text>
-        </View>
-      ) : query.length === 0 && allTorrents.length === 0 ? (
+      ) : allTorrents.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyStateIcon}>
             <Ionicons name="library-outline" color="#0A84FF" size={48} />
           </View>
           <Text style={styles.emptyStateTitle}>Library Empty</Text>
           <Text style={styles.emptyStateSubtitle}>
-            Add some content to get started
+            Tap the + button to add content
           </Text>
         </View>
       ) : (
@@ -211,9 +290,9 @@ const LibraryScreen = () => {
         >
           <View style={styles.resultsWrapper}>
             <Text style={styles.resultsCount}>
-              {filteredResults.length.toLocaleString()} {filteredResults.length === 1 ? 'RESULT' : 'RESULTS'}
+              {displayResults.length.toLocaleString()} {displayResults.length === 1 ? 'RESULT' : 'RESULTS'}
             </Text>
-            <TorrentGrid list={filteredResults} onTorrentItemPress={handleTorrentItemPress} />
+            <TorrentGrid list={displayResults} onTorrentItemPress={handleTorrentItemPress} />
           </View>
         </ScrollView>
       )}
@@ -252,7 +331,7 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 22,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#fff',
     marginBottom: 8,
     textAlign: 'center',
@@ -277,7 +356,7 @@ const styles = StyleSheet.create({
   retryButtonText: {
     color: '#fff',
     fontSize: 17,
-    fontWeight: '500',
+    fontWeight: '600',
     textAlign: 'center',
     letterSpacing: -0.41,
   },
@@ -285,6 +364,14 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 8,
     paddingBottom: 12,
+  },
+  headerTop: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  headerTextContainer: {
+    flex: 1,
   },
   headerTitle: {
     fontSize: 34,
@@ -298,9 +385,24 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     fontWeight: '400',    
   },
-  searchContainer: {
+  addButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#0A84FF',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginLeft: 12,
+  },
+  searchFilterContainer: {
     paddingHorizontal: 20,
     paddingBottom: 8,
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  searchContainer: {
+    flex: 1,
   },
   searchInputWrapper: {
     flexDirection: 'row',
@@ -327,6 +429,21 @@ const styles = StyleSheet.create({
     padding: 2,
     marginLeft: 4,
   },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#1C1C1E',
+    borderRadius: 10,
+    paddingHorizontal: 12,
+    height: 36,
+    gap: 4,
+  },
+  filterButtonText: {
+    fontSize: 15,
+    color: '#0A84FF',
+    fontWeight: '500',
+    letterSpacing: -0.24,
+  },
   contentContainer: {
     flex: 1,
   },
@@ -343,14 +460,14 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 40,
-    backgroundColor: 'rgba(83, 90, 255, 0.15)',
+    backgroundColor: 'rgba(10, 132, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 16,
   },
   emptyStateTitle: {
     fontSize: 22,
-    fontWeight: '500',
+    fontWeight: '600',
     color: '#fff',
     marginBottom: 8,
     textAlign: 'center',
@@ -371,9 +488,10 @@ const styles = StyleSheet.create({
   resultsCount: {
     fontSize: 13,
     color: '#8E8E93',
-    fontWeight: '500',
+    fontWeight: '600',
     marginBottom: 12,
-    paddingHorizontal: 20,    
+    paddingHorizontal: 20,
+    letterSpacing: -0.08,
   },
 });
 
