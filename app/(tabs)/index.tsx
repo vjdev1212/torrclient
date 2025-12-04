@@ -268,14 +268,14 @@ const styles = StyleSheet.create({
   },
   categoryChipsContainer: {
     flexDirection: 'row',
-    gap: 8,
+    gap: 20,
     backgroundColor: 'transparent',
   },
   chip: {
-    paddingHorizontal: 16,
+    paddingHorizontal: 20,
     paddingVertical: 8,
     borderRadius: 20,
-    backgroundColor: 'rgba(118, 118, 128, 0.12)',
+    backgroundColor: 'rgba(118, 118, 128, 0.25)',
     minHeight: 36,
     justifyContent: 'center',
     alignItems: 'center',
