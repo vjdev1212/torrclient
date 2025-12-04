@@ -111,7 +111,7 @@ const LibraryScreen = () => {
       <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar />
         <View style={styles.centeredContainer}>
-          <ActivityIndicator size="large" color="#535aff" />
+          <ActivityIndicator size="large" color="#0A84FF" />
           <Text style={styles.centeredText}>Loading your library...</Text>
         </View>
       </SafeAreaView>
@@ -176,7 +176,7 @@ const LibraryScreen = () => {
       {query.length > 0 && filteredResults.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyStateIcon}>
-            <Ionicons name="search-outline" color="#535aff" size={48} />
+            <Ionicons name="search-outline" color="#0A84FF" size={48} />
           </View>
           <Text style={styles.emptyStateTitle}>No Results</Text>
           <Text style={styles.emptyStateSubtitle}>
@@ -186,7 +186,7 @@ const LibraryScreen = () => {
       ) : query.length === 0 && allTorrents.length > 0 ? (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyStateIcon}>
-            <Ionicons name="film-outline" color="#535aff" size={48} />
+            <Ionicons name="film-outline" color="#0A84FF" size={48} />
           </View>
           <Text style={styles.emptyStateTitle}>Search Your Library</Text>
           <Text style={styles.emptyStateSubtitle}>
@@ -196,7 +196,7 @@ const LibraryScreen = () => {
       ) : query.length === 0 && allTorrents.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyStateIcon}>
-            <Ionicons name="library-outline" color="#535aff" size={48} />
+            <Ionicons name="library-outline" color="#0A84FF" size={48} />
           </View>
           <Text style={styles.emptyStateTitle}>Library Empty</Text>
           <Text style={styles.emptyStateSubtitle}>
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   retryButton: {
-    backgroundColor: '#535aff',
+    backgroundColor: '#0A84FF',
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 12,

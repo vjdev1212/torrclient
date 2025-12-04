@@ -354,7 +354,7 @@ export const WaitingLobby: React.FC<{
             style={[styles.bufferingContainer, { opacity }]}
             pointerEvents="none"
         >
-            <ActivityIndicator size="large" color="#535aff" />
+            <ActivityIndicator size="large" color="#0A84FF" />
             <Text style={styles.bufferingText}>
                 {"Loading..."}
             </Text>
@@ -381,7 +381,7 @@ export const ArtworkBackground: React.FC<{
             <View style={styles.artworkOverlay} />
             {isBuffering && (
                 <View style={styles.artworkLoadingOverlay}>
-                    <ActivityIndicator size="large" color="#535aff" />
+                    <ActivityIndicator size="large" color="#0A84FF" />
                     <Text style={styles.bufferingText}>Loading...</Text>
                 </View>
             )}

@@ -44,7 +44,7 @@ export default function TabLayout() {
     <Tabs
       initialRouteName="index"
       screenOptions={{
-        tabBarActiveTintColor: '#535aff',
+        tabBarActiveTintColor: '#0A84FF',
         headerShown: false,
         tabBarHideOnKeyboard: Platform.OS === 'ios',
         tabBarLabelStyle: {

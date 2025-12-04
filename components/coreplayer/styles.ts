@@ -136,7 +136,7 @@ export const styles = StyleSheet.create({
     },
 
     speedText: {
-        color: '#535aff',
+        color: '#0A84FF',
         fontSize: 14,
         fontWeight: 500,
         marginLeft: 12,
