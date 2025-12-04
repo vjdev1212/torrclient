@@ -55,6 +55,12 @@ export interface ProwlarrIndexer {
   categories: number[];
 }
 
+export interface ProwlarrCategory {
+  id: number;
+  name: string;
+  subCategories: ProwlarrCategory[];
+}
+
 const PROWLARR_CONFIGS_KEY = StorageKeys.PROWLARR_CONFIGS_KEY;
 const PROWLARR_ACTIVE_ID_KEY = StorageKeys.PROWLARR_ACTIVE_ID_KEY;
 
@@ -260,6 +266,43 @@ class ProwlarrClient {
       return indexers;
     } catch (error) {
       console.error('Failed to fetch indexers:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Get all available categories
+   */
+  async getCategories(): Promise<ProwlarrCategory[]> {
+    try {
+      if (!this.config) {
+        const initialized = await this.initialize();
+        if (!initialized) {
+          throw new Error('Failed to initialize Prowlarr client');
+        }
+      }
+
+      const baseUrl = this.config?.url.endsWith('/') 
+        ? this.config.url.slice(0, -1) 
+        : this.config?.url;
+
+      const url = `${baseUrl}/api/v1/indexer/categories`;
+      const headers = this.getHeaders();
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Prowlarr API error (${response.status}): ${errorText}`);
+      }
+
+      const categories: ProwlarrCategory[] = await response.json();
+      return categories;
+    } catch (error) {
+      console.error('Failed to fetch categories:', error);
       throw error;
     }
   }
