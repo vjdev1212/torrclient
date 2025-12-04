@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   },
   settingsGroup: {
     backgroundColor: '#101010',
-    borderRadius: 16,
+    borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#202020',
     overflow: 'hidden',
@@ -215,7 +215,7 @@ const styles = StyleSheet.create({
   },
   infoCard: {
     backgroundColor: '#101010',
-    borderRadius: 16,
+    borderRadius: 10,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#202020',
     padding: 16,

@@ -536,7 +536,7 @@ const styles = StyleSheet.create({
     headerIconContainer: {
         width: 56,
         height: 56,
-        borderRadius: 16,
+        borderRadius: 10,
         backgroundColor: 'rgba(83, 90, 255, 0.15)',
         justifyContent: 'center',
         alignItems: 'center',
@@ -585,7 +585,7 @@ const styles = StyleSheet.create({
     },
     instanceCard: {
         backgroundColor: '#101010',
-        borderRadius: 16,
+        borderRadius: 10,
         borderWidth: StyleSheet.hairlineWidth,
         borderColor: '#202020',
         marginBottom: 12,
@@ -609,7 +609,7 @@ const styles = StyleSheet.create({
     radioOuter: {
         width: 24,
         height: 24,
-        borderRadius: 12,
+        borderRadius: 10,
         borderWidth: 2,
         borderColor: '#666',
         justifyContent: 'center',
@@ -797,7 +797,7 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         paddingVertical: 16,
         paddingHorizontal: 24,
-        borderRadius: 14,
+        borderRadius: 10,
         marginTop: 8,
         marginBottom: 20,
         maxWidth: 320,
@@ -825,7 +825,7 @@ const styles = StyleSheet.create({
     infoCard: {
         flexDirection: 'row',
         backgroundColor: 'rgba(83, 90, 255, 0.1)',
-        borderRadius: 12,
+        borderRadius: 10,
         padding: 14,
         borderWidth: 1,
         borderColor: 'rgba(83, 90, 255, 0.2)',

@@ -317,7 +317,7 @@ export const styles = StyleSheet.create({
         top: '40%',
         zIndex: 15,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        borderRadius: 12,
+        borderRadius: 10,
         padding: 16,
     },
 
@@ -347,7 +347,7 @@ export const styles = StyleSheet.create({
 
     glassPanel: {
         backgroundColor: '#1a1a1af2',
-        borderRadius: 12,
+        borderRadius: 10,
         padding: 24,
         minWidth: 500,
         maxWidth: '90%',
@@ -383,7 +383,7 @@ export const styles = StyleSheet.create({
         backgroundColor: 'rgba(142, 142, 142, 0.1)',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        borderRadius: 12,
+        borderRadius: 10,
         marginBottom: 8,
         borderWidth: StyleSheet.hairlineWidth,
         borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -411,7 +411,7 @@ export const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
         paddingHorizontal: 16,
         paddingVertical: 10,
-        borderRadius: 12,
+        borderRadius: 10,
         minWidth: 60,
         alignItems: 'center',
         borderWidth: 1,

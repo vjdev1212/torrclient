@@ -396,7 +396,7 @@ const styles = StyleSheet.create({
   previewImage: {
     width: 140,
     height: 210,
-    borderRadius: 12,
+    borderRadius: 10,
     backgroundColor: '#1a1a1a',
   },
   submitButton: {

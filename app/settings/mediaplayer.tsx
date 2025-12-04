@@ -315,7 +315,7 @@ const styles = StyleSheet.create({
     },
     playersContainer: {
         backgroundColor: '#1C1C1E',
-        borderRadius: 12,
+        borderRadius: 10,
         overflow: 'hidden',
     },
     playerRow: {
@@ -374,7 +374,7 @@ const styles = StyleSheet.create({
         flex: 1,
         paddingVertical: 16,
         paddingHorizontal: 20,
-        borderRadius: 16,
+        borderRadius: 10,
         alignItems: 'center',
         flexDirection: 'row',
         justifyContent: 'center',
