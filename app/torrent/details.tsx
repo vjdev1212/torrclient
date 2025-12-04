@@ -158,6 +158,17 @@ const TorrentDetails = () => {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
     }
 
+    // Play directly on normal press
+    const encodedPath = encodeURIComponent(file.path);
+    const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play&preload`;
+    handlePlayWithDefaultPlayer(streamUrl);
+  };
+
+  const handleFileLongPress = async (file: any) => {
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+
     setTimeout(() => {
       showPreloadOrPlaySheet(file);
     }, 100);
@@ -525,6 +536,7 @@ const TorrentDetails = () => {
                     key={index}
                     style={styles.fileCard}
                     onPress={() => handleFileLink(file)}
+                    onLongPress={() => handleFileLongPress(file)}
                     activeOpacity={0.7}
                   >
                     <View style={styles.fileIconContainer}>
