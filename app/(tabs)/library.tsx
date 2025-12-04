@@ -71,10 +71,6 @@ const LibraryScreen = () => {
 
   useEffect(() => {
     if (debounceTimeout) clearTimeout(debounceTimeout);
-    if (query.trim().length === 0 && selectedCategory === 'all') {
-      setFilteredResults([]);
-      return;
-    }
 
     const timeout = setTimeout(() => {
       let filtered = allTorrents;
@@ -186,7 +182,7 @@ const LibraryScreen = () => {
   }
 
   const displayResults = query.length > 0 || selectedCategory !== 'all' ? filteredResults : allTorrents;
-  const shouldShowResults = query.length > 0 || selectedCategory !== 'all';
+  const shouldShowResults = displayResults.length > 0;
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -205,33 +201,34 @@ const LibraryScreen = () => {
             style={styles.addButton}
             onPress={handleAddTorrent}
           >
-            <Ionicons name="add" size={24} color="#fff" />
+            <Ionicons name="add-circle" size={20} color="#0A84FF" />
+            <Text style={styles.addButtonText}>Add</Text>
           </Pressable>
         </View>
       </View>
 
-      {/* Search and Filter Bar */}
-      <View style={styles.searchFilterContainer}>
-        <View style={styles.searchContainer}>
-          <View style={styles.searchInputWrapper} pointerEvents="box-none">
-            <Ionicons name="search-outline" size={20} color="#8E8E93" style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="Search"
-              placeholderTextColor="#8E8E93"
-              value={query}
-              onChangeText={setQuery}
-              submitBehavior="blurAndSubmit"
-            />
-            {query.length > 0 && (
-              <Pressable onPress={clearSearch} style={styles.clearButton}>
-                <Ionicons name="close-circle" size={20} color="#8E8E93" />
-              </Pressable>
-            )}
-          </View>
+      {/* Search Bar */}
+      <View style={styles.searchContainer}>
+        <View style={styles.searchInputWrapper} pointerEvents="box-none">
+          <Ionicons name="search-outline" size={20} color="#8E8E93" style={styles.searchIcon} />
+          <TextInput
+            style={styles.searchInput}
+            placeholder="Search library"
+            placeholderTextColor="#8E8E93"
+            value={query}
+            onChangeText={setQuery}
+            submitBehavior="blurAndSubmit"
+          />
+          {query.length > 0 && (
+            <Pressable onPress={clearSearch} style={styles.clearButton}>
+              <Ionicons name="close-circle" size={20} color="#8E8E93" />
+            </Pressable>
+          )}
         </View>
+      </View>
 
-        {/* Category Filter */}
+      {/* Category Filter */}
+      <View style={styles.filterContainer}>
         <MenuView
           ref={categoryMenuRef}
           title="Filter by Category"
@@ -244,7 +241,7 @@ const LibraryScreen = () => {
           <Pressable style={styles.filterButton}>
             <Ionicons name="funnel-outline" size={18} color="#0A84FF" />
             <Text style={styles.filterButtonText}>
-              {selectedCategory === 'all' ? 'Filter' : getCategoryDisplayName(selectedCategory)}
+              {selectedCategory === 'all' ? 'All Categories' : getCategoryDisplayName(selectedCategory)}
             </Text>
             <Ionicons name="chevron-down" size={16} color="#0A84FF" />
           </Pressable>
@@ -252,17 +249,17 @@ const LibraryScreen = () => {
       </View>
 
       {/* Content Area */}
-      {!shouldShowResults && allTorrents.length > 0 ? (
+      {allTorrents.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyStateIcon}>
-            <Ionicons name="film-outline" color="#0A84FF" size={48} />
+            <Ionicons name="library-outline" color="#0A84FF" size={48} />
           </View>
-          <Text style={styles.emptyStateTitle}>Your Library</Text>
+          <Text style={styles.emptyStateTitle}>Library Empty</Text>
           <Text style={styles.emptyStateSubtitle}>
-            Search or filter to find content
+            Tap the Add button to get started
           </Text>
         </View>
-      ) : shouldShowResults && displayResults.length === 0 ? (
+      ) : displayResults.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyStateIcon}>
             <Ionicons name="search-outline" color="#0A84FF" size={48} />
@@ -270,16 +267,6 @@ const LibraryScreen = () => {
           <Text style={styles.emptyStateTitle}>No Results</Text>
           <Text style={styles.emptyStateSubtitle}>
             Try adjusting your search or filter
-          </Text>
-        </View>
-      ) : allTorrents.length === 0 ? (
-        <View style={styles.emptyStateContainer}>
-          <View style={styles.emptyStateIcon}>
-            <Ionicons name="library-outline" color="#0A84FF" size={48} />
-          </View>
-          <Text style={styles.emptyStateTitle}>Library Empty</Text>
-          <Text style={styles.emptyStateSubtitle}>
-            Tap the + button to add content
           </Text>
         </View>
       ) : (
@@ -386,35 +373,35 @@ const styles = StyleSheet.create({
     fontWeight: '400',    
   },
   addButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: '#0A84FF',
-    justifyContent: 'center',
+    flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: 'rgba(10, 132, 255, 0.15)',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 4,
     marginLeft: 12,
   },
-  searchFilterContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 8,
-    flexDirection: 'row',
-    gap: 8,
-    alignItems: 'center',
+  addButtonText: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#0A84FF',
+    letterSpacing: -0.24,
   },
   searchContainer: {
-    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
   },
   searchInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#1C1C1E',
     borderRadius: 10,
-    paddingHorizontal: 8,
+    paddingHorizontal: 10,
     height: 36,
   },
   searchIcon: {
     marginRight: 6,
-    marginLeft: 2,
   },
   searchInput: {
     flex: 1,
@@ -429,6 +416,10 @@ const styles = StyleSheet.create({
     padding: 2,
     marginLeft: 4,
   },
+  filterContainer: {
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+  },
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -436,7 +427,8 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     paddingHorizontal: 12,
     height: 36,
-    gap: 4,
+    gap: 6,
+    alignSelf: 'flex-start',
   },
   filterButtonText: {
     fontSize: 15,
