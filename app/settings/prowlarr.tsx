@@ -566,7 +566,7 @@ const styles = StyleSheet.create({
         flex: 1,
     },
     instanceName: {
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: '400',
         color: '#FFFFFF',
         letterSpacing: -0.41,
@@ -589,14 +589,14 @@ const styles = StyleSheet.create({
         minHeight: 44,
     },
     formLabel: {
-        fontSize: 17,
+        fontSize: 16,
         color: '#FFFFFF',
         letterSpacing: -0.41,
         marginRight: 16,
     },
     formInput: {
         flex: 1,
-        fontSize: 17,
+        fontSize: 16,
         color: '#FFFFFF',
         letterSpacing: -0.41,
         paddingVertical: 0,
@@ -608,7 +608,7 @@ const styles = StyleSheet.create({
     },
     passwordInput: {
         flex: 1,
-        fontSize: 17,
+        fontSize: 16,
         color: '#FFFFFF',
         letterSpacing: -0.41,
         paddingVertical: 0,
@@ -641,7 +641,7 @@ const styles = StyleSheet.create({
         letterSpacing: -0.08,
     },
     addHeaderLink: {
-        fontSize: 17,
+        fontSize: 16,
         color: '#0A84FF',
         letterSpacing: -0.41,
     },
@@ -651,7 +651,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#1C1C1E',
     },
     emptyHeadersText: {
-        fontSize: 17,
+        fontSize: 16,
         color: '#8E8E93',
         letterSpacing: -0.41,
     },
@@ -678,7 +678,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 4,
     },
     headerColonText: {
-        fontSize: 17,
+        fontSize: 16,
         color: '#8E8E93',
     },
     headerValueInput: {
@@ -694,7 +694,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#1C1C1E',
     },
     deleteButtonText: {
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: '400',
         color: '#FF453A',
         letterSpacing: -0.41,
@@ -711,7 +711,7 @@ const styles = StyleSheet.create({
         marginBottom: 8,
     },
     addInstanceText: {
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: '400',
         color: '#0A84FF',
         letterSpacing: -0.41,
@@ -741,7 +741,7 @@ const styles = StyleSheet.create({
     },
     saveButtonText: {
         color: '#FFFFFF',
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: '600',
         letterSpacing: -0.41,
     },

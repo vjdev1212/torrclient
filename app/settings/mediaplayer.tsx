@@ -273,7 +273,7 @@ const styles = StyleSheet.create({
         padding: 32,
     },
     loadingText: {
-        fontSize: 17,
+        fontSize: 16,
         color: '#8E8E93',
         letterSpacing: -0.41,
     },
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
     sectionHeaderContainer: {
         paddingHorizontal: 20,
         paddingTop: 22,
-        paddingBottom: 6,
+        paddingBottom: 10,
         backgroundColor: '#000000',
     },
     sectionHeader: {
@@ -323,7 +323,7 @@ const styles = StyleSheet.create({
         backgroundColor: '#2C2C2E',
     },
     playerName: {
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: '400',
         color: '#FFFFFF',
         letterSpacing: -0.41,
@@ -361,7 +361,7 @@ const styles = StyleSheet.create({
     },
     saveButtonText: {
         color: '#FFFFFF',
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: '600',
         letterSpacing: -0.41,
     },
@@ -376,7 +376,7 @@ const styles = StyleSheet.create({
     },
     resetButtonText: {
         color: '#0A84FF',
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: '400',
         letterSpacing: -0.41,
     },

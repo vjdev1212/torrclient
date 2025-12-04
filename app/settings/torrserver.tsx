@@ -405,7 +405,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 10,
+    marginBottom: 5,
     paddingHorizontal: 4,
   },
   sectionHeader: {
@@ -469,7 +469,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   serverName: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '400',
     color: '#fff',
     marginBottom: 2,
@@ -518,7 +518,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#2C2C2E',
     borderRadius: 10,
     paddingHorizontal: 16,
-    fontSize: 17,
+    fontSize: 16,
     color: '#fff',
     letterSpacing: -0.41,
   },
@@ -548,7 +548,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   toggleLabel: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '400',
     color: '#fff',
     letterSpacing: -0.41,
@@ -569,7 +569,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255, 59, 48, 0.1)',
   },
   deleteButtonText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '400',
     color: '#FF3B30',
     letterSpacing: -0.41,
@@ -593,7 +593,7 @@ const styles = StyleSheet.create({
   },
   saveButtonText: {
     color: '#fff',
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '600',
     letterSpacing: -0.41,
   },

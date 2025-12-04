@@ -587,7 +587,7 @@ const styles = StyleSheet.create({
     },
     searchInput: {
         flex: 1,
-        fontSize: 17,
+        fontSize: 16,
         color: '#fff',
         paddingVertical: 8,
         letterSpacing: -0.41,
@@ -613,7 +613,7 @@ const styles = StyleSheet.create({
     },
     filterButtonText: {
         flex: 1,
-        fontSize: 17,
+        fontSize: 16,
         color: '#fff',
         fontWeight: '400',
         letterSpacing: -0.41,
@@ -626,7 +626,7 @@ const styles = StyleSheet.create({
     },
     loadingText: {
         marginTop: 12,
-        fontSize: 17,
+        fontSize: 16,
         color: '#8E8E93',
         fontWeight: '400',
         letterSpacing: -0.41,
@@ -664,7 +664,7 @@ const styles = StyleSheet.create({
         letterSpacing: 0.35,
     },
     emptyStateSubtext: {
-        fontSize: 17,
+        fontSize: 16,
         color: '#8E8E93',
         textAlign: 'center',
         paddingHorizontal: 20,
@@ -686,7 +686,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
     },
     resultTitle: {
-        fontSize: 17,
+        fontSize: 16,
         fontWeight: '600',
         color: '#fff',
         marginBottom: 12,
@@ -710,7 +710,7 @@ const styles = StyleSheet.create({
         gap: 5,
     },
     metaChipText: {
-        fontSize: 13,
+        fontSize: 12,
         color: '#8E8E93',
         fontWeight: '500',
         letterSpacing: -0.08,

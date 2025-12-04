@@ -657,12 +657,12 @@ const styles = StyleSheet.create({
     minHeight: 44,
   },
   infoLabel: {
-    fontSize: 17,
+    fontSize: 16,
     color: '#FFFFFF',
     flex: 1,
   },
   infoValue: {
-    fontSize: 17,
+    fontSize: 16,
     color: '#8E8E93',
     textAlign: 'right',
     marginLeft: 16,
@@ -694,12 +694,12 @@ const styles = StyleSheet.create({
     gap: 2,
   },
   fileName: {
-    fontSize: 17,
+    fontSize: 16,
     color: '#FFFFFF',
     lineHeight: 22,
   },
   fileSize: {
-    fontSize: 15,
+    fontSize: 14,
     color: '#8E8E93',
   },
 
@@ -712,11 +712,11 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 17,
+    fontSize: 16,
     color: '#8E8E93',
   },
   emptyText: {
-    fontSize: 17,
+    fontSize: 16,
     color: '#8E8E93',
   },
 });

@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   settingText: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '400',
     color: '#fff',
     letterSpacing: -0.41,
@@ -223,13 +223,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   infoLabel: {
-    fontSize: 17,
+    fontSize: 16,
     color: '#fff',
     fontWeight: '400',
     letterSpacing: -0.41,
   },
   infoValue: {
-    fontSize: 17,
+    fontSize: 16,
     color: '#8E8E93',
     fontWeight: '400',
     letterSpacing: -0.41,

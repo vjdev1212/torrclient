@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     letterSpacing: 0.35,
   },
   emptyStateSubtitle: {
-    fontSize: 17,
+    fontSize: 16,
     color: '#8E8E93',
     textAlign: 'center',
     lineHeight: 22,
