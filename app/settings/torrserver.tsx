@@ -314,7 +314,7 @@ const TorrServerScreen = () => {
           <View style={styles.sectionHeaderRow}>
             <Text style={styles.sectionHeader}>SERVERS</Text>
             <Pressable onPress={addServer} style={styles.addButton}>
-              <Ionicons name="add-circle" size={22} color="#007AFF" />
+              <Ionicons name="add-circle" size={26} color="#007AFF" />
             </Pressable>
           </View>
 
@@ -405,8 +405,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
-    paddingHorizontal: 16,
+    marginBottom: 10,
+    paddingHorizontal: 4,
   },
   sectionHeader: {
     fontSize: 13,

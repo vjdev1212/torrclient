@@ -158,8 +158,8 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#8E8E93',
     letterSpacing: -0.08,
-    marginBottom: 8,
-    paddingHorizontal: 16,
+    marginBottom: 10,
+    paddingHorizontal: 2,
     textTransform: 'uppercase',
   },
   settingsGroup: {
