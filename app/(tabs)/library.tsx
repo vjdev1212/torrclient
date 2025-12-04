@@ -199,7 +199,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: '#101010',
-    borderRadius: 12,
+    borderRadius: 10,
     paddingHorizontal: 15,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#202020',

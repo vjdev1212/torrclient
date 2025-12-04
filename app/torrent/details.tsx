@@ -518,8 +518,7 @@ const TorrentDetails = () => {
             {videoFiles.length > 0 && (
               <View style={styles.filesSection}>
                 <View style={styles.filesSectionHeader}>
-                  <Ionicons name="film-outline" size={22} color="#535aff" />
-                  <Text style={styles.sectionTitle}>Files ({videoFiles.length})</Text>
+                  <Text style={styles.sectionTitle}>Files: {videoFiles.length}</Text>
                 </View>
                 {videoFiles.map((file: any, index: number) => (
                   <TouchableOpacity
@@ -532,7 +531,7 @@ const TorrentDetails = () => {
                       <Ionicons name="play-circle" size={22} color="#535aff" />
                     </View>
                     <View style={styles.fileContent}>
-                      <Text style={styles.fileName} numberOfLines={2}>
+                      <Text style={styles.fileName}>
                         {file.path}
                       </Text>
                       <Text style={styles.fileSize}>
