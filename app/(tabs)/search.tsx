@@ -16,12 +16,7 @@ import { MenuView } from '@react-native-menu/menu';
 import { Text, View } from '@/components/Themed';
 import { isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
-import ProwlarrClient, { ProwlarrSearchResult, ProwlarrIndexer } from '@/clients/prowlarr';
-
-interface CategoryOption {
-    id: number;
-    name: string;
-}
+import ProwlarrClient, { ProwlarrSearchResult, ProwlarrIndexer, ProwlarrCategory } from '@/clients/prowlarr';
 
 const ProwlarrSearchScreen = () => {
     const router = useRouter();
@@ -32,9 +27,10 @@ const ProwlarrSearchScreen = () => {
     const [searched, setSearched] = useState(false);
 
     const [indexers, setIndexers] = useState<ProwlarrIndexer[]>([]);
-    const [categories, setCategories] = useState<CategoryOption[]>([]);
+    const [categories, setCategories] = useState<ProwlarrCategory[]>([]);
     const [selectedIndexer, setSelectedIndexer] = useState<number | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
+    const [selectedCategoryName, setSelectedCategoryName] = useState<string>('All Categories');
 
     useEffect(() => {
         loadData();
@@ -60,28 +56,10 @@ const ProwlarrSearchScreen = () => {
             // Load categories from Prowlarr API
             const fetchedCategories = await client.getCategories();
 
-            // Filter for Movies and TV categories with their subcategories
-            const moviesTVCategories: CategoryOption[] = [];
-
-            fetchedCategories.forEach(category => {
-                if (category.id === 2000) { // Movies
-                    moviesTVCategories.push({ id: category.id, name: 'Movies (All)' });
-                    category.subCategories.forEach(sub => {
-                        moviesTVCategories.push({
-                            id: sub.id,
-                            name: `Movies - ${sub.name.replace('Movies/', '')}`
-                        });
-                    });
-                } else if (category.id === 5000) { // TV
-                    moviesTVCategories.push({ id: category.id, name: 'TV (All)' });
-                    category.subCategories.forEach(sub => {
-                        moviesTVCategories.push({
-                            id: sub.id,
-                            name: `TV - ${sub.name.replace('TV/', '')}`
-                        });
-                    });
-                }
-            });
+            // Filter for Movies and TV categories
+            const moviesTVCategories = fetchedCategories.filter(
+                category => category.id === 2000 || category.id === 5000
+            );
 
             setCategories(moviesTVCategories);
             setLoadingData(false);
@@ -108,8 +86,8 @@ const ProwlarrSearchScreen = () => {
 
             const searchResults = await client.search({
                 query: query.trim(),
-                indexerIds: selectedIndexer ? [selectedIndexer] : undefined,
-                categories: selectedCategory ? [selectedCategory] : undefined,
+                indexerIds: selectedIndexer !== null ? [selectedIndexer] : undefined,
+                categories: selectedCategory !== null ? [selectedCategory] : undefined,
                 limit: 100,
             });
 
@@ -154,22 +132,27 @@ const ProwlarrSearchScreen = () => {
         });
     };
 
-    const getCategoryBadge = (categoryIds: number[]) => {
-        if (!categoryIds || categoryIds.length === 0) return 'Unknown';
+    const getCategoryDisplayName = (categoryId: number): string => {
+        // Main categories
+        if (categoryId === 2000) return 'Movies (All)';
+        if (categoryId === 5000) return 'TV (All)';
 
-        const categoryId = categoryIds[0];
-
-        // Check if it's a main category
-        if (categoryId === 2000) return 'Movies';
-        if (categoryId === 5000) return 'TV';
-
-        // Check subcategories
-        const category = categories.find(c => c.id === categoryId);
-        if (category) {
-            return category.name;
+        // Find in subcategories
+        for (const category of categories) {
+            const subcategory = category.subCategories.find(sub => sub.id === categoryId);
+            if (subcategory) {
+                const mainName = category.name;
+                const subName = subcategory.name.replace(`${mainName}/`, '');
+                return `${mainName} - ${subName}`;
+            }
         }
 
         return 'Other';
+    };
+
+    const getCategoryBadge = (categoryIds: number[]) => {
+        if (!categoryIds || categoryIds.length === 0) return 'Unknown';
+        return getCategoryDisplayName(categoryIds[0]);
     };
 
     const getIndexerMenuActions = () => {
@@ -198,12 +181,33 @@ const ProwlarrSearchScreen = () => {
                 state: selectedCategory === null ? ('on' as const) : ('off' as const),
                 titleColor: selectedCategory === null ? '#007AFF' : undefined,
             },
-            ...categories.map(category => ({
-                id: category.id.toString(),
-                title: category.name,
-                state: selectedCategory === category.id ? ('on' as const) : ('off' as const),
-                titleColor: selectedCategory === category.id ? '#007AFF' : undefined,
-            })),
+            ...categories.map(category => {
+                // Check if any subcategory is selected
+                const isSubcategorySelected = category.subCategories.some(sub => sub.id === selectedCategory);
+
+                return {
+                    id: category.id.toString(),
+                    title: `${category.name} (All)`,
+                    state: selectedCategory === category.id ? ('on' as const) : ('off' as const),
+                    titleColor: selectedCategory === category.id ? '#007AFF' : undefined,
+                    subactions: [
+                        // Add main category as first subaction
+                        {
+                            id: category.id.toString(),
+                            title: 'All',
+                            state: selectedCategory === category.id ? ('on' as const) : ('off' as const),
+                            titleColor: selectedCategory === category.id ? '#007AFF' : undefined,
+                        },
+                        // Add all subcategories
+                        ...category.subCategories.map(sub => ({
+                            id: sub.id.toString(),
+                            title: sub.name.replace(`${category.name}/`, ''),
+                            state: selectedCategory === sub.id ? ('on' as const) : ('off' as const),
+                            titleColor: selectedCategory === sub.id ? '#007AFF' : undefined,
+                        })),
+                    ],
+                };
+            }),
         ];
         return actions;
     };
@@ -222,21 +226,20 @@ const ProwlarrSearchScreen = () => {
     const handleCategorySelect = async (categoryId: string) => {
         if (categoryId === 'all') {
             setSelectedCategory(null);
+            setSelectedCategoryName('All Categories');
         } else {
-            setSelectedCategory(parseInt(categoryId));
+            const catId = parseInt(categoryId);
+            setSelectedCategory(catId);
+            setSelectedCategoryName(getCategoryDisplayName(catId));
         }
         if (isHapticsSupported()) {
             await Haptics.selectionAsync();
         }
     };
 
-    const selectedIndexerName = selectedIndexer
+    const selectedIndexerName = selectedIndexer !== null
         ? indexers.find(i => i.id === selectedIndexer)?.name || 'All Indexers'
         : 'All Indexers';
-
-    const selectedCategoryName = selectedCategory
-        ? categories.find(c => c.id === selectedCategory)?.name || 'All Categories'
-        : 'All Categories';
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
@@ -283,41 +286,39 @@ const ProwlarrSearchScreen = () => {
                         {/* Filters */}
                         {!loadingData && (
                             <View style={styles.filtersContainer}>
-                                <View style={styles.filtersRow}>
-                                    <MenuView
-                                        onPressAction={({ nativeEvent }) => {
-                                            handleIndexerSelect(nativeEvent.event);
-                                        }}
-                                        actions={getIndexerMenuActions()}
-                                        shouldOpenOnLongPress={false}
-                                        themeVariant="dark"
-                                    >
-                                        <View style={[styles.filterButton]}>
-                                            <Ionicons name="server-outline" size={16} color="#999" />
-                                            <Text style={styles.filterButtonText} numberOfLines={1}>
-                                                {selectedIndexerName}
-                                            </Text>
-                                            <Ionicons name="chevron-down" size={16} color="#666" />
-                                        </View>
-                                    </MenuView>
+                                <MenuView
+                                    onPressAction={({ nativeEvent }) => {
+                                        handleIndexerSelect(nativeEvent.event);
+                                    }}
+                                    actions={getIndexerMenuActions()}
+                                    shouldOpenOnLongPress={false}
+                                    themeVariant="dark"
+                                >
+                                    <View style={[styles.filterButton]}>
+                                        <Ionicons name="server-outline" size={16} color="#999" />
+                                        <Text style={styles.filterButtonText} numberOfLines={1}>
+                                            {selectedIndexerName}
+                                        </Text>
+                                        <Ionicons name="chevron-down" size={16} color="#666" />
+                                    </View>
+                                </MenuView>
 
-                                    <MenuView
-                                        onPressAction={({ nativeEvent }) => {
-                                            handleCategorySelect(nativeEvent.event);
-                                        }}
-                                        actions={getCategoryMenuActions()}
-                                        shouldOpenOnLongPress={false}
-                                        themeVariant="dark"
-                                    >
-                                        <View style={[styles.filterButton]}>
-                                            <Ionicons name="film-outline" size={16} color="#999" />
-                                            <Text style={styles.filterButtonText} numberOfLines={1}>
-                                                {selectedCategoryName}
-                                            </Text>
-                                            <Ionicons name="chevron-down" size={16} color="#666" />
-                                        </View>
-                                    </MenuView>
-                                </View>
+                                <MenuView
+                                    onPressAction={({ nativeEvent }) => {
+                                        handleCategorySelect(nativeEvent.event);
+                                    }}
+                                    actions={getCategoryMenuActions()}
+                                    shouldOpenOnLongPress={false}
+                                    themeVariant="dark"
+                                >
+                                    <View style={[styles.filterButton]}>
+                                        <Ionicons name="film-outline" size={16} color="#999" />
+                                        <Text style={styles.filterButtonText} numberOfLines={1}>
+                                            {selectedCategoryName}
+                                        </Text>
+                                        <Ionicons name="chevron-down" size={16} color="#666" />
+                                    </View>
+                                </MenuView>
                             </View>
                         )}
 
@@ -374,7 +375,7 @@ const ProwlarrSearchScreen = () => {
                                             </View>
 
                                             {/* Title */}
-                                            <Text style={styles.resultTitle}>
+                                            <Text style={styles.resultTitle} numberOfLines={3}>
                                                 {result.title}
                                             </Text>
 
@@ -479,14 +480,9 @@ const styles = StyleSheet.create({
     filtersContainer: {
         marginBottom: 24,
         backgroundColor: 'transparent',
-    },
-    filtersRow: {
-        flexDirection: 'column',
         gap: 10,
-        backgroundColor: 'transparent',
     },
     filterButton: {
-        flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         backgroundColor: '#0f0f0f',
@@ -495,7 +491,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         borderWidth: 1,
         borderColor: '#1f1f1f',
-        gap: 8
+        gap: 8,
     },
     filterButtonText: {
         flex: 1,
