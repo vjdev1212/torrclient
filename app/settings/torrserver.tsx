@@ -68,7 +68,7 @@ const TorrServerScreen = () => {
     setSaving(true);
     try {
       if (isHapticsSupported()) {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
       }
 
       // Validate all servers
@@ -98,6 +98,9 @@ const TorrServerScreen = () => {
   };
 
   const addServer = () => {
+    if (isHapticsSupported()) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     const newServer: ServerConfig = {
       id: Date.now().toString(),
       name: ``,
@@ -139,6 +142,9 @@ const TorrServerScreen = () => {
   };
 
   const toggleExpanded = (id: string) => {
+    if (isHapticsSupported()) {
+      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
     setExpandedServerId(expandedServerId === id ? '' : id);
   };
 
@@ -151,11 +157,19 @@ const TorrServerScreen = () => {
         {/* Server Header */}
         <Pressable
           onPress={() => toggleExpanded(server.id)}
-          style={styles.serverHeader}
+          style={({ pressed }) => [
+            styles.serverHeader,
+            pressed && styles.serverHeaderPressed
+          ]}
         >
           <View style={styles.serverHeaderLeft}>
             <Pressable
-              onPress={() => setActiveServerId(server.id)}
+              onPress={() => {
+                if (isHapticsSupported()) {
+                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+                }
+                setActiveServerId(server.id);
+              }}
               style={styles.radioButton}
             >
               <View style={[styles.radioOuter, isActive && styles.radioOuterActive]}>
@@ -163,7 +177,7 @@ const TorrServerScreen = () => {
               </View>
             </Pressable>
             <View style={styles.serverInfo}>
-              <Text style={styles.serverName}>{server.name}</Text>
+              <Text style={styles.serverName}>{server.name || 'Unnamed Server'}</Text>
               <Text style={styles.serverUrl} numberOfLines={1}>
                 {server.url || 'Not configured'}
               </Text>
@@ -172,13 +186,13 @@ const TorrServerScreen = () => {
           <View style={styles.serverHeaderRight}>
             {isActive && (
               <View style={styles.activeBadge}>
-                <Text style={styles.activeBadgeText}>Active</Text>
+                <Text style={styles.activeBadgeText}>ACTIVE</Text>
               </View>
             )}
             <Ionicons
               name={isExpanded ? "chevron-up" : "chevron-down"}
               size={20}
-              color="#888"
+              color="#8E8E93"
             />
           </View>
         </Pressable>
@@ -190,16 +204,13 @@ const TorrServerScreen = () => {
 
             {/* Server Name */}
             <View style={styles.inputWrapper}>
-              <View style={styles.labelRow}>
-                <Ionicons name="pricetag-outline" size={18} color="#535aff" style={styles.labelIcon} />
-                <Text style={styles.label}>Server Name</Text>
-              </View>
+              <Text style={styles.label}>SERVER NAME</Text>
               <TextInput
                 style={styles.input}
                 value={server.name}
                 onChangeText={(text) => updateServer(server.id, { name: text })}
-                placeholder="TorrServer"
-                placeholderTextColor="#666"
+                placeholder="My TorrServer"
+                placeholderTextColor="#8E8E93"
               />
             </View>
 
@@ -207,10 +218,7 @@ const TorrServerScreen = () => {
 
             {/* Server URL */}
             <View style={styles.inputWrapper}>
-              <View style={styles.labelRow}>
-                <Ionicons name="server-outline" size={18} color="#535aff" style={styles.labelIcon} />
-                <Text style={styles.label}>Base URL</Text>
-              </View>
+              <Text style={styles.label}>BASE URL</Text>
               <TextInput
                 style={styles.input}
                 value={server.url}
@@ -218,7 +226,7 @@ const TorrServerScreen = () => {
                 autoCapitalize="none"
                 autoCorrect={false}
                 placeholder="http://192.168.1.10:5665"
-                placeholderTextColor="#666"
+                placeholderTextColor="#8E8E93"
               />
             </View>
 
@@ -227,26 +235,14 @@ const TorrServerScreen = () => {
             {/* Authentication Toggle */}
             <View style={styles.toggleWrapper}>
               <View style={styles.toggleLeft}>
-                <View style={styles.toggleIconContainer}>
-                  <Ionicons
-                    name={server.authEnabled ? "lock-closed" : "lock-open-outline"}
-                    size={20}
-                    color="#535aff"
-                  />
-                </View>
-                <View>
-                  <Text style={styles.toggleLabel}>Authentication</Text>
-                  <Text style={styles.toggleDescription}>
-                    {server.authEnabled ? 'Enabled' : 'Disabled'}
-                  </Text>
-                </View>
+                <Text style={styles.toggleLabel}>Authentication</Text>
               </View>
               <Switch
                 value={server.authEnabled}
                 onValueChange={(value) => updateServer(server.id, { authEnabled: value })}
-                thumbColor={server.authEnabled ? '#535aff' : '#888'}
-                trackColor={{ false: '#202020', true: 'rgba(83, 90, 255, 0.3)' }}
-                ios_backgroundColor="#202020"
+                thumbColor="#fff"
+                trackColor={{ false: '#3A3A3C', true: '#34C759' }}
+                ios_backgroundColor="#3A3A3C"
               />
             </View>
 
@@ -256,27 +252,21 @@ const TorrServerScreen = () => {
                 <View style={styles.separator} />
 
                 <View style={styles.inputWrapper}>
-                  <View style={styles.labelRow}>
-                    <Ionicons name="person-outline" size={18} color="#535aff" style={styles.labelIcon} />
-                    <Text style={styles.label}>Username</Text>
-                  </View>
+                  <Text style={styles.label}>USERNAME</Text>
                   <TextInput
                     style={styles.input}
                     value={server.username}
                     onChangeText={(text) => updateServer(server.id, { username: text })}
                     autoCapitalize="none"
-                    placeholder="Enter username"
-                    placeholderTextColor="#666"
+                    placeholder="Username"
+                    placeholderTextColor="#8E8E93"
                   />
                 </View>
 
                 <View style={styles.separator} />
 
                 <View style={styles.inputWrapper}>
-                  <View style={styles.labelRow}>
-                    <Ionicons name="key-outline" size={18} color="#535aff" style={styles.labelIcon} />
-                    <Text style={styles.label}>Password</Text>
-                  </View>
+                  <Text style={styles.label}>PASSWORD</Text>
                   <PasswordInput
                     value={server.password}
                     onChangeText={(text) => updateServer(server.id, { password: text })}
@@ -291,9 +281,11 @@ const TorrServerScreen = () => {
                 <View style={styles.separator} />
                 <Pressable
                   onPress={() => deleteServer(server.id)}
-                  style={styles.deleteButton}
+                  style={({ pressed }) => [
+                    styles.deleteButton,
+                    pressed && styles.deleteButtonPressed
+                  ]}
                 >
-                  <Ionicons name="trash-outline" size={18} color="#ff4444" />
                   <Text style={styles.deleteButtonText}>Delete Server</Text>
                 </Pressable>
               </>
@@ -311,7 +303,6 @@ const TorrServerScreen = () => {
       {/* Header */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>TorrServer</Text>
-        <Text style={styles.headerSubtitle}>Manage your server connections</Text>
       </View>
 
       <ScrollView
@@ -321,10 +312,9 @@ const TorrServerScreen = () => {
         {/* Servers Section */}
         <View style={styles.section}>
           <View style={styles.sectionHeaderRow}>
-            <Text style={styles.sectionHeader}>SERVERS ({servers.length})</Text>
+            <Text style={styles.sectionHeader}>SERVERS</Text>
             <Pressable onPress={addServer} style={styles.addButton}>
-              <Ionicons name="add-circle-outline" size={20} color="#535aff" />
-              <Text style={styles.addButtonText}>Add Server</Text>
+              <Ionicons name="add-circle" size={22} color="#007AFF" />
             </Pressable>
           </View>
 
@@ -341,22 +331,16 @@ const TorrServerScreen = () => {
             saving && styles.saveButtonDisabled
           ]}
         >
-          <Ionicons
-            name={saving ? "hourglass-outline" : "checkmark-circle-outline"}
-            size={20}
-            color="#fff"
-            style={styles.saveButtonIcon}
-          />
           <Text style={styles.saveButtonText}>
-            {saving ? 'Saving...' : 'Save All Configurations'}
+            {saving ? 'Saving...' : 'Save Configurations'}
           </Text>
         </Pressable>
 
         {/* Info Note */}
         <View style={styles.infoCard}>
-          <Ionicons name="information-circle-outline" size={20} color="#535aff" />
+          <Ionicons name="information-circle-outline" size={20} color="#007AFF" />
           <Text style={styles.infoText}>
-            Select an active server by tapping the radio button. Expand each server to configure its settings.
+            Select an active server by tapping the radio button. Expand to configure settings.
           </Text>
         </View>
       </ScrollView>
@@ -375,17 +359,17 @@ const PasswordInput = ({ value, onChangeText }: { value: string; onChangeText: (
         onChangeText={onChangeText}
         secureTextEntry={!showPassword}
         autoCapitalize="none"
-        placeholder="Enter password"
-        placeholderTextColor="#666"
+        placeholder="Password"
+        placeholderTextColor="#8E8E93"
       />
       <Pressable
         onPress={() => setShowPassword(!showPassword)}
         style={styles.eyeIcon}
       >
         <Ionicons
-          name={showPassword ? "eye-off-outline" : "eye-outline"}
+          name={showPassword ? "eye-off" : "eye"}
           size={20}
-          color="#666"
+          color="#8E8E93"
         />
       </Pressable>
     </View>
@@ -400,57 +384,43 @@ const styles = StyleSheet.create({
     maxWidth: 780
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 24,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 20,
   },
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 4,
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 15,
-    color: '#888',
-    fontWeight: 500,
+    letterSpacing: 0.35,
   },
   content: {
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
   section: {
-    marginBottom: 28,
+    marginBottom: 24,
   },
   sectionHeaderRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-    paddingHorizontal: 4,
+    marginBottom: 8,
+    paddingHorizontal: 16,
   },
   sectionHeader: {
     fontSize: 13,
-    fontWeight: 500,
-    color: '#888',
-    letterSpacing: 0.5,
+    fontWeight: '400',
+    color: '#8E8E93',
+    letterSpacing: -0.08,
+    textTransform: 'uppercase',
   },
   addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  addButtonText: {
-    fontSize: 14,
-    fontWeight: 500,
-    color: '#535aff',
+    padding: 4,
   },
   serverCard: {
-    backgroundColor: '#101010',
+    backgroundColor: '#1C1C1E',
     borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#202020',
     marginBottom: 12,
     overflow: 'hidden',
   },
@@ -459,102 +429,109 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
+    minHeight: 60,
+  },
+  serverHeaderPressed: {
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
   },
   serverHeaderLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     flex: 1,
     marginRight: 12,
+    backgroundColor: 'transparent',
   },
   radioButton: {
     marginRight: 12,
+    padding: 4,
   },
   radioOuter: {
-    width: 24,
-    height: 24,
-    borderRadius: 10,
+    width: 22,
+    height: 22,
+    borderRadius: 11,
     borderWidth: 2,
-    borderColor: '#666',
+    borderColor: '#8E8E93',
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: 'transparent',
   },
   radioOuterActive: {
-    borderColor: '#535aff',
+    borderColor: '#007AFF',
   },
   radioInner: {
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: '#535aff',
+    backgroundColor: '#007AFF',
   },
   serverInfo: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   serverName: {
-    fontSize: 16,
-    fontWeight: 500,
+    fontSize: 17,
+    fontWeight: '400',
     color: '#fff',
     marginBottom: 2,
+    letterSpacing: -0.41,
   },
   serverUrl: {
     fontSize: 13,
-    color: '#888',
+    color: '#8E8E93',
+    letterSpacing: -0.08,
   },
   serverHeaderRight: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    backgroundColor: 'transparent',
   },
   activeBadge: {
-    backgroundColor: 'rgba(83, 90, 255, 0.2)',
-    paddingHorizontal: 10,
+    backgroundColor: 'rgba(0, 122, 255, 0.15)',
+    paddingHorizontal: 8,
     paddingVertical: 4,
-    borderRadius: 8,
+    borderRadius: 6,
   },
   activeBadgeText: {
-    fontSize: 12,
-    fontWeight: 500,
-    color: '#535aff',
+    fontSize: 11,
+    fontWeight: '600',
+    color: '#007AFF',
+    letterSpacing: 0.6,
   },
   serverDetails: {
-    backgroundColor: '#101010',
+    backgroundColor: '#1C1C1E',
   },
   inputWrapper: {
     padding: 16,
-  },
-  labelRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  labelIcon: {
-    marginRight: 6,
+    backgroundColor: 'transparent',
   },
   label: {
-    fontSize: 14,
-    fontWeight: 500,
-    color: '#fff',
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#8E8E93',
+    marginBottom: 8,
+    letterSpacing: -0.08,
+    textTransform: 'uppercase',
   },
   input: {
-    height: 40,
-    backgroundColor: '#1a1a1a',
+    height: 44,
+    backgroundColor: '#2C2C2E',
     borderRadius: 10,
-    paddingHorizontal: 14,
-    fontSize: 15,
+    paddingHorizontal: 16,
+    fontSize: 17,
     color: '#fff',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#202020',
+    letterSpacing: -0.41,
   },
   passwordContainer: {
     position: 'relative',
   },
   passwordInput: {
-    paddingRight: 44,
+    paddingRight: 48,
   },
   eyeIcon: {
     position: 'absolute',
     right: 12,
-    top: 5,
+    top: 12,
     padding: 4,
   },
   toggleWrapper: {
@@ -562,51 +539,43 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: 16,
+    minHeight: 44,
+    backgroundColor: 'transparent',
   },
   toggleLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
     flex: 1,
     marginRight: 16,
-  },
-  toggleIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'rgba(83, 90, 255, 0.15)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
+    backgroundColor: 'transparent',
   },
   toggleLabel: {
-    fontSize: 15,
-    fontWeight: 500,
+    fontSize: 17,
+    fontWeight: '400',
     color: '#fff',
-    marginBottom: 2,
-  },
-  toggleDescription: {
-    fontSize: 13,
-    color: '#888',
+    letterSpacing: -0.41,
   },
   separator: {
-    height: 1,
-    backgroundColor: '#202020',
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(84, 84, 88, 0.65)',
+    marginLeft: 16,
   },
   deleteButton: {
-    flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     padding: 16,
-    gap: 8,
+    minHeight: 44,
+    backgroundColor: 'transparent',
+  },
+  deleteButtonPressed: {
+    backgroundColor: 'rgba(255, 59, 48, 0.1)',
   },
   deleteButtonText: {
-    fontSize: 15,
-    fontWeight: 500,
-    color: '#ff4444',
+    fontSize: 17,
+    fontWeight: '400',
+    color: '#FF3B30',
+    letterSpacing: -0.41,
   },
   saveButton: {
-    backgroundColor: '#535aff',
-    flexDirection: 'row',
+    backgroundColor: '#007AFF',
     justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 16,
@@ -614,38 +583,34 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     marginTop: 8,
     marginBottom: 20,
-    maxWidth: 300,
-    width: '100%',
-    margin: 'auto'
+    minHeight: 50,
   },
   saveButtonPressed: {
-    backgroundColor: '#4248d9',
+    backgroundColor: '#0051D5',
   },
   saveButtonDisabled: {
-    opacity: 0.6,
-  },
-  saveButtonIcon: {
-    marginRight: 8,
+    opacity: 0.5,
   },
   saveButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 500,
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: -0.41,
   },
   infoCard: {
     flexDirection: 'row',
-    backgroundColor: 'rgba(83, 90, 255, 0.1)',
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
     borderRadius: 10,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: 'rgba(83, 90, 255, 0.2)',
+    padding: 16,
+    alignItems: 'flex-start',
   },
   infoText: {
     flex: 1,
     fontSize: 13,
-    color: '#aaa',
+    color: '#8E8E93',
     lineHeight: 18,
-    marginLeft: 10,
+    marginLeft: 12,
+    letterSpacing: -0.08,
   },
 });
 
