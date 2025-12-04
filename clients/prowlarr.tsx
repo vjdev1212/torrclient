@@ -39,11 +39,8 @@ export interface ProwlarrSearchResult {
 
 export interface ProwlarrSearchParams {
   query?: string;
-  imdbId?: string;
-  tmdbId?: string;
-  season?: number;
-  episode?: number;
-  type?: 'movie' | 'tvsearch' | 'search';
+  type?: string;
+  indexerIds?: number[];
   categories?: number[]; // 2000 = Movies, 5000 = TV
   limit?: number;
   offset?: number;
@@ -136,14 +133,6 @@ class ProwlarrClient {
       ? this.config.url.slice(0, -1) 
       : this.config.url;
 
-    // Determine search type
-    let searchType = params.type || 'search';
-    if (params.season !== undefined || params.episode !== undefined) {
-      searchType = 'tvsearch';
-    } else if (params.imdbId || params.tmdbId) {
-      searchType = params.type || 'movie';
-    }
-
     const url = new URL(`${baseUrl}/api/v1/search`);
     
     // Add query parameter
@@ -152,28 +141,15 @@ class ProwlarrClient {
     }
 
     // Add type
-    url.searchParams.append('type', searchType);
-
-    // Add IMDB ID
-    if (params.imdbId) {
-      // Ensure IMDB ID starts with 'tt'
-      const imdbId = params.imdbId.startsWith('tt') 
-        ? params.imdbId 
-        : `tt${params.imdbId}`;
-      url.searchParams.append('imdbId', imdbId);
+    if (params.type) {
+      url.searchParams.append('type', params.type);
     }
 
-    // Add TMDB ID
-    if (params.tmdbId) {
-      url.searchParams.append('tmdbId', params.tmdbId.toString());
-    }
-
-    // Add season and episode for TV shows
-    if (params.season !== undefined) {
-      url.searchParams.append('season', params.season.toString());
-    }
-    if (params.episode !== undefined) {
-      url.searchParams.append('episode', params.episode.toString());
+    // Add indexer IDs
+    if (params.indexerIds && params.indexerIds.length > 0) {
+      params.indexerIds.forEach(id => {
+        url.searchParams.append('indexerIds', id.toString());
+      });
     }
 
     // Add categories (2000 = Movies, 5000 = TV)
@@ -240,81 +216,12 @@ class ProwlarrClient {
   }
 
   /**
-   * Search for movies by IMDB ID
-   */
-  async searchMovieByImdbId(imdbId: string, limit: number = 50): Promise<ProwlarrSearchResult[]> {
-    return this.search({
-      imdbId,
-      type: 'movie',
-      categories: [2000], // Movies category
-      limit,
-    });
-  }
-
-  /**
-   * Search for movies by TMDB ID
-   */
-  async searchMovieByTmdbId(tmdbId: string, limit: number = 50): Promise<ProwlarrSearchResult[]> {
-    return this.search({
-      tmdbId,
-      type: 'movie',
-      categories: [2000], // Movies category
-      limit,
-    });
-  }
-
-  /**
    * Search for TV shows by name
    */
-  async searchTVShowByName(
-    name: string,
-    season?: number,
-    episode?: number,
-    limit: number = 50
-  ): Promise<ProwlarrSearchResult[]> {
+  async searchTVShowByName(name: string, limit: number = 50): Promise<ProwlarrSearchResult[]> {
     return this.search({
       query: name,
       type: 'tvsearch',
-      season,
-      episode,
-      categories: [5000], // TV category
-      limit,
-    });
-  }
-
-  /**
-   * Search for TV shows by IMDB ID
-   */
-  async searchTVShowByImdbId(
-    imdbId: string,
-    season?: number,
-    episode?: number,
-    limit: number = 50
-  ): Promise<ProwlarrSearchResult[]> {
-    return this.search({
-      imdbId,
-      type: 'tvsearch',
-      season,
-      episode,
-      categories: [5000], // TV category
-      limit,
-    });
-  }
-
-  /**
-   * Search for TV shows by TMDB ID
-   */
-  async searchTVShowByTmdbId(
-    tmdbId: string,
-    season?: number,
-    episode?: number,
-    limit: number = 50
-  ): Promise<ProwlarrSearchResult[]> {
-    return this.search({
-      tmdbId,
-      type: 'tvsearch',
-      season,
-      episode,
       categories: [5000], // TV category
       limit,
     });
