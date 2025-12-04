@@ -47,37 +47,37 @@ const ProwlarrSearchScreen = () => {
 
             // Load indexers
             const fetchedIndexers = await client.getIndexers();
-            
+
             if (!fetchedIndexers || !Array.isArray(fetchedIndexers)) {
                 console.error('Invalid indexers data:', fetchedIndexers);
                 showAlert('Error', 'Failed to load indexers from Prowlarr');
                 setLoadingData(false);
                 return;
             }
-            
+
             setIndexers(fetchedIndexers.filter(i => i.enable));
 
             // Load categories from Prowlarr API
             const fetchedCategories = await client.getCategories();
-            
+
             // Filter for Movies and TV categories with their subcategories
             const moviesTVCategories: CategoryOption[] = [];
-            
+
             fetchedCategories.forEach(category => {
                 if (category.id === 2000) { // Movies
                     moviesTVCategories.push({ id: category.id, name: 'Movies (All)' });
                     category.subCategories.forEach(sub => {
-                        moviesTVCategories.push({ 
-                            id: sub.id, 
-                            name: `Movies - ${sub.name.replace('Movies/', '')}` 
+                        moviesTVCategories.push({
+                            id: sub.id,
+                            name: `Movies - ${sub.name.replace('Movies/', '')}`
                         });
                     });
                 } else if (category.id === 5000) { // TV
                     moviesTVCategories.push({ id: category.id, name: 'TV (All)' });
                     category.subCategories.forEach(sub => {
-                        moviesTVCategories.push({ 
-                            id: sub.id, 
-                            name: `TV - ${sub.name.replace('TV/', '')}` 
+                        moviesTVCategories.push({
+                            id: sub.id,
+                            name: `TV - ${sub.name.replace('TV/', '')}`
                         });
                     });
                 }
@@ -142,7 +142,7 @@ const ProwlarrSearchScreen = () => {
         if (isHapticsSupported()) Haptics.selectionAsync();
     };
 
-    const handleSelectTorrent = async(result: ProwlarrSearchResult) => {
+    const handleSelectTorrent = async (result: ProwlarrSearchResult) => {
         if (isHapticsSupported()) {
             await Haptics.selectionAsync();
         }
@@ -156,19 +156,19 @@ const ProwlarrSearchScreen = () => {
 
     const getCategoryBadge = (categoryIds: number[]) => {
         if (!categoryIds || categoryIds.length === 0) return 'Unknown';
-        
+
         const categoryId = categoryIds[0];
-        
+
         // Check if it's a main category
         if (categoryId === 2000) return 'Movies';
         if (categoryId === 5000) return 'TV';
-        
+
         // Check subcategories
         const category = categories.find(c => c.id === categoryId);
         if (category) {
             return category.name;
         }
-        
+
         return 'Other';
     };
 
@@ -374,7 +374,7 @@ const ProwlarrSearchScreen = () => {
                                             </View>
 
                                             {/* Title */}
-                                            <Text style={styles.resultTitle} numberOfLines={3}>
+                                            <Text style={styles.resultTitle}>
                                                 {result.title}
                                             </Text>
 
@@ -481,7 +481,7 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
     },
     filtersRow: {
-        flexDirection: 'row',
+        flexDirection: 'column',
         gap: 10,
         backgroundColor: 'transparent',
     },
@@ -495,7 +495,7 @@ const styles = StyleSheet.create({
         borderRadius: 10,
         borderWidth: 1,
         borderColor: '#1f1f1f',
-        gap: 8,
+        gap: 8
     },
     filterButtonText: {
         flex: 1,
