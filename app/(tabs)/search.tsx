@@ -258,27 +258,27 @@ const ProwlarrSearchScreen = () => {
                         <View style={styles.header}>
                             <Text style={styles.headerTitle}>Search</Text>
                             <Text style={styles.headerSubtitle}>
-                                Search using Prowlarr
+                                Find torrents with Prowlarr
                             </Text>
                         </View>
 
                         {/* Search Bar */}
                         <View style={styles.searchBarContainer}>
-                            <Ionicons name="search" size={20} color="#666" style={styles.searchIcon} />
+                            <Ionicons name="search-outline" size={20} color="#8E8E93" style={styles.searchIcon} />
                             <TextInput
                                 style={styles.searchInput}
                                 value={query}
                                 onChangeText={setQuery}
-                                placeholder="Search for movies, shows, music..."
+                                placeholder="Movies, TV Shows, Music"
                                 autoCapitalize="none"
-                                placeholderTextColor="#666"
+                                placeholderTextColor="#8E8E93"
                                 returnKeyType="search"
                                 onSubmitEditing={handleSearch}
                                 submitBehavior="blurAndSubmit"
                             />
                             {query.length > 0 && (
                                 <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
-                                    <Ionicons name="close-circle" size={20} color="#666" />
+                                    <Ionicons name="close-circle" size={20} color="#8E8E93" />
                                 </TouchableOpacity>
                             )}
                         </View>
@@ -295,11 +295,11 @@ const ProwlarrSearchScreen = () => {
                                     themeVariant="dark"
                                 >
                                     <View style={[styles.filterButton]}>
-                                        <Ionicons name="server-outline" size={16} color="#999" />
+                                        <Ionicons name="server-outline" size={18} color="#8E8E93" />
                                         <Text style={styles.filterButtonText} numberOfLines={1}>
                                             {selectedIndexerName}
                                         </Text>
-                                        <Ionicons name="chevron-down" size={16} color="#666" />
+                                        <Ionicons name="chevron-down" size={16} color="#8E8E93" />
                                     </View>
                                 </MenuView>
 
@@ -312,11 +312,11 @@ const ProwlarrSearchScreen = () => {
                                     themeVariant="dark"
                                 >
                                     <View style={[styles.filterButton]}>
-                                        <Ionicons name="film-outline" size={16} color="#999" />
+                                        <Ionicons name="film-outline" size={18} color="#8E8E93" />
                                         <Text style={styles.filterButtonText} numberOfLines={1}>
                                             {selectedCategoryName}
                                         </Text>
-                                        <Ionicons name="chevron-down" size={16} color="#666" />
+                                        <Ionicons name="chevron-down" size={16} color="#8E8E93" />
                                     </View>
                                 </MenuView>
                             </View>
@@ -325,7 +325,7 @@ const ProwlarrSearchScreen = () => {
                         {/* Loading Data Indicator */}
                         {loadingData && (
                             <View style={styles.loadingContainer}>
-                                <ActivityIndicator size="large" color="#535aff" />
+                                <ActivityIndicator size="large" color="#007AFF" />
                                 <Text style={styles.loadingText}>Loading indexers...</Text>
                             </View>
                         )}
@@ -333,8 +333,8 @@ const ProwlarrSearchScreen = () => {
                         {/* Loading Search Indicator */}
                         {loading && (
                             <View style={styles.loadingContainer}>
-                                <ActivityIndicator size="large" color="#535aff" />
-                                <Text style={styles.loadingText}>Searching indexers...</Text>
+                                <ActivityIndicator size="large" color="#007AFF" />
+                                <Text style={styles.loadingText}>Searching...</Text>
                             </View>
                         )}
 
@@ -342,15 +342,17 @@ const ProwlarrSearchScreen = () => {
                         {!loading && !loadingData && searched && (
                             <View style={styles.resultsContainer}>
                                 <Text style={styles.resultsHeader}>
-                                    {results.length} {results.length === 1 ? 'Result' : 'Results'}
+                                    {results.length.toLocaleString()} {results.length === 1 ? 'RESULT' : 'RESULTS'}
                                 </Text>
 
                                 {results.length === 0 ? (
                                     <View style={styles.emptyState}>
-                                        <Ionicons name="search-outline" size={48} color="#333" />
-                                        <Text style={styles.emptyStateText}>No torrents found</Text>
+                                        <View style={styles.emptyStateIcon}>
+                                            <Ionicons name="search-outline" size={48} color="#007AFF" />
+                                        </View>
+                                        <Text style={styles.emptyStateTitle}>No Results</Text>
                                         <Text style={styles.emptyStateSubtext}>
-                                            Try adjusting your filters or search term
+                                            Try adjusting your search or filters
                                         </Text>
                                     </View>
                                 ) : (
@@ -359,7 +361,7 @@ const ProwlarrSearchScreen = () => {
                                             key={result.guid || index}
                                             style={styles.resultCard}
                                             onPress={() => handleSelectTorrent(result)}
-                                            activeOpacity={0.7}
+                                            activeOpacity={0.6}
                                         >
                                             {/* Header with Category Badge */}
                                             <View style={styles.cardHeader}>
@@ -369,7 +371,7 @@ const ProwlarrSearchScreen = () => {
                                                     </Text>
                                                 </View>
                                                 <View style={styles.qualityBadge}>
-                                                    <Ionicons name="arrow-up" size={12} color="#4ade80" />
+                                                    <Ionicons name="arrow-up" size={11} color="#34C759" />
                                                     <Text style={styles.seedersText}>{result.seeders || 0}</Text>
                                                 </View>
                                             </View>
@@ -382,17 +384,17 @@ const ProwlarrSearchScreen = () => {
                                             {/* Meta Info */}
                                             <View style={styles.metaContainer}>
                                                 <View style={styles.metaChip}>
-                                                    <Ionicons name="server" size={12} color="#666" />
+                                                    <Ionicons name="server" size={12} color="#8E8E93" />
                                                     <Text style={styles.metaChipText}>{result.indexer}</Text>
                                                 </View>
                                                 <View style={styles.metaChip}>
-                                                    <Ionicons name="cube" size={12} color="#666" />
+                                                    <Ionicons name="cube" size={12} color="#8E8E93" />
                                                     <Text style={styles.metaChipText}>
                                                         {ProwlarrClient.formatFileSize(result.size)}
                                                     </Text>
                                                 </View>
                                                 <View style={styles.metaChip}>
-                                                    <Ionicons name="time" size={12} color="#666" />
+                                                    <Ionicons name="time" size={12} color="#8E8E93" />
                                                     <Text style={styles.metaChipText}>
                                                         {ProwlarrClient.formatAge(result.ageMinutes)}
                                                     </Text>
@@ -401,8 +403,8 @@ const ProwlarrSearchScreen = () => {
 
                                             {/* Download Indicator */}
                                             <View style={styles.downloadIndicator}>
-                                                <Ionicons name="download-outline" size={14} color="#535aff" />
-                                                <Text style={styles.downloadText}>Tap to add</Text>
+                                                <Ionicons name="arrow-down-circle" size={16} color="#007AFF" />
+                                                <Text style={styles.downloadText}>Add Torrent</Text>
                                             </View>
                                         </TouchableOpacity>
                                     ))
@@ -439,65 +441,68 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
     },
     header: {
-        paddingTop: 20,
-        paddingBottom: 24,
+        paddingTop: 8,
+        paddingBottom: 12,
         backgroundColor: 'transparent',
     },
     headerTitle: {
-        fontSize: 32,
-        fontWeight: '500',
+        fontSize: 34,
+        fontWeight: '700',
         color: '#fff',
-        letterSpacing: -0.5,
+        letterSpacing: 0.35,
+        marginBottom: 2,
     },
     headerSubtitle: {
-        fontSize: 15,
-        color: '#999',
-        marginTop: 6,
+        fontSize: 13,
+        color: '#8E8E93',
+        fontWeight: '400',
+        letterSpacing: -0.08,
     },
     searchBarContainer: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#0f0f0f',
+        backgroundColor: '#1C1C1E',
         borderRadius: 10,
-        paddingHorizontal: 16,
-        paddingVertical: 4,
-        borderWidth: 1,
-        borderColor: '#1f1f1f',
-        marginBottom: 16,
+        paddingHorizontal: 8,
+        height: 36,
+        marginBottom: 12,
     },
     searchIcon: {
-        marginRight: 10,
+        marginRight: 6,
+        marginLeft: 2,
     },
     searchInput: {
         flex: 1,
-        fontSize: 15,
+        fontSize: 17,
         color: '#fff',
         paddingVertical: 8,
+        letterSpacing: -0.41,
     },
     clearButton: {
-        padding: 4,
+        padding: 2,
+        marginLeft: 4,
     },
     filtersContainer: {
-        marginBottom: 24,
+        marginBottom: 20,
         backgroundColor: 'transparent',
-        gap: 10,
+        gap: 8,
     },
     filterButton: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#0f0f0f',
-        paddingHorizontal: 14,
-        paddingVertical: 12,
+        backgroundColor: '#1C1C1E',
+        paddingHorizontal: 12,
+        paddingVertical: 10,
         borderRadius: 10,
-        borderWidth: 1,
-        borderColor: '#1f1f1f',
         gap: 8,
+        height: 44,
     },
     filterButtonText: {
         flex: 1,
-        fontSize: 14,
-        color: '#ccc',
-        fontWeight: '500',
+        fontSize: 17,
+        color: '#fff',
+        fontWeight: '400',
+        letterSpacing: -0.41,
     },
     loadingContainer: {
         alignItems: 'center',
@@ -506,18 +511,21 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
     },
     loadingText: {
-        marginTop: 16,
-        fontSize: 15,
-        color: '#999',
+        marginTop: 12,
+        fontSize: 17,
+        color: '#8E8E93',
+        fontWeight: '400',
+        letterSpacing: -0.41,
     },
     resultsContainer: {
         backgroundColor: 'transparent',
     },
     resultsHeader: {
-        fontSize: 18,
-        fontWeight: '500',
-        color: '#fff',
-        marginBottom: 16,
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#8E8E93',
+        marginBottom: 12,
+        letterSpacing: -0.08,
     },
     emptyState: {
         alignItems: 'center',
@@ -525,102 +533,116 @@ const styles = StyleSheet.create({
         paddingVertical: 60,
         backgroundColor: 'transparent',
     },
-    emptyStateText: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#999',
-        marginTop: 16,
+    emptyStateIcon: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        backgroundColor: 'rgba(0, 122, 255, 0.15)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    emptyStateTitle: {
+        fontSize: 22,
+        fontWeight: '600',
+        color: '#fff',
+        marginBottom: 8,
+        letterSpacing: 0.35,
     },
     emptyStateSubtext: {
-        fontSize: 14,
-        color: '#666',
-        marginTop: 8,
+        fontSize: 17,
+        color: '#8E8E93',
         textAlign: 'center',
         paddingHorizontal: 20,
+        fontWeight: '400',
+        letterSpacing: -0.41,
+        lineHeight: 22,
     },
     resultCard: {
-        backgroundColor: '#0f0f0f',
-        borderRadius: 10,
-        padding: 14,
-        marginBottom: 10,
-        borderWidth: 1,
-        borderColor: '#1a1a1a',
+        backgroundColor: '#1C1C1E',
+        borderRadius: 12,
+        padding: 16,
+        marginBottom: 12,
     },
     cardHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 10,
+        marginBottom: 12,
         backgroundColor: 'transparent',
     },
     resultTitle: {
-        fontSize: 15,
-        fontWeight: '500',
+        fontSize: 17,
+        fontWeight: '600',
         color: '#fff',
         marginBottom: 12,
-        lineHeight: 21,
+        lineHeight: 22,
+        letterSpacing: -0.41,
     },
     metaContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
         gap: 8,
-        marginBottom: 10,
+        marginBottom: 12,
         backgroundColor: 'transparent',
     },
     metaChip: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1a1a1a',
+        backgroundColor: 'rgba(142, 142, 147, 0.12)',
         paddingHorizontal: 10,
         paddingVertical: 6,
         borderRadius: 8,
         gap: 5,
     },
     metaChipText: {
-        fontSize: 12,
-        color: '#999',
+        fontSize: 13,
+        color: '#8E8E93',
         fontWeight: '500',
+        letterSpacing: -0.08,
     },
     categoryBadge: {
-        backgroundColor: '#1a1a1a',
+        backgroundColor: 'rgba(142, 142, 147, 0.12)',
         paddingHorizontal: 10,
-        paddingVertical: 5,
-        borderRadius: 6,
+        paddingVertical: 6,
+        borderRadius: 8,
     },
     categoryText: {
         fontSize: 11,
-        fontWeight: '500',
-        color: '#ccc',
+        fontWeight: '600',
+        color: '#8E8E93',
         textTransform: 'uppercase',
-        letterSpacing: 0.8,
+        letterSpacing: 0.6,
     },
     qualityBadge: {
         flexDirection: 'row',
         alignItems: 'center',
-        backgroundColor: '#1a1a1a',
+        backgroundColor: 'rgba(52, 199, 89, 0.15)',
         paddingHorizontal: 8,
-        paddingVertical: 5,
-        borderRadius: 6,
+        paddingVertical: 6,
+        borderRadius: 8,
         gap: 4,
     },
     seedersText: {
-        fontSize: 12,
-        fontWeight: '500',
-        color: '#4ade80',
+        fontSize: 13,
+        fontWeight: '600',
+        color: '#34C759',
+        letterSpacing: -0.08,
     },
     downloadIndicator: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
         backgroundColor: 'transparent',
-        paddingTop: 8,
-        borderTopWidth: 1,
-        borderTopColor: '#1a1a1a',
+        paddingTop: 12,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: 'rgba(142, 142, 147, 0.2)',
         gap: 6,
     },
     downloadText: {
-        fontSize: 12,
-        fontWeight: '500',
-        color: '#aaaaaa',
+        fontSize: 15,
+        fontWeight: '600',
+        color: '#007AFF',
+        letterSpacing: -0.24,
     },
 });
