@@ -15,6 +15,8 @@ import BottomSpacing from '@/components/BottomSpacing';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Text, View } from '@/components/Themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { BlurView } from 'expo-blur';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const categories = [
   { key: 'movie', label: 'Movie' },
@@ -33,7 +35,7 @@ const AddTorrentScreen = () => {
   const [posterInput, setPosterInput] = useState(poster ? String(poster) : '');
   const [category, setCategory] = useState<'movie' | 'tv' | 'music' | 'other'>('movie');
   const [submitting, setSubmitting] = useState(false);
-  const [previewUrl, setPreviewUrl] = useState('');
+  const [previewUrl, setPreviewUrl] = useState(poster ? String(poster) : '');
 
   const extractImdbId = (text: string): string | null => {
     // Match IMDB ID patterns (tt followed by 7-8 digits)
@@ -133,148 +135,167 @@ const AddTorrentScreen = () => {
   };
 
   useEffect(() => {
-    setPreviewUrl(getFinalPosterUrl());
+    const finalUrl = getFinalPosterUrl();
+    setPreviewUrl(finalUrl);
   }, [posterInput]);
 
+  // Initialize preview on mount if poster param exists
+  useEffect(() => {
+    if (poster) {
+      const imdbId = extractImdbId(String(poster));
+      if (imdbId) {
+        setPreviewUrl(`https://images.metahub.space/poster/medium/${imdbId}/img`);
+      } else {
+        setPreviewUrl(String(poster));
+      }
+    }
+  }, []);
+
   return (
-    <SafeAreaView style={styles.container} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={styles.keyboardAvoid}
-        keyboardVerticalOffset={0}
-      >
-        <ScrollView
-          contentContainerStyle={styles.scrollContainer}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
+    <View style={styles.container}>
+      {/* Background Poster */}
+      {previewUrl && (
+        <>
+          <Image
+            source={{ uri: previewUrl }}
+            style={styles.backgroundImage}
+            blurRadius={50}
+          />
+          <LinearGradient
+            colors={['rgba(0,0,0,0.7)', 'rgba(0,0,0,0.85)', 'rgba(0,0,0,0.95)']}
+            style={styles.gradient}
+          />
+        </>
+      )}
+
+      <SafeAreaView style={styles.safeArea} edges={['top']}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          style={styles.keyboardAvoid}
+          keyboardVerticalOffset={0}
         >
-          <View style={styles.contentWrapper}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Text style={styles.headerTitle}>{isUpdateMode ? 'Update Torrent' : 'Add Torrent'}</Text>
-              <Text style={styles.headerSubtitle}>
-                {isUpdateMode ? 'Update torrent information' : 'Add content to your library'}
-              </Text>
-            </View>
-
-            {/* Form */}
-            <View style={styles.form}>
-              {/* Magnet/Hash/Torrent URL Input */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Magnet Link, Torrent URL or Info Hash</Text>
-                <TextInput
-                  style={[styles.input, isUpdateMode && styles.inputDisabled]}
-                  value={input}
-                  onChangeText={handleInputChange}
-                  placeholder="magnet:?xt=... or https://... or hash"
-                  autoCapitalize="none"
-                  placeholderTextColor="#888"
-                  submitBehavior="blurAndSubmit"
-                  editable={!isUpdateMode}
-                />
-                {isUpdateMode && (
-                  <Text style={styles.helperText}>
-                    Hash cannot be changed in update mode
-                  </Text>
-                )}
-              </View>
-
-              {/* Title Input */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Title</Text>
-                <TextInput
-                  style={styles.input}
-                  value={title}
-                  onChangeText={setTitle}
-                  placeholder="Enter title"
-                  placeholderTextColor="#888"
-                  submitBehavior="blurAndSubmit"
-                />
-              </View>
-
-              {/* Category Selection */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>Category</Text>
-                <View style={styles.categoryContainer}>
-                  {categories.map((c) => (
-                    <TouchableOpacity
-                      key={c.key}
-                      style={[
-                        styles.categoryChip,
-                        category === c.key && styles.categoryChipActive,
-                      ]}
-                      onPress={() => {
-                        setCategory(c.key as any);
-                        if (isHapticsSupported()) Haptics.selectionAsync();
-                      }}
-                      activeOpacity={0.7}
-                    >
-                      <Text
-                        style={[
-                          styles.categoryChipText,
-                          category === c.key && styles.categoryChipTextActive,
-                        ]}
-                      >
-                        {c.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              {/* Poster Input (IMDB ID or URL) */}
-              <View style={styles.inputGroup}>
-                <Text style={styles.label}>
-                  Poster <Text style={styles.optional}>(IMDB ID or URL)</Text>
+          <ScrollView
+            contentContainerStyle={styles.scrollContainer}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+          >
+            <View style={styles.contentWrapper}>
+              {/* Header */}
+              <View style={styles.header}>
+                <Text style={styles.headerTitle}>{isUpdateMode ? 'Update Torrent' : 'Add Torrent'}</Text>
+                <Text style={styles.headerSubtitle}>
+                  {isUpdateMode ? 'Update torrent information' : 'Add content to your library'}
                 </Text>
-                <TextInput
-                  style={styles.input}
-                  value={posterInput}
-                  onChangeText={setPosterInput}
-                  placeholder="tt0133093 or https://example.com/poster.jpg"
-                  autoCapitalize="none"
-                  placeholderTextColor="#888"
-                  submitBehavior="blurAndSubmit"
-                />
-                {posterInput && (
-                  <Text style={styles.helperText}>
-                    {extractImdbId(posterInput)
-                      ? `Using IMDB ID: ${extractImdbId(posterInput)}`
-                      : 'Using custom URL'}
-                  </Text>
-                )}
               </View>
 
-              {/* Poster Preview */}
-              {previewUrl ? (
-                <View style={styles.previewContainer}>
-                  <Image
-                    source={{ uri: previewUrl }}
-                    style={styles.previewImage}
-                    resizeMode="cover"
+              {/* Form */}
+              <View style={styles.form}>
+                {/* Magnet/Hash/Torrent URL Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Magnet Link, Torrent URL or Info Hash</Text>
+                  <TextInput
+                    style={[styles.input, isUpdateMode && styles.inputDisabled]}
+                    value={input}
+                    onChangeText={handleInputChange}
+                    placeholder="magnet:?xt=... or https://... or hash"
+                    autoCapitalize="none"
+                    placeholderTextColor="#888"
+                    submitBehavior="blurAndSubmit"
+                    editable={!isUpdateMode}
+                  />
+                  {isUpdateMode && (
+                    <Text style={styles.helperText}>
+                      Hash cannot be changed in update mode
+                    </Text>
+                  )}
+                </View>
+
+                {/* Title Input */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Title</Text>
+                  <TextInput
+                    style={styles.input}
+                    value={title}
+                    onChangeText={setTitle}
+                    placeholder="Enter title"
+                    placeholderTextColor="#888"
+                    submitBehavior="blurAndSubmit"
                   />
                 </View>
-              ) : null}
 
-              {/* Submit Button */}
-              <TouchableOpacity
-                style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
-                onPress={handleSubmit}
-                disabled={submitting}
-                activeOpacity={0.8}
-              >
-                <Text style={styles.submitButtonText}>
-                  {submitting
-                    ? (isUpdateMode ? 'Updating...' : 'Adding Torrent...')
-                    : (isUpdateMode ? 'Update Torrent' : 'Add Torrent')}
-                </Text>
-              </TouchableOpacity>
+                {/* Category Selection */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>Category</Text>
+                  <View style={styles.categoryContainer}>
+                    {categories.map((c) => (
+                      <TouchableOpacity
+                        key={c.key}
+                        style={[
+                          styles.categoryChip,
+                          category === c.key && styles.categoryChipActive,
+                        ]}
+                        onPress={() => {
+                          setCategory(c.key as any);
+                          if (isHapticsSupported()) Haptics.selectionAsync();
+                        }}
+                        activeOpacity={0.7}
+                      >
+                        <Text
+                          style={[
+                            styles.categoryChipText,
+                            category === c.key && styles.categoryChipTextActive,
+                          ]}
+                        >
+                          {c.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {/* Poster Input (IMDB ID or URL) */}
+                <View style={styles.inputGroup}>
+                  <Text style={styles.label}>
+                    Poster <Text style={styles.optional}>(IMDB ID or URL)</Text>
+                  </Text>
+                  <TextInput
+                    style={styles.input}
+                    value={posterInput}
+                    onChangeText={setPosterInput}
+                    placeholder="tt0133093 or https://example.com/poster.jpg"
+                    autoCapitalize="none"
+                    placeholderTextColor="#888"
+                    submitBehavior="blurAndSubmit"
+                  />
+                  {posterInput && (
+                    <Text style={styles.helperText}>
+                      {extractImdbId(posterInput)
+                        ? `Using IMDB ID: ${extractImdbId(posterInput)}`
+                        : 'Using custom URL'}
+                    </Text>
+                  )}
+                </View>
+
+                {/* Submit Button */}
+                <TouchableOpacity
+                  style={[styles.submitButton, submitting && styles.submitButtonDisabled]}
+                  onPress={handleSubmit}
+                  disabled={submitting}
+                  activeOpacity={0.8}
+                >
+                  <Text style={styles.submitButtonText}>
+                    {submitting
+                      ? (isUpdateMode ? 'Updating...' : 'Adding Torrent...')
+                      : (isUpdateMode ? 'Update Torrent' : 'Add Torrent')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              <BottomSpacing space={100} />
             </View>
-            <BottomSpacing space={100} />
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+          </ScrollView>
+        </KeyboardAvoidingView>
+      </SafeAreaView>
+    </View>
   );
 };
 
@@ -282,7 +303,28 @@ export default AddTorrentScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1
+    flex: 1,
+    backgroundColor: '#000',
+  },
+  backgroundImage: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    width: '100%',
+    height: '100%',
+    opacity: 0.3,
+  },
+  gradient: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+  },
+  safeArea: {
+    flex: 1,
   },
   keyboardAvoid: {
     flex: 1,
@@ -304,15 +346,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'transparent',
   },
   headerTitle: {
-    fontSize: 32,
+    fontSize: 34,
     fontWeight: '700',
     color: '#fff',
-    letterSpacing: -0.5,
+    letterSpacing: 0.35,
   },
   headerSubtitle: {
     fontSize: 15,
-    color: '#999',
+    color: '#8E8E93',
     marginTop: 6,
+    fontWeight: '400',
+    letterSpacing: -0.24,
   },
   form: {
     backgroundColor: 'transparent',
@@ -323,34 +367,36 @@ const styles = StyleSheet.create({
   },
   label: {
     fontSize: 15,
-    fontWeight: 500,
-    color: '#ccc',
+    fontWeight: '600',
+    color: '#fff',
     marginBottom: 10,
+    letterSpacing: -0.24,
   },
   optional: {
     fontSize: 14,
-    fontWeight: 400,
-    color: '#888',
+    fontWeight: '400',
+    color: '#8E8E93',
   },
   input: {
-    backgroundColor: '#101010',
+    backgroundColor: 'rgba(28, 28, 30, 0.85)',
     borderRadius: 10,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    fontSize: 15,
+    paddingVertical: 14,
+    fontSize: 17,
     color: '#fff',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#202020',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
+    letterSpacing: -0.41,
   },
   inputDisabled: {
-    opacity: 0.6,
-    backgroundColor: '#0a0a0a',
+    opacity: 0.5,
+    backgroundColor: 'rgba(28, 28, 30, 0.5)',
   },
   helperText: {
     fontSize: 13,
-    color: '#666',
-    marginTop: 6,
-    fontStyle: 'italic',
+    color: '#8E8E93',
+    marginTop: 8,
+    letterSpacing: -0.08,
   },
   categoryContainer: {
     flexDirection: 'row',
@@ -359,54 +405,46 @@ const styles = StyleSheet.create({
   },
   categoryChip: {
     flex: 1,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 50,
-    backgroundColor: '#1a1a1a',
+    borderRadius: 10,
+    backgroundColor: 'rgba(28, 28, 30, 0.85)',
     alignItems: 'center',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#202020',
+    borderWidth: 1,
+    borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   categoryChipActive: {
     backgroundColor: '#0A84FF',
     borderColor: '#0A84FF',
   },
   categoryChipText: {
-    fontSize: 14,
-    fontWeight: 500,
-    color: '#aaa',
+    fontSize: 15,
+    fontWeight: '600',
+    color: '#8E8E93',
+    letterSpacing: -0.24,
   },
   categoryChipTextActive: {
     color: '#fff',
   },
-  previewContainer: {
-    alignItems: 'center',
-    marginTop: 8,
-    marginBottom: 24,
-    backgroundColor: 'transparent',
-  },
-  previewImage: {
-    width: 140,
-    height: 210,
-    borderRadius: 10,
-    backgroundColor: '#1a1a1a',
-  },
   submitButton: {
     backgroundColor: '#0A84FF',
-    paddingVertical: 14,
-    borderRadius: 25,
+    paddingVertical: 16,
+    borderRadius: 14,
     alignItems: 'center',
     marginTop: 8,
-    width: '100%',
-    maxWidth: 150,
-    margin: 'auto'
+    shadowColor: '#0A84FF',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 4,
   },
   submitButtonDisabled: {
     opacity: 0.5,
   },
   submitButtonText: {
     color: '#fff',
-    fontSize: 16,
-    fontWeight: 500,
+    fontSize: 17,
+    fontWeight: '600',
+    letterSpacing: -0.41,
   },
 });
