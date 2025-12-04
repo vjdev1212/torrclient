@@ -25,8 +25,10 @@ const categories = [
 
 const AddTorrentScreen = () => {
   const router = useRouter();
-  const { magnet, titleParam, poster } = useLocalSearchParams();
-  const [input, setInput] = useState(magnet ? String(magnet) : '');
+  const { magnet, titleParam, poster, hash: existingHash, action: actionParam } = useLocalSearchParams();
+  const action = actionParam ? String(actionParam) : (existingHash ? 'set' : 'add');
+  const isUpdateMode = action === 'set';
+  const [input, setInput] = useState(magnet ? String(magnet) : (existingHash ? String(existingHash) : ''));
   const [title, setTitle] = useState(titleParam ? String(titleParam) : '');
   const [posterInput, setPosterInput] = useState(poster ? String(poster) : '');
   const [category, setCategory] = useState<'movie' | 'tv' | 'music' | 'other'>('movie');
@@ -57,13 +59,25 @@ const AddTorrentScreen = () => {
   };
 
   const handleSubmit = async () => {
+    // Validate action parameter
+    if (action !== 'add' && action !== 'set') {
+      showAlert('Invalid Action', 'Only "add" and "set" actions are allowed.');
+      return;
+    }
+
     let hash = '';
     let link = '';
 
-    if (/^[a-fA-F0-9]{40}$/.test(input.trim())) {
-      hash = input.trim().toLowerCase();
+    if (action === 'set') {
+      // In set mode, use the existing hash
+      hash = String(existingHash).trim().toLowerCase();
     } else {
-      link = input.trim();
+      // In add mode, determine if input is hash or link
+      if (/^[a-fA-F0-9]{40}$/.test(input.trim())) {
+        hash = input.trim().toLowerCase();
+      } else {
+        link = input.trim();
+      }
     }
 
     if (!title || (!link && !hash)) {
@@ -79,7 +93,7 @@ const AddTorrentScreen = () => {
       const finalPosterUrl = getFinalPosterUrl();
 
       const payload = {
-        action: 'add',
+        action,
         category,
         data: '',
         hash,
@@ -100,7 +114,7 @@ const AddTorrentScreen = () => {
       });
 
       const result = await response.json();
-      showAlert('Success', 'Torrent added successfully.');
+      showAlert('Success', action === 'set' ? 'Torrent updated successfully.' : 'Torrent added successfully.');
       setInput('');
       setTitle('');
       setPosterInput('');
@@ -108,7 +122,7 @@ const AddTorrentScreen = () => {
       router.push("/(tabs)");
     } catch (err) {
       console.error(err);
-      showAlert('Error', 'Failed to add torrent.');
+      showAlert('Error', action === 'set' ? 'Failed to update torrent.' : 'Failed to add torrent.');
     } finally {
       setSubmitting(false);
     }
@@ -147,9 +161,9 @@ const AddTorrentScreen = () => {
           <View style={styles.contentWrapper}>
             {/* Header */}
             <View style={styles.header}>
-              <Text style={styles.headerTitle}>Add Torrent</Text>
+              <Text style={styles.headerTitle}>{isUpdateMode ? 'Update Torrent' : 'Add Torrent'}</Text>
               <Text style={styles.headerSubtitle}>
-                Add content to your library
+                {isUpdateMode ? 'Update torrent information' : 'Add content to your library'}
               </Text>
             </View>
 
@@ -159,14 +173,20 @@ const AddTorrentScreen = () => {
               <View style={styles.inputGroup}>
                 <Text style={styles.label}>Magnet Link or Info Hash</Text>
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, isUpdateMode && styles.inputDisabled]}
                   value={input}
                   onChangeText={handleInputChange}
                   placeholder="magnet:?xt=urn:btih:... or hash"
                   autoCapitalize="none"
                   placeholderTextColor="#888"
                   submitBehavior="blurAndSubmit"
+                  editable={!isUpdateMode}
                 />
+                {isUpdateMode && (
+                  <Text style={styles.helperText}>
+                    Hash cannot be changed in update mode
+                  </Text>
+                )}
               </View>
 
               {/* Title Input */}
@@ -254,7 +274,9 @@ const AddTorrentScreen = () => {
                 activeOpacity={0.8}
               >
                 <Text style={styles.submitButtonText}>
-                  {submitting ? 'Adding Torrent...' : 'Add Torrent'}
+                  {submitting 
+                    ? (isUpdateMode ? 'Updating...' : 'Adding Torrent...') 
+                    : (isUpdateMode ? 'Update Torrent' : 'Add Torrent')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -329,6 +351,10 @@ const styles = StyleSheet.create({
     color: '#fff',
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: '#202020',
+  },
+  inputDisabled: {
+    opacity: 0.6,
+    backgroundColor: '#0a0a0a',
   },
   helperText: {
     fontSize: 13,
