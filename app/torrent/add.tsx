@@ -65,20 +65,11 @@ const AddTorrentScreen = () => {
       return;
     }
 
-    let hash = '';
+    const link = input.trim();
 
-    if (action === 'set') {
-      // In set mode, use the existing hash
-      hash = String(existingHash).trim().toLowerCase();
-    } else {
-      // In add mode, determine if input is hash or link
-      if (/^[a-fA-F0-9]{40}$/.test(input.trim())) {
-        hash = input.trim().toLowerCase();
-      }
-    }
-
-    if (!title || !hash) {
-      showAlert('Missing fields', 'Please enter a title and a valid magnet link or info hash.');
+    if (!title || !link) {
+      console.log('Title or link missing:', { title, link });
+      showAlert('Missing fields', 'Please enter a title and a valid magnet link, torrent URL, or info hash.');
       return;
     }
 
@@ -92,7 +83,8 @@ const AddTorrentScreen = () => {
       const payload = {
         action,
         category,
-        hash,
+        link: action === 'add' ? link : undefined,
+        hash: action === 'set' ? String(existingHash).trim().toLowerCase() : undefined,
         poster: finalPosterUrl,
         save_to_db: true,
         title,
@@ -167,14 +159,14 @@ const AddTorrentScreen = () => {
 
             {/* Form */}
             <View style={styles.form}>
-              {/* Magnet/Hash Input */}
+              {/* Magnet/Hash/Torrent URL Input */}
               <View style={styles.inputGroup}>
-                <Text style={styles.label}>Magnet Link or Info Hash</Text>
+                <Text style={styles.label}>Magnet Link, Torrent URL or Info Hash</Text>
                 <TextInput
                   style={[styles.input, isUpdateMode && styles.inputDisabled]}
                   value={input}
                   onChangeText={handleInputChange}
-                  placeholder="magnet:?xt=urn:btih:... or hash"
+                  placeholder="magnet:?xt=... or https://... or hash"
                   autoCapitalize="none"
                   placeholderTextColor="#888"
                   submitBehavior="blurAndSubmit"

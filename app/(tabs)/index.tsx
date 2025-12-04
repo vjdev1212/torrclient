@@ -7,6 +7,7 @@ import { StyleSheet, ScrollView } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { isHapticsSupported } from '@/utils/platform';
 import PosterCarousel from '@/components/PosterCarousel';
+import BottomSpacing from '@/components/BottomSpacing';
 
 const HomeScreen = () => {
   const router = useRouter();
@@ -207,7 +208,7 @@ const HomeScreen = () => {
         )}
 
         {/* Bottom Padding */}
-        <View style={styles.bottomPadding} />
+        <BottomSpacing space={100} />
       </ScrollView>
     </View>
   );
@@ -233,11 +234,11 @@ const styles = StyleSheet.create({
     fontWeight: '400',
   },
   categorySection: {
-    marginTop: 32,
+    marginTop: 20,
     backgroundColor: 'transparent',
   },
   categoryTitle: {
-    fontSize: 22,
+    fontSize: 20,
     fontWeight: '500',
     color: '#FFFFFF',
     marginBottom: 16,
