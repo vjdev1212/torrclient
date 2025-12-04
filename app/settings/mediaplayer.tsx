@@ -221,7 +221,7 @@ const MediaPlayerConfigScreen = () => {
 
                 {/* Footer Text */}
                 <Text style={styles.footerText}>
-                    Choose your preferred media player for streaming content. Some players may require additional apps to be installed.
+                    Choose your preferred media player for streaming content.We recommend using external player for the best experience.
                 </Text>
 
                 {/* Action Buttons */}
