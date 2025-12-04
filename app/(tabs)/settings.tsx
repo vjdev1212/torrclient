@@ -33,7 +33,7 @@ const SettingsScreen = () => {
     description?: string,
     onPress: () => void
   }) => {
-    const iconColor = '#535aff';
+    const iconColor = '#007AFF';
     return (
       <Pressable
         style={({ pressed }) => [
@@ -43,20 +43,20 @@ const SettingsScreen = () => {
         onPress={onPress}
       >
         <View style={styles.iconContainer}>
-          <Ionicons name={icon} size={22} color={iconColor} />
+          <Ionicons name={icon} size={20} color={iconColor} />
         </View>
         <View style={styles.settingContent}>
           <Text style={styles.settingText}>{title}</Text>
           {description && <Text style={styles.settingDescription}>{description}</Text>}
         </View>
-        <MaterialIcons name="chevron-right" size={22} color="#666" />
+        <Ionicons name="chevron-forward" size={20} color="#8E8E93" />
       </Pressable>
     );
   };
 
   const onSettingsItemPress = async (item: any) => {
     if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
     router.push({ pathname: item.route });
   };
@@ -68,7 +68,6 @@ const SettingsScreen = () => {
       {/* Header Section */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Settings</Text>
-        <Text style={styles.headerSubtitle}>Manage your preferences</Text>
       </View>
 
       <ScrollView
@@ -137,88 +136,86 @@ const styles = StyleSheet.create({
     maxWidth: 780
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 24,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 20,
   },
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 4,
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 15,
-    color: '#888',
-    fontWeight: 500,
+    letterSpacing: 0.35,
   },
   scrollViewContent: {
     paddingHorizontal: 20,
     paddingBottom: 40,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: 36,
   },
   sectionHeader: {
     fontSize: 13,
-    fontWeight: 500,
-    color: '#888',
-    letterSpacing: 0.5,
-    marginBottom: 12,
-    paddingHorizontal: 4,
+    fontWeight: '400',
+    color: '#8E8E93',
+    letterSpacing: -0.08,
+    marginBottom: 8,
+    paddingHorizontal: 16,
+    textTransform: 'uppercase',
   },
   settingsGroup: {
-    backgroundColor: '#101010',
+    backgroundColor: '#1C1C1E',
     borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#202020',
     overflow: 'hidden',
   },
   settingItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 14,
+    paddingVertical: 11,
     paddingHorizontal: 16,
     backgroundColor: 'transparent',
+    minHeight: 44,
   },
   settingItemPressed: {
-    backgroundColor: 'rgba(83, 90, 255, 0.08)',
+    backgroundColor: 'rgba(0, 122, 255, 0.1)',
   },
   iconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    backgroundColor: 'rgba(83, 90, 255, 0.15)',
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    backgroundColor: 'rgba(0, 122, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   settingContent: {
     flex: 1,
+    backgroundColor: 'transparent',
   },
   settingText: {
-    fontSize: 16,
-    fontWeight: 500,
+    fontSize: 17,
+    fontWeight: '400',
     color: '#fff',
+    letterSpacing: -0.41,
     marginBottom: 2,
   },
   settingDescription: {
     fontSize: 13,
-    color: '#888',
-    marginTop: 2,
+    color: '#8E8E93',
+    marginTop: 1,
+    letterSpacing: -0.08,
+    fontWeight: '400',
   },
   separator: {
-    height: 1,
-    backgroundColor: '#2a2a2a',
-    marginLeft: 64,
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(84, 84, 88, 0.65)',
+    marginLeft: 60,
   },
   infoCard: {
-    backgroundColor: '#101010',
+    backgroundColor: '#1C1C1E',
     borderRadius: 10,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#202020',
-    padding: 16,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    minHeight: 44,
   },
   infoRow: {
     flexDirection: 'row',
@@ -226,14 +223,16 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   infoLabel: {
-    fontSize: 15,
-    color: '#888',
-    fontWeight: '500',
+    fontSize: 17,
+    color: '#fff',
+    fontWeight: '400',
+    letterSpacing: -0.41,
   },
   infoValue: {
-    fontSize: 15,
-    color: '#ccc',
-    fontWeight: '500',
+    fontSize: 17,
+    color: '#8E8E93',
+    fontWeight: '400',
+    letterSpacing: -0.41,
   },
 });
 
