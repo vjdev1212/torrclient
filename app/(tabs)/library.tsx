@@ -106,18 +106,18 @@ const SearchScreen = () => {
       {/* Search Bar */}
       <View style={styles.searchContainer}>
         <View style={styles.searchInputWrapper} pointerEvents="box-none">
-          <Ionicons name="search-outline" size={20} color="#888" style={styles.searchIcon} />
+          <Ionicons name="search-outline" size={20} color="#8E8E93" style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="Search movies or tv shows..."
-            placeholderTextColor="#888888"
+            placeholder="Search"
+            placeholderTextColor="#8E8E93"
             value={query}
             onChangeText={setQuery}
             submitBehavior="blurAndSubmit"
           />
           {query.length > 0 && (
             <Pressable onPress={clearSearch} style={styles.clearButton}>
-              <Ionicons name="close-circle" size={22} color="#535aff" />
+              <Ionicons name="close-circle" size={20} color="#8E8E93" />
             </Pressable>
           )}
         </View>
@@ -132,21 +132,21 @@ const SearchScreen = () => {
       ) : query.length > 0 && filteredResults.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyStateIcon}>
-            <Ionicons name="search-outline" color="#535aff" size={56} />
+            <Ionicons name="search-outline" color="#535aff" size={48} />
           </View>
-          <Text style={styles.emptyStateTitle}>No results found</Text>
+          <Text style={styles.emptyStateTitle}>No Results</Text>
           <Text style={styles.emptyStateSubtitle}>
-            Try adjusting your search to find what you're looking for
+            Try a different search
           </Text>
         </View>
       ) : query.length === 0 && allTorrents.length > 0 ? (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyStateIcon}>
-            <Ionicons name="compass-outline" color="#535aff" size={56} />
+            <Ionicons name="film-outline" color="#535aff" size={48} />
           </View>
-          <Text style={styles.emptyStateTitle}>Find a Movie or TV Show</Text>
+          <Text style={styles.emptyStateTitle}>Search Your Library</Text>
           <Text style={styles.emptyStateSubtitle}>
-            Enter a keyword to find the media from your library
+            Find movies and TV shows
           </Text>
         </View>
       ) : (
@@ -157,7 +157,7 @@ const SearchScreen = () => {
         >
           <View style={styles.resultsWrapper}>
             <Text style={styles.resultsCount}>
-              {filteredResults.length} {filteredResults.length === 1 ? 'result' : 'results'}
+              {filteredResults.length.toLocaleString()} {filteredResults.length === 1 ? 'RESULT' : 'RESULTS'}
             </Text>
             <TorrentGrid list={filteredResults} onTorrentItemPress={handleTorrentItemPress} />
           </View>
@@ -175,49 +175,51 @@ const styles = StyleSheet.create({
     maxWidth: 780
   },
   header: {
-    paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 16,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 12,
   },
   headerTitle: {
     fontSize: 34,
     fontWeight: '700',
     color: '#fff',
-    marginBottom: 4,
-    letterSpacing: -0.5,
+    marginBottom: 2,
+    letterSpacing: 0.35,
   },
   headerSubtitle: {
-    fontSize: 15,
-    color: '#888',
-    fontWeight: 500,
+    fontSize: 13,
+    color: '#8E8E93',
+    fontWeight: '400',
+    letterSpacing: -0.08,
   },
   searchContainer: {
-    paddingHorizontal: 15,
-    paddingBottom: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
   },
   searchInputWrapper: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#101010',
+    backgroundColor: '#1C1C1E',
     borderRadius: 10,
-    paddingHorizontal: 15,
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#202020',
+    paddingHorizontal: 8,
+    height: 36,
   },
   searchIcon: {
-    marginRight: 12,
+    marginRight: 6,
+    marginLeft: 2,
   },
   searchInput: {
     flex: 1,
-    fontSize: 16,
+    fontSize: 17,
     color: '#fff',
-    paddingVertical: 10,
+    paddingVertical: 8,
     outlineWidth: 0,
-    cursor: 'pointer'
+    cursor: 'text',
+    letterSpacing: -0.41,
   },
   clearButton: {
-    padding: 4,
-    marginLeft: 8,
+    padding: 2,
+    marginLeft: 4,
   },
   contentContainer: {
     flex: 1,
@@ -235,10 +237,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   loadingText: {
-    marginTop: 16,
-    fontSize: 15,
-    color: '#888',
-    fontWeight: 500,
+    marginTop: 12,
+    fontSize: 17,
+    color: '#8E8E93',
+    fontWeight: '400',
+    letterSpacing: -0.41,
   },
   emptyStateContainer: {
     position: 'absolute',
@@ -251,37 +254,41 @@ const styles = StyleSheet.create({
     paddingHorizontal: 40,
   },
   emptyStateIcon: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: 'rgba(83, 90, 255, 0.1)',
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(83, 90, 255, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
   },
   emptyStateTitle: {
     fontSize: 22,
-    fontWeight: 500,
+    fontWeight: '600',
     color: '#fff',
     marginBottom: 8,
     textAlign: 'center',
+    letterSpacing: 0.35,
   },
   emptyStateSubtitle: {
-    fontSize: 15,
-    color: '#888',
+    fontSize: 17,
+    color: '#8E8E93',
     textAlign: 'center',
     lineHeight: 22,
+    fontWeight: '400',
+    letterSpacing: -0.41,
   },
   resultsWrapper: {
-    paddingTop: 8,
+    paddingTop: 4,
     paddingBottom: 20,
   },
   resultsCount: {
-    fontSize: 15,
-    color: '#888',
-    fontWeight: 500,
-    marginBottom: 16,
+    fontSize: 13,
+    color: '#8E8E93',
+    fontWeight: '600',
+    marginBottom: 12,
     paddingHorizontal: 20,
+    letterSpacing: -0.08,
   },
 });
 
