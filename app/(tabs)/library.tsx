@@ -9,16 +9,18 @@ import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
-const SearchScreen = () => {
+const LibraryScreen = () => {
   const router = useRouter();
   const [query, setQuery] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [allTorrents, setAllTorrents] = useState<any[]>([]);
   const [filteredResults, setFilteredResults] = useState<any[]>([]);
   const [debounceTimeout, setDebounceTimeout] = useState<any>(null);
 
   const fetchTorrents = async () => {
     setLoading(true);
+    setError(null);
     try {
       const authHeader = await getTorrServerAuthHeader();
       const baseUrl = await getTorrServerUrl();
@@ -30,6 +32,10 @@ const SearchScreen = () => {
         },
         body: JSON.stringify({ action: 'list' }),
       });
+
+      if (!response.ok) {
+        throw new Error(`Server responded with status ${response.status}`);
+      }
 
       const torrents = await response.json();
       const list = Array.isArray(torrents) ? torrents : Object.values(torrents || {});
@@ -45,6 +51,7 @@ const SearchScreen = () => {
       setAllTorrents(parsed);
     } catch (error) {
       console.error('Error fetching torrents:', error);
+      setError(error instanceof Error ? error.message : 'Failed to load library');
     } finally {
       setLoading(false);
     }
@@ -57,7 +64,7 @@ const SearchScreen = () => {
   useEffect(() => {
     if (debounceTimeout) clearTimeout(debounceTimeout);
     if (query.trim().length === 0) {
-      clearSearch();
+      setFilteredResults([]);
       return;
     }
 
@@ -80,6 +87,13 @@ const SearchScreen = () => {
     setFilteredResults([]);
   };
 
+  const handleRetry = async () => {
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    fetchTorrents();
+  };
+
   const handleTorrentItemPress = async (item: any) => {
     if (isHapticsSupported()) {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
@@ -90,6 +104,41 @@ const SearchScreen = () => {
       params: { hash: item.hash },
     });
   };
+
+  // Initial loading state - centered loader
+  if (loading && allTorrents.length === 0 && !error) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar />
+        <View style={styles.centeredContainer}>
+          <ActivityIndicator size="large" color="#535aff" />
+          <Text style={styles.centeredText}>Loading your library...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Error state
+  if (error && allTorrents.length === 0) {
+    return (
+      <SafeAreaView style={styles.container} edges={['top']}>
+        <StatusBar />
+        <View style={styles.centeredContainer}>
+          <View style={styles.errorIcon}>
+            <Ionicons name="cloud-offline-outline" color="#FF3B30" size={48} />
+          </View>
+          <Text style={styles.errorTitle}>Connection Failed</Text>
+          <Text style={styles.errorSubtitle}>{error}</Text>
+          <Pressable 
+            style={styles.retryButton}
+            onPress={handleRetry}
+          >
+            <Text style={styles.retryButtonText}>Try Again</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
@@ -124,12 +173,7 @@ const SearchScreen = () => {
       </View>
 
       {/* Content Area */}
-      {loading ? (
-        <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#535aff" />
-          <Text style={styles.loadingText}>Loading torrents...</Text>
-        </View>
-      ) : query.length > 0 && filteredResults.length === 0 ? (
+      {query.length > 0 && filteredResults.length === 0 ? (
         <View style={styles.emptyStateContainer}>
           <View style={styles.emptyStateIcon}>
             <Ionicons name="search-outline" color="#535aff" size={48} />
@@ -147,6 +191,16 @@ const SearchScreen = () => {
           <Text style={styles.emptyStateTitle}>Search Your Library</Text>
           <Text style={styles.emptyStateSubtitle}>
             Find movies and TV shows
+          </Text>
+        </View>
+      ) : query.length === 0 && allTorrents.length === 0 ? (
+        <View style={styles.emptyStateContainer}>
+          <View style={styles.emptyStateIcon}>
+            <Ionicons name="library-outline" color="#535aff" size={48} />
+          </View>
+          <Text style={styles.emptyStateTitle}>Library Empty</Text>
+          <Text style={styles.emptyStateSubtitle}>
+            Add some content to get started
           </Text>
         </View>
       ) : (
@@ -173,6 +227,59 @@ const styles = StyleSheet.create({
     width: '100%',
     margin: 'auto',
     maxWidth: 780
+  },
+  centeredContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 40,
+  },
+  centeredText: {
+    marginTop: 16,
+    fontSize: 17,
+    color: '#8E8E93',
+    fontWeight: '400',
+    letterSpacing: -0.41,
+  },
+  errorIcon: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: 'rgba(255, 59, 48, 0.15)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  errorTitle: {
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#fff',
+    marginBottom: 8,
+    textAlign: 'center',
+    letterSpacing: 0.35,
+  },
+  errorSubtitle: {
+    fontSize: 17,
+    color: '#8E8E93',
+    textAlign: 'center',
+    lineHeight: 22,
+    fontWeight: '400',
+    letterSpacing: -0.41,
+    marginBottom: 24,
+  },
+  retryButton: {
+    backgroundColor: '#535aff',
+    paddingHorizontal: 24,
+    paddingVertical: 12,
+    borderRadius: 12,
+    minWidth: 120,
+  },
+  retryButtonText: {
+    color: '#fff',
+    fontSize: 17,
+    fontWeight: '600',
+    textAlign: 'center',
+    letterSpacing: -0.41,
   },
   header: {
     paddingHorizontal: 20,
@@ -227,28 +334,8 @@ const styles = StyleSheet.create({
   contentWrapper: {
     flexGrow: 1,
   },
-  loadingContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 17,
-    color: '#8E8E93',
-    fontWeight: '400',
-    letterSpacing: -0.41,
-  },
   emptyStateContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
     paddingHorizontal: 40,
@@ -292,4 +379,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default SearchScreen;
+export default LibraryScreen;
