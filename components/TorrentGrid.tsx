@@ -213,7 +213,6 @@ const styles = StyleSheet.create({
         fontWeight: '400', // iOS standard weight
         color: '#FFFFFF',
         lineHeight: 17,
-        letterSpacing: -0.08,
     },
     emptyContainer: {
         flex: 1,

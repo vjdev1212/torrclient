@@ -296,8 +296,7 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 13,
     color: '#8E8E93',
-    fontWeight: '400',
-    letterSpacing: -0.08,
+    fontWeight: '400',    
   },
   searchContainer: {
     paddingHorizontal: 20,
@@ -374,8 +373,7 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     fontWeight: '600',
     marginBottom: 12,
-    paddingHorizontal: 20,
-    letterSpacing: -0.08,
+    paddingHorizontal: 20,    
   },
 });
 

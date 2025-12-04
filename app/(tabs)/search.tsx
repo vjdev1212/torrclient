@@ -569,8 +569,7 @@ const styles = StyleSheet.create({
     headerSubtitle: {
         fontSize: 13,
         color: '#8E8E93',
-        fontWeight: '400',
-        letterSpacing: -0.08,
+        fontWeight: '400',      
     },
     searchBarContainer: {
         flexDirection: 'row',
@@ -639,7 +638,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
         color: '#8E8E93',
         marginBottom: 12,
-        letterSpacing: -0.08,
     },
     emptyState: {
         alignItems: 'center',
@@ -713,7 +711,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#8E8E93',
         fontWeight: '500',
-        letterSpacing: -0.08,
     },
     categoryBadge: {
         backgroundColor: 'rgba(142, 142, 147, 0.12)',
@@ -740,8 +737,7 @@ const styles = StyleSheet.create({
     seedersText: {
         fontSize: 13,
         fontWeight: '600',
-        color: '#34C759',
-        letterSpacing: -0.08,
+        color: '#34C759',  
     },
     downloadIndicator: {
         flexDirection: 'row',

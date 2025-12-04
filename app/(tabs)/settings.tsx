@@ -157,7 +157,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '400',
     color: '#8E8E93',
-    letterSpacing: -0.08,
     marginBottom: 10,
     paddingHorizontal: 2,
     textTransform: 'uppercase',
@@ -202,7 +201,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#8E8E93',
     marginTop: 1,
-    letterSpacing: -0.08,
     fontWeight: '400',
   },
   separator: {

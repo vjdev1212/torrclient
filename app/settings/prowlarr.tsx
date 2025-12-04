@@ -515,7 +515,6 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '400',
         color: '#8E8E93',
-        letterSpacing: -0.08,
     },
     section: {
         marginBottom: 35,
@@ -637,8 +636,7 @@ const styles = StyleSheet.create({
     sectionFooter: {
         fontSize: 13,
         fontWeight: '400',
-        color: '#8E8E93',
-        letterSpacing: -0.08,
+        color: '#8E8E93',  
     },
     addHeaderLink: {
         fontSize: 16,
@@ -724,7 +722,6 @@ const styles = StyleSheet.create({
         paddingTop: 8,
         paddingBottom: 24,
         textAlign: 'left',
-        letterSpacing: -0.08,
     },
     saveButton: {
         backgroundColor: '#0A84FF',

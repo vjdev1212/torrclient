@@ -412,7 +412,6 @@ const styles = StyleSheet.create({
     fontSize: 13,
     fontWeight: '400',
     color: '#8E8E93',
-    letterSpacing: -0.08,
     textTransform: 'uppercase',
   },
   addButton: {
@@ -478,7 +477,6 @@ const styles = StyleSheet.create({
   serverUrl: {
     fontSize: 13,
     color: '#8E8E93',
-    letterSpacing: -0.08,
   },
   serverHeaderRight: {
     flexDirection: 'row',
@@ -510,7 +508,6 @@ const styles = StyleSheet.create({
     fontWeight: '400',
     color: '#8E8E93',
     marginBottom: 8,
-    letterSpacing: -0.08,
     textTransform: 'uppercase',
   },
   input: {
@@ -610,7 +607,6 @@ const styles = StyleSheet.create({
     color: '#8E8E93',
     lineHeight: 18,
     marginLeft: 12,
-    letterSpacing: -0.08,
   },
 });
 

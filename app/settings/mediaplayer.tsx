@@ -179,7 +179,7 @@ const MediaPlayerConfigScreen = () => {
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar />
-            
+
             {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Media Player</Text>
@@ -302,7 +302,6 @@ const styles = StyleSheet.create({
         fontSize: 13,
         fontWeight: '400',
         color: '#8E8E93',
-        letterSpacing: -0.08,
     },
     playersContainer: {
         backgroundColor: '#1C1C1E',
@@ -341,7 +340,6 @@ const styles = StyleSheet.create({
         paddingTop: 8,
         paddingBottom: 24,
         textAlign: 'left',
-        letterSpacing: -0.08,
     },
     buttonContainer: {
         paddingHorizontal: 20,
