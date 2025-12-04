@@ -376,8 +376,8 @@ const styles = StyleSheet.create({
     borderColor: '#202020',
   },
   categoryChipActive: {
-    backgroundColor: '#535aff',
-    borderColor: '#535aff',
+    backgroundColor: '#0A84FF',
+    borderColor: '#0A84FF',
   },
   categoryChipText: {
     fontSize: 14,
@@ -400,7 +400,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#1a1a1a',
   },
   submitButton: {
-    backgroundColor: '#535aff',
+    backgroundColor: '#0A84FF',
     paddingVertical: 14,
     borderRadius: 25,
     alignItems: 'center',

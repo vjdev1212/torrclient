@@ -170,92 +170,87 @@ const MediaPlayerConfigScreen = () => {
         return (
             <SafeAreaView style={styles.centeredContainer}>
                 <View style={styles.loadingContainer}>
-                    <Text style={styles.loadingText}>Loading player configuration...</Text>
+                    <Text style={styles.loadingText}>Loading...</Text>
                 </View>
             </SafeAreaView>
         );
     }
 
     return (
-        <SafeAreaView style={styles.container}>
+        <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar />
+            
+            {/* Header */}
+            <View style={styles.header}>
+                <Text style={styles.headerTitle}>Media Player</Text>
+            </View>
+
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.scrollContent}
             >
-                <View style={styles.contentContainer}>
-                    <View style={styles.headerSection}>
-                        <Text style={styles.title}>Default Media Player</Text>
-                        <Text style={styles.subtitle}>
-                            Choose your preferred media player for streaming content.
-                        </Text>
-                    </View>
-
-                    <View style={styles.playersSection}>
-                        <View style={styles.playersContainer}>
-                            {players.map((player, index) => (
-                                <Pressable
-                                    key={player.name}
-                                    style={[
-                                        styles.playerRow,
-                                        index === 0 && styles.firstRow,
-                                        index === players.length - 1 && styles.lastRow
-                                    ]}
-                                    onPress={() => handlePlayerSelect(player.name)}
-                                >
-                                    <View style={styles.playerContent}>
-                                        <View style={styles.playerInfo}>
-                                            <Text style={styles.playerName}>
-                                                {player.name}
-                                            </Text>
-                                        </View>
-                                        <View style={styles.checkmarkContainer}>
-                                            {selectedPlayer === player.name && (
-                                                <MaterialIcons
-                                                    name="check"
-                                                    size={20}
-                                                    color="#535aff"
-                                                />
-                                            )}
-                                        </View>
-                                    </View>
-                                </Pressable>
-                            ))}
-                        </View>
-                    </View>
-
-                    <View style={styles.buttonSection}>
-                        <Pressable
-                            style={[styles.button, styles.secondaryButton]}
-                            onPress={resetToDefault}
-                        >
-                            <MaterialIcons name="refresh" size={18} color="#ffffff" style={styles.buttonIcon} />
-                            <Text style={styles.secondaryButtonText}>Reset</Text>
-                        </Pressable>
-
-                        <Pressable
-                            style={[
-                                styles.button,
-                                styles.primaryButton,
-                                saving && styles.buttonDisabled
-                            ]}
-                            onPress={savePlayerConfig}
-                            disabled={saving}
-                        >
-                            {saving ? (
-                                <>
-                                    <MaterialIcons name="hourglass-empty" size={18} color="#ffffff" style={styles.buttonIcon} />
-                                    <Text style={styles.primaryButtonText}>Saving...</Text>
-                                </>
-                            ) : (
-                                <>
-                                    <MaterialIcons name="save" size={18} color="#ffffff" style={styles.buttonIcon} />
-                                    <Text style={styles.primaryButtonText}>Save</Text>
-                                </>
-                            )}
-                        </Pressable>
-                    </View>
+                {/* Section Header */}
+                <View style={styles.sectionHeaderContainer}>
+                    <Text style={styles.sectionHeader}>DEFAULT PLAYER</Text>
                 </View>
+
+                {/* Players List */}
+                <View style={styles.playersContainer}>
+                    {players.map((player, index) => (
+                        <React.Fragment key={player.name}>
+                            {index > 0 && <View style={styles.separator} />}
+                            <Pressable
+                                style={({ pressed }) => [
+                                    styles.playerRow,
+                                    pressed && styles.playerRowPressed
+                                ]}
+                                onPress={() => handlePlayerSelect(player.name)}
+                            >
+                                <Text style={styles.playerName}>{player.name}</Text>
+                                {selectedPlayer === player.name && (
+                                    <MaterialIcons
+                                        name="check"
+                                        size={22}
+                                        color="#0A84FF"
+                                    />
+                                )}
+                            </Pressable>
+                        </React.Fragment>
+                    ))}
+                </View>
+
+                {/* Footer Text */}
+                <Text style={styles.footerText}>
+                    Choose your preferred media player for streaming content.We recommend using external player for the best experience.
+                </Text>
+
+                {/* Action Buttons */}
+                <View style={styles.buttonContainer}>
+                    <Pressable
+                        style={({ pressed }) => [
+                            styles.saveButton,
+                            pressed && !saving && styles.saveButtonPressed,
+                            saving && styles.saveButtonDisabled
+                        ]}
+                        onPress={savePlayerConfig}
+                        disabled={saving}
+                    >
+                        <Text style={styles.saveButtonText}>
+                            {saving ? 'Saving...' : 'Save'}
+                        </Text>
+                    </Pressable>
+
+                    <Pressable
+                        style={({ pressed }) => [
+                            styles.resetButton,
+                            pressed && styles.resetButtonPressed
+                        ]}
+                        onPress={resetToDefault}
+                    >
+                        <Text style={styles.resetButtonText}>Reset to Default</Text>
+                    </Pressable>
+                </View>
+
                 <BottomSpacing space={30} />
             </ScrollView>
         </SafeAreaView>
@@ -265,19 +260,11 @@ const MediaPlayerConfigScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        marginTop: 30
-    },
-    scrollContent: {
-        paddingBottom: 20,
-    },
-    contentContainer: {
-        paddingHorizontal: 24,
-        maxWidth: 780,
-        alignSelf: 'center',
-        width: '100%',
+        backgroundColor: '#000000',
     },
     centeredContainer: {
         flex: 1,
+        backgroundColor: '#000000',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -286,127 +273,112 @@ const styles = StyleSheet.create({
         padding: 32,
     },
     loadingText: {
-        fontSize: 16,
-        color: '#888888',
-        fontWeight: '400',
+        fontSize: 17,
+        color: '#8E8E93',
+        letterSpacing: -0.41,
     },
-    headerSection: {
-        alignItems: 'center',
-        marginBottom: 10,
-        paddingVertical: 20,
-    },
-    title: {
-        fontSize: 30,
-        fontWeight: '600',
-        marginBottom: 12,
-        textAlign: 'center',
-        color: '#ffffff',
-    },
-    subtitle: {
-        fontSize: 16,
-        textAlign: 'center',
-        color: '#888888',
-        lineHeight: 24,
+    header: {
         paddingHorizontal: 20,
-        fontWeight: '400',
+        paddingTop: 8,
+        paddingBottom: 16,
+        backgroundColor: '#000000',
     },
-    playersSection: {
-        marginBottom: 30,
+    headerTitle: {
+        fontSize: 34,
+        fontWeight: '700',
+        color: '#FFFFFF',
+        letterSpacing: 0.37,
+    },
+    scrollContent: {
+        paddingBottom: 20,
+    },
+    sectionHeaderContainer: {
+        paddingHorizontal: 20,
+        paddingTop: 22,
+        paddingBottom: 6,
+        backgroundColor: '#000000',
+    },
+    sectionHeader: {
+        fontSize: 13,
+        fontWeight: '400',
+        color: '#8E8E93',
+        letterSpacing: -0.08,
     },
     playersContainer: {
         backgroundColor: '#1C1C1E',
+        marginHorizontal: 20,
         borderRadius: 10,
         overflow: 'hidden',
+        marginBottom: 8,
     },
     playerRow: {
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        borderBottomWidth: 0.5,
-        borderBottomColor: '#2C2C2E',
-        minHeight: 44,
-    },
-    firstRow: {
-        borderTopLeftRadius: 12,
-        borderTopRightRadius: 12,
-    },
-    lastRow: {
-        borderBottomWidth: 0,
-        borderBottomLeftRadius: 12,
-        borderBottomRightRadius: 12,
-    },
-    playerContent: {
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'space-between',
-        paddingVertical: 4,
+        paddingVertical: 11,
+        paddingHorizontal: 16,
+        minHeight: 44,
     },
-    playerInfo: {
-        flex: 1,
-        paddingRight: 12,
+    playerRowPressed: {
+        backgroundColor: '#2C2C2E',
     },
     playerName: {
         fontSize: 17,
         fontWeight: '400',
-        color: '#ffffff',
-        lineHeight: 22,
+        color: '#FFFFFF',
+        letterSpacing: -0.41,
     },
-    playerDescription: {
+    separator: {
+        height: 0.5,
+        backgroundColor: '#38383A',
+        marginLeft: 16,
+    },
+    footerText: {
         fontSize: 13,
-        color: '#888888',
+        color: '#8E8E93',
         lineHeight: 18,
-        fontWeight: '400',
+        paddingHorizontal: 36,
+        paddingTop: 8,
+        paddingBottom: 24,
+        textAlign: 'left',
+        letterSpacing: -0.08,
     },
-    checkmarkContainer: {
-        width: 24,
-        height: 24,
-        justifyContent: 'center',
-        alignItems: 'center',
-    },
-    buttonSection: {
-        flexDirection: 'row',
-        gap: 16,
-        marginTop: 8,
-        paddingTop: 20,
-        borderTopWidth: 1,
-        borderTopColor: '#2a2a2a',
-    },
-    button: {
-        flex: 1,
-        paddingVertical: 16,
+    buttonContainer: {
         paddingHorizontal: 20,
+        gap: 12,
+    },
+    saveButton: {
+        backgroundColor: '#0A84FF',
+        paddingVertical: 14,
         borderRadius: 10,
         alignItems: 'center',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        borderWidth: 1,
-        overflow: 'hidden',
     },
-    primaryButton: {
-        backgroundColor: 'hsla(238, 100%, 66%, 0.20)',
-        borderColor: 'rgba(83, 90, 255, 0.3)',
-        shadowColor: '#535aff',
+    saveButtonPressed: {
+        backgroundColor: '#0066CC',
     },
-    secondaryButton: {
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
-        borderColor: 'rgba(255, 255, 255, 0.1)',
+    saveButtonDisabled: {
+        opacity: 0.5,
     },
-    buttonIcon: {
-        marginRight: 8,
+    saveButtonText: {
+        color: '#FFFFFF',
+        fontSize: 17,
+        fontWeight: '600',
+        letterSpacing: -0.41,
     },
-    primaryButtonText: {
-        fontSize: 16,
-        color: '#ffffff',
-        fontWeight: '500',
+    resetButton: {
+        backgroundColor: '#1C1C1E',
+        paddingVertical: 14,
+        borderRadius: 10,
+        alignItems: 'center',
     },
-    secondaryButtonText: {
-        fontSize: 16,
-        color: '#ffffff',
-        fontWeight: '500',
+    resetButtonPressed: {
+        backgroundColor: '#2C2C2E',
     },
-    buttonDisabled: {
-        backgroundColor: 'rgba(255, 255, 255, 0.02)',
-        borderColor: 'rgba(255, 255, 255, 0.05)',
-        opacity: 0.4,
+    resetButtonText: {
+        color: '#0A84FF',
+        fontSize: 17,
+        fontWeight: '400',
+        letterSpacing: -0.41,
     },
 });
 

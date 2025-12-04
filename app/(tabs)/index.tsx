@@ -153,7 +153,7 @@ const HomeScreen = () => {
 
   const handleCarouselItemPress = async (item: any) => {
     if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
     router.push({
@@ -164,7 +164,7 @@ const HomeScreen = () => {
 
   const handleTorrentItemPress = async (item: any) => {
     if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
     router.push({
@@ -173,22 +173,33 @@ const HomeScreen = () => {
     });
   };
 
+  // Show centered loader during initial load
+  if (loading && data.length === 0) {
+    return (
+      <View style={styles.container}>
+        <StatusBar />
+        <View style={styles.centeredLoadingContainer}>
+          <ActivityIndicator size="large" color="#007AFF" />
+          <Text style={styles.loadingText}>Loading your library...</Text>
+        </View>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <StatusBar />
       <ScrollView showsVerticalScrollIndicator={false} key={refreshKey}>
-        {/* Carousel Section */}
-        {!loading && (
-          <PosterCarousel
-            filter={selectedCategory}
-            onItemPress={handleCarouselItemPress}
-            autoPlay={true}
-            autoPlayInterval={6000}
-            carouselData={filteredData.length > 0 ? filteredData : emptyCarouselData}
-          />
-        )}
+        {/* Carousel Section - Always rendered to prevent layout shift */}
+        <PosterCarousel
+          filter={selectedCategory}
+          onItemPress={handleCarouselItemPress}
+          autoPlay={true}
+          autoPlayInterval={6000}
+          carouselData={filteredData.length > 0 ? filteredData : emptyCarouselData}
+        />
 
-        {/* Category Filter Chips */}
+        {/* Category Filter Chips - iOS Segmented Control Style */}
         <View style={styles.filterSection}>
           <ScrollView
             horizontal
@@ -204,7 +215,7 @@ const HomeScreen = () => {
                     selectedCategory === category && styles.chipActive
                   ]}
                   onPress={() => handleCategoryPress(category)}
-                  activeOpacity={0.7}
+                  activeOpacity={0.6}
                 >
                   <Text style={[
                     styles.chipText,
@@ -219,14 +230,9 @@ const HomeScreen = () => {
         </View>
 
         {/* Content */}
-        {loading ? (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="large" color="#535aff" />
-            <Text style={styles.loadingText}>Loading your library...</Text>
-          </View>
-        ) : filteredData.length === 0 ? (
+        {filteredData.length === 0 ? (
           <View style={styles.emptyContainer}>
-            <Text style={styles.emptyTitle}>No items found</Text>
+            <Text style={styles.emptyTitle}>No Items</Text>
             <Text style={styles.emptySubtitle}>
               Try selecting a different category
             </Text>
@@ -242,96 +248,76 @@ const HomeScreen = () => {
 export default HomeScreen;
 
 const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-  },
   container: {
     flex: 1,
+    backgroundColor: '#000',
   },
-  header: {
-    paddingHorizontal: 20,
-    paddingTop: 20,
-    paddingBottom: 16,
+  centeredLoadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
     backgroundColor: 'transparent',
   },
-  headerTitle: {
-    fontSize: 32,
-    fontWeight: '700',
-    color: '#fff',
-    letterSpacing: -0.5,
-  },
-  headerSubtitle: {
-    fontSize: 14,
-    color: '#999',
-    marginTop: 4,
-    fontWeight: '400',
-  },
-  categoryChipsContainer: {
-    flexDirection: 'row',
-    gap: 15,
-    marginVertical: 20,
-  },
   filterSection: {
-    paddingBottom: 20,
+    paddingTop: 16,
+    paddingBottom: 12,
     backgroundColor: 'transparent',
   },
   filterScrollContent: {
-    paddingHorizontal: 20,
-    gap: 10,
+    paddingHorizontal: 16,
+  },
+  categoryChipsContainer: {
+    flexDirection: 'row',
+    gap: 20,
+    backgroundColor: 'transparent',
   },
   chip: {
     paddingHorizontal: 20,
-    paddingVertical: 10,
-    borderRadius: 25,
-    backgroundColor: '#1a1a1a',
-    borderWidth: StyleSheet.hairlineWidth,
-    borderColor: '#202020',
-  },
-  chipActive: {
-    backgroundColor: '#535aff',
-    borderColor: '#535aff',
-  },
-  chipText: {
-    fontWeight: '500',
-    color: '#fff',
-    fontSize: 16
-  },
-  chipTextActive: {
-    color: '#fff',
-    fontWeight: 500
-  },
-  loadingContainer: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
+    paddingVertical: 8,
+    borderRadius: 20,
+    backgroundColor: 'rgba(118, 118, 128, 0.25)',
+    minHeight: 36,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'transparent'
+  },
+  chipActive: {
+    backgroundColor: '#007AFF',
+  },
+  chipText: {
+    fontWeight: '400',
+    color: '#FFFFFF',
+    fontSize: 15,
+    letterSpacing: -0.24,
+  },
+  chipTextActive: {
+    color: '#FFFFFF',
+    fontWeight: '600',
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 15,
-    color: '#999',
+    fontSize: 17,
+    color: '#8E8E93',
     fontWeight: '400',
   },
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingVertical: 80,
     paddingHorizontal: 40,
     backgroundColor: 'transparent',
   },
   emptyTitle: {
-    fontSize: 20,
-    fontWeight: '500',
-    color: '#fff',
+    fontSize: 22,
+    fontWeight: '600',
+    color: '#FFFFFF',
     marginBottom: 8,
+    letterSpacing: 0.35,
   },
   emptySubtitle: {
-    fontSize: 15,
-    color: '#999',
+    fontSize: 17,
+    color: '#8E8E93',
     textAlign: 'center',
+    lineHeight: 22,
   },
 });

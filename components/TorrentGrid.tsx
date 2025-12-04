@@ -24,39 +24,39 @@ interface TorrentGridProps {
     onTorrentItemPress: (item: Torrent) => void;
 }
 
-// Film Tape Placeholder Component
+// Film Tape Placeholder Component with iOS styling
 const FilmTapePlaceholder = ({ width, height }: { width: number; height: number }) => (
     <Svg width={width} height={height} viewBox="0 0 500 750">
         {/* Background */}
-        <Rect width="500" height="750" fill="#2a2a2a" />
+        <Rect width="500" height="750" fill="#1C1C1E" />
 
         {/* Movie frame/screen */}
-        <Rect x="100" y="220" width="300" height="220" fill="none" stroke="#666" strokeWidth="6" rx="8" />
+        <Rect x="100" y="220" width="300" height="220" fill="none" stroke="#48484A" strokeWidth="4" rx="10" />
 
         {/* Film strip on left */}
-        <Rect x="100" y="220" width="20" height="220" fill="#666" />
-        <Rect x="105" y="230" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="105" y="255" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="105" y="280" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="105" y="305" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="105" y="330" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="105" y="355" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="105" y="380" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="105" y="405" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="100" y="220" width="20" height="220" fill="#48484A" />
+        <Rect x="105" y="230" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="105" y="255" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="105" y="280" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="105" y="305" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="105" y="330" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="105" y="355" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="105" y="380" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="105" y="405" width="10" height="15" fill="#1C1C1E" rx="2" />
 
         {/* Film strip on right */}
-        <Rect x="380" y="220" width="20" height="220" fill="#666" />
-        <Rect x="385" y="230" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="385" y="255" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="385" y="280" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="385" y="305" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="385" y="330" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="385" y="355" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="385" y="380" width="10" height="15" fill="#2a2a2a" rx="2" />
-        <Rect x="385" y="405" width="10" height="15" fill="#2a2a2a" rx="2" />
+        <Rect x="380" y="220" width="20" height="220" fill="#48484A" />
+        <Rect x="385" y="230" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="385" y="255" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="385" y="280" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="385" y="305" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="385" y="330" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="385" y="355" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="385" y="380" width="10" height="15" fill="#1C1C1E" rx="2" />
+        <Rect x="385" y="405" width="10" height="15" fill="#1C1C1E" rx="2" />
 
         {/* Play button triangle */}
-        <Polygon points="220,300 220,360 270,330" fill="#666" />
+        <Polygon points="220,300 220,360 270,330" fill="#48484A" />
     </Svg>
 );
 
@@ -91,7 +91,7 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress }) =
     const calculationHeight = keyboardVisible ? staticDimensions.height : height;
     const isPortrait = calculationHeight >= calculationWidth;
 
-    // Determine fixed number of columns
+    // Determine fixed number of columns (iOS standard grid layouts)
     const getNumColumns = () => {
         if (calculationWidth < 600) return isPortrait ? 3 : 5;  // Mobile
         if (calculationWidth < 1024) return 5;                  // Tablet
@@ -99,8 +99,8 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress }) =
     };
 
     const numColumns = getNumColumns();
-    const itemSpacing = 12; // Tighter, more modern spacing
-    const horizontalPadding = 20;
+    const itemSpacing = 16; // iOS standard spacing
+    const horizontalPadding = 16; // iOS standard edge padding
     const totalSpacing = itemSpacing * (numColumns - 1) + (horizontalPadding * 2);
 
     // Adjust poster width to always fit screen width (using static dimensions)
@@ -117,7 +117,7 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress }) =
             <Pressable
                 style={[styles.card, { width: posterWidth }]}
                 onPress={() => onTorrentItemPress(item)}
-                android_ripple={{ color: 'rgba(83, 90, 255, 0.2)' }}
+                android_ripple={{ color: 'rgba(0, 122, 255, 0.2)' }}
             >
                 {({ pressed }) => (
                     <>
@@ -136,11 +136,9 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress }) =
                             ) : (
                                 <FilmTapePlaceholder width={posterWidth} height={posterHeight} />
                             )}
-                            {/* Subtle overlay for depth */}
-                            <View style={styles.imageOverlay} />
                         </View>
                         <Text
-                            numberOfLines={1}
+                            numberOfLines={2}
                             style={[styles.title, { width: posterWidth }]}
                         >
                             {item.title}
@@ -179,7 +177,8 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress }) =
 
 const styles = StyleSheet.create({
     scrollContent: {
-        paddingBottom: 24,
+        paddingTop: 16,
+        paddingBottom: 32,
     },
     grid: {
         flexDirection: 'row',
@@ -188,44 +187,46 @@ const styles = StyleSheet.create({
         backgroundColor: 'transparent',
     },
     card: {
-        marginBottom: 20,
+        marginBottom: 8,
     },
     imageWrapper: {
-        borderRadius: 8,
+        borderRadius: 10, // iOS standard corner radius
         overflow: 'hidden',
-        backgroundColor: '#1a1a1a',
-        position: 'relative',
+        backgroundColor: '#1C1C1E', // iOS dark background
+        shadowColor: '#000',
+        shadowOffset: { width: 0, height: 2 },
+        shadowOpacity: 0.2,
+        shadowRadius: 4,
+        elevation: 3,
     },
     posterImage: {
         width: '100%',
         height: '100%',
     },
-    imageOverlay: {
-        ...StyleSheet.absoluteFillObject,
-        backgroundColor: 'rgba(0, 0, 0, 0.05)',
-    },
     imagePressed: {
-        opacity: 0.7,
-        transform: [{ scale: 0.98 }],
+        opacity: 0.75,
+        transform: [{ scale: 0.97 }],
     },
     title: {
-        marginTop: 8,
+        marginTop: 6,
         fontSize: 13,
-        fontWeight: 500,
-        color: '#fff',
-        lineHeight: 18,
+        fontWeight: '400', // iOS standard weight
+        color: '#FFFFFF',
+        lineHeight: 17,
+        letterSpacing: -0.08,
     },
     emptyContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        paddingVertical: 60,
+        paddingVertical: 80,
         backgroundColor: 'transparent',
     },
     emptyText: {
-        fontSize: 16,
-        color: '#666',
+        fontSize: 17,
+        color: '#8E8E93', // iOS secondary label color
         fontWeight: '400',
+        textAlign: 'center',
     },
 });
 

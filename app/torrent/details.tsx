@@ -121,7 +121,7 @@ const TorrentDetails = () => {
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#535aff" />
+        <ActivityIndicator size="large" color="#007AFF" />
         <Text style={styles.loadingText}>Loading details...</Text>
       </View>
     );
@@ -153,10 +153,9 @@ const TorrentDetails = () => {
 
   const handleFileLink = async (file: any) => {
     if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
-    // Play directly on normal press
     const encodedPath = encodeURIComponent(file.path);
     const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play&preload`;
     handlePlayWithDefaultPlayer(streamUrl);
@@ -324,17 +323,15 @@ const TorrentDetails = () => {
   const CacheInfo = React.memo(({ cacheData, cacheLoading }: { cacheData: any, cacheLoading: boolean }) => {
     if (cacheLoading) {
       return (
-        <View style={styles.detailsSection}>
-          <Text style={styles.sectionTitle}>Torrent Details</Text>
-          <View style={[styles.statsGrid, isMobile && isPortrait && styles.statsGridMobile]}>
-            <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
-            <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
-            <View style={styles.statCard}>
-              <View style={styles.statHeader}>
-                <Ionicons name="information-circle-outline" size={18} color="#535aff" />
-                <Text style={styles.statLabel}>Status</Text>
-              </View>
-              <ActivityIndicator size="small" color="#535aff" style={{ marginTop: 4 }} />
+        <View style={styles.infoGroup}>
+          <View style={styles.infoCard}>
+            <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
+            <View style={styles.separator} />
+            <InfoRow label="Size" value={formatBytes(torrentData.size)} />
+            <View style={styles.separator} />
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>Status</Text>
+              <ActivityIndicator size="small" color="#007AFF" />
             </View>
           </View>
         </View>
@@ -343,49 +340,61 @@ const TorrentDetails = () => {
 
     if (!cacheData?.Torrent) {
       return (
-        <View style={styles.detailsSection}>
-          <Text style={styles.sectionTitle}>Torrent Details</Text>
-          <View style={[styles.statsGrid, isMobile && isPortrait && styles.statsGridMobile]}>
-            <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
-            <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
-            <StatCard label="Status" value="Loading..." icon="information-circle-outline" />
+        <View style={styles.infoGroup}>
+          <View style={styles.infoCard}>
+            <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
+            <View style={styles.separator} />
+            <InfoRow label="Size" value={formatBytes(torrentData.size)} />
+            <View style={styles.separator} />
+            <InfoRow label="Status" value="Loading..." />
           </View>
         </View>
       );
     }
 
     return (
-      <View style={styles.detailsSection}>
-        <Text style={styles.sectionTitle}>Torrent Details</Text>
-        <View style={[styles.statsGrid, isMobile && isPortrait && styles.statsGridMobile]}>
-          <StatCard label="Category" value={getFormattedCategory(torrentData.category)} icon="folder-outline" />
-          <StatCard label="Size" value={formatBytes(torrentData.size)} icon="archive-outline" />
-          <StatCard label="Status" value={cacheData.Torrent.stat_string} icon="information-circle-outline" />
-          <StatCard label="Peers" value={cacheData.Torrent.total_peers} icon="people-outline" />
-          <StatCard label="Seeders" value={cacheData.Torrent.connected_seeders} icon="cloud-upload-outline" />
-          <StatCard
-            label="Download"
+      <View style={styles.infoGroup}>
+        <Text style={styles.groupTitle}>TORRENT DETAILS</Text>
+        <View style={styles.infoCard}>
+          <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
+          <View style={styles.separator} />
+          <InfoRow label="Size" value={formatBytes(torrentData.size)} />
+          <View style={styles.separator} />
+          <InfoRow label="Status" value={cacheData.Torrent.stat_string} />
+        </View>
+
+        <Text style={styles.groupTitle}>NETWORK</Text>
+        <View style={styles.infoCard}>
+          <InfoRow label="Peers" value={cacheData.Torrent.total_peers} />
+          <View style={styles.separator} />
+          <InfoRow label="Seeders" value={cacheData.Torrent.connected_seeders} />
+          <View style={styles.separator} />
+          <InfoRow 
+            label="Download Speed" 
             value={cacheData.Torrent?.download_speed > 0
               ? `${formatBytes(cacheData.Torrent.download_speed)}/s`
               : '0 KB/s'}
-            icon="download-outline"
           />
-          <StatCard label="Read" value={formatBytes(cacheData.Torrent?.bytes_read || 0)} icon="analytics-outline" />
-          <StatCard label="Written" value={formatBytes(cacheData.Torrent?.bytes_written || 0)} icon="create-outline" />
-          <StatCard label="Active" value={cacheData.Torrent.active_peers} icon="pulse-outline" />
-          <StatCard label="Pending" value={cacheData.Torrent.pending_peers} icon="time-outline" />
+          <View style={styles.separator} />
+          <InfoRow label="Active Peers" value={cacheData.Torrent.active_peers} />
+          <View style={styles.separator} />
+          <InfoRow label="Pending Peers" value={cacheData.Torrent.pending_peers} />
+        </View>
+
+        <Text style={styles.groupTitle}>DATA TRANSFER</Text>
+        <View style={styles.infoCard}>
+          <InfoRow label="Bytes Read" value={formatBytes(cacheData.Torrent?.bytes_read || 0)} />
+          <View style={styles.separator} />
+          <InfoRow label="Bytes Written" value={formatBytes(cacheData.Torrent?.bytes_written || 0)} />
         </View>
       </View>
     );
   });
 
-  const StatCard = ({ label, value, icon }: { label: string, value: any, icon: any }) => (
-    <View style={[styles.statCard, isMobile && isPortrait && styles.statCardMobile]}>
-      <View style={styles.statHeader}>
-        <Ionicons name={icon} size={18} color="#535aff" />
-        <Text style={styles.statLabel}>{label}</Text>
-      </View>
-      <Text style={styles.statValue} numberOfLines={1}>{value}</Text>
+  const InfoRow = ({ label, value }: { label: string, value: any }) => (
+    <View style={styles.infoRow}>
+      <Text style={styles.infoLabel}>{label}</Text>
+      <Text style={styles.infoValue} numberOfLines={1}>{value}</Text>
     </View>
   );
 
@@ -397,7 +406,7 @@ const TorrentDetails = () => {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ padding: contentPadding }}
+        contentContainerStyle={{ paddingBottom: 20 }}
         ref={ref}
       >
         {/* Hero Poster Section - Portrait Only */}
@@ -408,14 +417,11 @@ const TorrentDetails = () => {
               style={styles.heroPosterImage}
               resizeMode="cover"
             />
-            <View style={styles.heroPosterOverlay} />
-            <View style={styles.heroPosterContent}>
-              <Text style={styles.heroTitle} numberOfLines={2}>{torrentData.title}</Text>
-            </View>
+            <View style={styles.heroPosterGradient} />
           </View>
         )}
 
-        <View style={[styles.content, { flexDirection: !isPortrait ? 'row' : 'column', gap: !isPortrait ? 32 : 0 }]}>
+        <View style={[styles.content, !isPortrait && styles.contentLandscape]}>
 
           {/* Poster Section - Landscape Only */}
           {!isPortrait && (
@@ -426,124 +432,103 @@ const TorrentDetails = () => {
                   style={styles.posterImage}
                   resizeMode="cover"
                 />
-                <View style={styles.posterOverlay} />
-              </View>
-
-              <View style={styles.actionsContainerLandscape}>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={handleEdit}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="create-outline" size={24} color="#535aff" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={handleDrop}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="remove-circle-outline" size={24} color="#f59e0b" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={handleWipe}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="trash-outline" size={24} color="#ef4444" />
-                </TouchableOpacity>
               </View>
             </View>
           )}
 
           {/* Info Section */}
           <View style={!isPortrait ? styles.infoSectionLandscape : styles.infoSectionPortrait}>
-            {!isPortrait && (
-              <View style={styles.headerSection}>
-                <Text style={styles.title} numberOfLines={2}>{torrentData.title}</Text>
-              </View>
-            )}
+            {/* Title */}
+            <View style={styles.titleSection}>
+              <Text style={styles.title} numberOfLines={3}>{torrentData.title}</Text>
+            </View>
 
-            {/* Action Buttons - Portrait Only */}
-            {isPortrait && (
-              <View style={styles.actionsContainerPortrait}>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={handleEdit}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="create-outline" size={28} color="#535aff" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={handleDrop}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="remove-circle-outline" size={28} color="#f59e0b" />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.iconButton}
-                  onPress={handleWipe}
-                  activeOpacity={0.7}
-                >
-                  <Ionicons name="trash-outline" size={28} color="#ef4444" />
-                </TouchableOpacity>
-              </View>
-            )}
+            {/* Action Buttons */}
+            <View style={styles.actionsContainer}>
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleEdit}
+                activeOpacity={0.6}
+              >
+                <Ionicons name="pencil" size={20} color="#007AFF" />
+                <Text style={styles.actionButtonText}>Edit</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleDrop}
+                activeOpacity={0.6}
+              >
+                <Ionicons name="pause-circle" size={20} color="#FF9500" />
+                <Text style={[styles.actionButtonText, { color: '#FF9500' }]}>Drop</Text>
+              </TouchableOpacity>
+              
+              <TouchableOpacity
+                style={styles.actionButton}
+                onPress={handleWipe}
+                activeOpacity={0.6}
+              >
+                <Ionicons name="trash" size={20} color="#FF3B30" />
+                <Text style={[styles.actionButtonText, { color: '#FF3B30' }]}>Delete</Text>
+              </TouchableOpacity>
+            </View>
 
             <CacheInfo cacheData={cacheData} cacheLoading={cacheLoading} />
 
             {/* Files Section */}
             {videoFiles.length > 0 && (
-              <View style={styles.filesSection}>
-                <View style={styles.filesSectionHeader}>
-                  <Text style={styles.sectionTitle}>Files: {videoFiles.length}</Text>
+              <View style={styles.infoGroup}>
+                <Text style={styles.groupTitle}>FILES ({videoFiles.length})</Text>
+                <View style={styles.infoCard}>
+                  {videoFiles.map((file: any, index: number) => (
+                    <React.Fragment key={index}>
+                      {index > 0 && <View style={styles.separator} />}
+                      <MenuView
+                        title="File Actions"                    
+                        onPressAction={({ nativeEvent }) => {
+                          handleMenuAction(file, nativeEvent.event);
+                        }}
+                        themeVariant="dark"
+                        actions={[
+                          {
+                            id: 'play',
+                            title: 'Play'
+                          },
+                          {
+                            id: 'preload',
+                            title: 'Preload'
+                          },
+                        ]}
+                        shouldOpenOnLongPress={false}
+                      >
+                        <TouchableOpacity
+                          style={styles.fileRow}
+                          onPress={() => handleFileLink(file)}
+                          activeOpacity={0.6}
+                        >
+                          <View style={styles.fileIconContainer}>
+                            <Ionicons name="play-circle" size={24} color="#007AFF" />
+                          </View>
+                          <View style={styles.fileContent}>
+                            <Text style={styles.fileName} numberOfLines={2}>
+                              {file.path}
+                            </Text>
+                            <Text style={styles.fileSize}>
+                              {(file.length / (1024 ** 2)).toFixed(2)} MB
+                            </Text>
+                          </View>
+                          <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+                        </TouchableOpacity>
+                      </MenuView>
+                    </React.Fragment>
+                  ))}
                 </View>
-                {videoFiles.map((file: any, index: number) => (
-                  <MenuView
-                    key={index}
-                    title="File Actions"                    
-                    onPressAction={({ nativeEvent }) => {
-                      handleMenuAction(file, nativeEvent.event);
-                    }}
-                    themeVariant="dark"
-                    actions={[
-                      {
-                        id: 'play',
-                        title: 'Play'
-                      },
-                      {
-                        id: 'preload',
-                        title: 'Preload'
-                      },
-                    ]}
-                    shouldOpenOnLongPress={false}
-                  >
-                    <TouchableOpacity
-                      style={styles.fileCard}
-                      onPress={() => handleFileLink(file)}
-                      activeOpacity={0.7}
-                    >
-                      <View style={styles.fileIconContainer}>
-                        <Ionicons name="play-circle" size={22} color="#535aff" />
-                      </View>
-                      <View style={styles.fileContent}>
-                        <Text style={styles.fileName}>
-                          {file.path}
-                        </Text>
-                        <Text style={styles.fileSize}>
-                          {(file.length / (1024 ** 2)).toFixed(2)} MB
-                        </Text>
-                      </View>
-                      <Ionicons name="chevron-forward" size={18} color="#666" />
-                    </TouchableOpacity>
-                  </MenuView>
-                ))}
               </View>
             )}
 
           </View>
         </View>
-        <BottomSpacing space={40} />
+        <BottomSpacing space={20} />
       </ScrollView>
     </View>
   );
@@ -556,62 +541,44 @@ const styles = StyleSheet.create({
   content: {
     width: '100%',
   },
+  contentLandscape: {
+    flexDirection: 'row',
+    gap: 32,
+    padding: 32,
+  },
 
-  // Hero Poster - Mobile
+  // Hero Poster - Portrait
   heroPosterContainer: {
     width: '100%',
-    height: 400
+    height: 420,
+    position: 'relative',
   },
   heroPosterImage: {
     width: '100%',
     height: '100%',
   },
-  heroPosterOverlay: {
+  heroPosterGradient: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
-  },
-  heroPosterContent: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 20,
-    paddingBottom: 24,
-  },
-  heroTitle: {
-    fontSize: 28,
-    fontWeight: '700',
-    color: '#fff',
-    letterSpacing: -0.5,
-    lineHeight: 34,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
-    textShadowOffset: { width: 0, height: 2 },
-    textShadowRadius: 10,
+    backgroundColor: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 60%, #000 100%)',
   },
 
-  // Poster Section - Desktop
+  // Poster Section - Landscape
   posterSection: {
-    width: 320,
+    width: 280,
     flexShrink: 0,
   },
   posterContainer: {
-    position: 'relative',
-    borderRadius: 16,
+    borderRadius: 12,
     overflow: 'hidden',
-    backgroundColor: '#1a1a1a',
+    backgroundColor: '#1C1C1E',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.4,
-    shadowRadius: 16,
-    elevation: 8,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 12,
   },
   posterImage: {
     width: '100%',
     aspectRatio: 2 / 3,
-  },
-  posterOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.1)',
   },
 
   // Info Section
@@ -621,145 +588,119 @@ const styles = StyleSheet.create({
   },
   infoSectionPortrait: {
     width: '100%',
-    paddingVertical: 20,
-    paddingHorizontal: 15,
-    paddingTop: 24,
+    paddingTop: 16,
   },
-  headerSection: {
-    marginBottom: 24,
+
+  // Title
+  titleSection: {
+    paddingHorizontal: 16,
+    paddingBottom: 8,
   },
   title: {
-    fontSize: 32,
+    fontSize: 28,
     fontWeight: '700',
-    color: '#fff',
-    letterSpacing: -0.5,
-    lineHeight: 38,
+    color: '#FFFFFF',
+    letterSpacing: 0.35,
+    lineHeight: 34,
   },
 
-  // Details Section
-  detailsSection: {
-    marginBottom: 28,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#fff',
-    marginBottom: 16,
-  },
-
-  // Stats Grid
-  statsGrid: {
+  // Actions
+  actionsContainer: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
+    paddingHorizontal: 16,
+    paddingVertical: 16,
+    gap: 12,
   },
-  statsGridMobile: {
-    gap: 8,
-  },
-  statCard: {
-    backgroundColor: '#141414',
-    borderRadius: 10,
-    padding: 12,
-    minWidth: 100,
+  actionButton: {
     flex: 1,
-    flexBasis: '30%',
-    borderWidth: 1,
-    borderColor: '#222',
-  },
-  statCardMobile: {
-    flexBasis: '45%',
-  },
-  statHeader: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(118, 118, 128, 0.12)',
+    borderRadius: 10,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
     gap: 6,
-    marginBottom: 6,
   },
-  statLabel: {
-    fontSize: 12,
-    color: '#999',
-    fontWeight: '500',
-  },
-  statValue: {
+  actionButtonText: {
     fontSize: 15,
-    color: '#fff',
     fontWeight: '600',
-    letterSpacing: -0.2,
+    color: '#007AFF',
   },
 
-  // Files Section
-  filesSection: {
-    marginBottom: 28,
+  // Info Groups (iOS Settings style)
+  infoGroup: {
+    marginTop: 10,
   },
-  filesSectionHeader: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 12,
-    alignItems: 'center',
+  groupTitle: {
+    fontSize: 13,
+    fontWeight: '400',
+    color: '#8E8E93',
+    letterSpacing: -0.08,
+    textTransform: 'uppercase',
+    paddingHorizontal: 16,
+    marginTop: 20,
+    paddingBottom: 10,
   },
-  fileCard: {
-    backgroundColor: '#141414',
-    borderRadius: 12,
-    padding: 14,
-    marginBottom: 10,
+  infoCard: {
+    backgroundColor: '#1C1C1E',
+    marginHorizontal: 16,
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  infoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    minHeight: 44,
+  },
+  infoLabel: {
+    fontSize: 17,
+    color: '#FFFFFF',
+    flex: 1,
+  },
+  infoValue: {
+    fontSize: 17,
+    color: '#8E8E93',
+    textAlign: 'right',
+    marginLeft: 16,
+    flexShrink: 0,
+  },
+  separator: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: 'rgba(84, 84, 88, 0.65)',
+    marginLeft: 16,
+  },
+
+  // Files
+  fileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: '#222',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    minHeight: 60,
     gap: 12,
   },
   fileIconContainer: {
-    width: 42,
-    height: 42,
-    borderRadius: 10,
-    backgroundColor: 'rgba(83, 90, 255, 0.1)',
+    width: 40,
+    height: 40,
     alignItems: 'center',
     justifyContent: 'center',
   },
   fileContent: {
     flex: 1,
-    gap: 4,
+    gap: 2,
   },
   fileName: {
-    fontSize: 14,
-    color: '#fff',
-    fontWeight: '500',
-    lineHeight: 18,
+    fontSize: 17,
+    color: '#FFFFFF',
+    lineHeight: 22,
   },
   fileSize: {
-    fontSize: 12,
-    color: '#999',
-    fontWeight: '500',
-  },
-
-  // Icon Buttons (replacing old action buttons)
-  actionsContainerLandscape: {
-    marginTop: 24,
-    flexDirection: 'row',
-    gap: 12,
-    justifyContent: 'center',
-  },
-  actionsContainerPortrait: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 20,
-    paddingBottom: 20,
-  },
-  iconButton: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: '#141414',
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: '#222',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    fontSize: 15,
+    color: '#8E8E93',
   },
 
   // Loading States
@@ -767,18 +708,16 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#0a0a0a',
+    backgroundColor: '#000',
   },
   loadingText: {
     marginTop: 16,
-    fontSize: 15,
-    color: '#999',
-    fontWeight: '500',
+    fontSize: 17,
+    color: '#8E8E93',
   },
   emptyText: {
-    fontSize: 16,
-    color: '#666',
-    fontWeight: '500',
+    fontSize: 17,
+    color: '#8E8E93',
   },
 });
 

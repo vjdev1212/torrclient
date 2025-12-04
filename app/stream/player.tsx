@@ -245,7 +245,7 @@ const MediaPlayerScreen: React.FC = () => {
     return (
         <View style={styles.loadingContainer}>          
           <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#535aff" />
+            <ActivityIndicator size="large" color="#0A84FF" />
             <Text style={styles.loadingText}>Loading stream. Please wait...</Text>
           </View>
         </View>

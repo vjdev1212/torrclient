@@ -354,7 +354,7 @@ export const WaitingLobby: React.FC<{
             style={[styles.bufferingContainer, { opacity }]}
             pointerEvents="none"
         >
-            <ActivityIndicator size="large" color="#535aff" />
+            <ActivityIndicator size="large" color="#0A84FF" />
             <Text style={styles.bufferingText}>
                 {"Loading..."}
             </Text>
@@ -381,7 +381,7 @@ export const ArtworkBackground: React.FC<{
             <View style={styles.artworkOverlay} />
             {isBuffering && (
                 <View style={styles.artworkLoadingOverlay}>
-                    <ActivityIndicator size="large" color="#535aff" />
+                    <ActivityIndicator size="large" color="#0A84FF" />
                     <Text style={styles.bufferingText}>Loading...</Text>
                 </View>
             )}
@@ -511,7 +511,7 @@ export const ProgressBar: React.FC<{
                         onValueChange={onValueChange}
                         onSlidingStart={onSlidingStart}
                         onSlidingComplete={onSlidingComplete}
-                        minimumTrackTintColor="rgba(83, 90, 255, 0.9)"
+                        minimumTrackTintColor="#0A84FF"
                         maximumTrackTintColor="rgba(255, 255, 255, 0.3)"
                         thumbTintColor="#fff"
                         thumbSize={20}
