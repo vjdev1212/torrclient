@@ -53,7 +53,6 @@ const ProwlarrScreen = () => {
                 setActiveInstanceId(activeId || (loadedInstances[0]?.id || ''));
                 setExpandedInstanceId(activeId || (loadedInstances[0]?.id || ''));
             } else {
-                // Create default instance
                 const defaultInstance: ProwlarrConfig = {
                     id: Date.now().toString(),
                     name: '',
@@ -77,10 +76,9 @@ const ProwlarrScreen = () => {
         setSaving(true);
         try {
             if (isHapticsSupported()) {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
+                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
             }
 
-            // Validate all instances
             for (const instance of instances) {
                 if (!instance.url) {
                     showAlert('Missing URL', `Instance "${instance.name || 'Unnamed'}" requires a URL.`);
@@ -199,12 +197,16 @@ const ProwlarrScreen = () => {
                 {/* Instance Header */}
                 <Pressable
                     onPress={() => toggleExpanded(instance.id)}
-                    style={styles.instanceHeader}
+                    style={({ pressed }) => [
+                        styles.instanceHeader,
+                        pressed && styles.cellPressed
+                    ]}
                 >
-                    <View style={styles.instanceHeaderLeft}>
+                    <View style={styles.instanceHeaderContent}>
                         <Pressable
                             onPress={() => setActiveInstanceId(instance.id)}
                             style={styles.radioButton}
+                            hitSlop={8}
                         >
                             <View style={[styles.radioOuter, isActive && styles.radioOuterActive]}>
                                 {isActive && <View style={styles.radioInner} />}
@@ -214,21 +216,16 @@ const ProwlarrScreen = () => {
                             <Text style={styles.instanceName}>
                                 {instance.name || 'Unnamed Instance'}
                             </Text>
-                            <Text style={styles.instanceUrl} numberOfLines={1}>
-                                {instance.url || 'Not configured'}
-                            </Text>
+                            {instance.url ? (
+                                <Text style={styles.instanceUrl} numberOfLines={1}>
+                                    {instance.url}
+                                </Text>
+                            ) : null}
                         </View>
-                    </View>
-                    <View style={styles.instanceHeaderRight}>
-                        {isActive && (
-                            <View style={styles.activeBadge}>
-                                <Text style={styles.activeBadgeText}>Active</Text>
-                            </View>
-                        )}
                         <Ionicons
                             name={isExpanded ? "chevron-up" : "chevron-down"}
                             size={20}
-                            color="#888"
+                            color="#8E8E93"
                         />
                     </View>
                 </Pressable>
@@ -236,184 +233,159 @@ const ProwlarrScreen = () => {
                 {/* Expanded Instance Config */}
                 {isExpanded && (
                     <View style={styles.instanceDetails}>
-                        <View style={styles.separator} />
-
                         {/* Instance Name */}
-                        <View style={styles.inputWrapper}>
-                            <View style={styles.labelRow}>
-                                <Ionicons name="pricetag-outline" size={18} color="#535aff" style={styles.labelIcon} />
-                                <Text style={styles.label}>Instance Name</Text>
-                            </View>
+                        <View style={styles.formRow}>
+                            <Text style={styles.formLabel}>Name</Text>
                             <TextInput
-                                style={styles.input}
+                                style={styles.formInput}
                                 value={instance.name}
                                 onChangeText={(text) => updateInstance(instance.id, { name: text })}
                                 placeholder="My Prowlarr"
-                                placeholderTextColor="#666"
+                                placeholderTextColor="#8E8E93"
+                                textAlign="right"
                             />
                         </View>
 
-                        <View style={styles.separator} />
+                        <View style={styles.rowSeparator} />
 
                         {/* Instance URL */}
-                        <View style={styles.inputWrapper}>
-                            <View style={styles.labelRow}>
-                                <Ionicons name="globe-outline" size={18} color="#535aff" style={styles.labelIcon} />
-                                <Text style={styles.label}>Base URL</Text>
-                            </View>
+                        <View style={styles.formRow}>
+                            <Text style={styles.formLabel}>URL</Text>
                             <TextInput
-                                style={styles.input}
+                                style={styles.formInput}
                                 value={instance.url}
                                 onChangeText={(text) => updateInstance(instance.id, { url: text })}
                                 autoCapitalize="none"
                                 autoCorrect={false}
                                 placeholder="http://192.168.1.10:9696"
-                                placeholderTextColor="#666"
+                                placeholderTextColor="#8E8E93"
+                                textAlign="right"
                             />
                         </View>
 
-                        <View style={styles.separator} />
+                        <View style={styles.rowSeparator} />
 
                         {/* API Key */}
-                        <View style={styles.inputWrapper}>
-                            <View style={styles.labelRow}>
-                                <Ionicons name="key-outline" size={18} color="#535aff" style={styles.labelIcon} />
-                                <Text style={styles.label}>API Key</Text>
-                            </View>
+                        <View style={styles.formRow}>
+                            <Text style={styles.formLabel}>API Key</Text>
                             <PasswordInput
                                 value={instance.apiKey}
                                 onChangeText={(text) => updateInstance(instance.id, { apiKey: text })}
-                                placeholder="Enter API key"
+                                placeholder="Required"
                             />
                         </View>
 
-                        <View style={styles.separator} />
+                        <View style={styles.sectionSeparator} />
 
                         {/* Basic Authentication Toggle */}
-                        <View style={styles.toggleWrapper}>
-                            <View style={styles.toggleLeft}>
-                                <View style={styles.toggleIconContainer}>
-                                    <Ionicons
-                                        name={instance.authEnabled ? "shield-checkmark" : "shield-outline"}
-                                        size={20}
-                                        color="#535aff"
-                                    />
-                                </View>
-                                <View>
-                                    <Text style={styles.toggleLabel}>Basic Authentication</Text>
-                                    <Text style={styles.toggleDescription}>
-                                        {instance.authEnabled ? 'Enabled' : 'Optional'}
-                                    </Text>
-                                </View>
-                            </View>
+                        <View style={styles.formRow}>
+                            <Text style={styles.formLabel}>Basic Auth</Text>
                             <Switch
                                 value={instance.authEnabled}
                                 onValueChange={(value) => updateInstance(instance.id, { authEnabled: value })}
-                                thumbColor={instance.authEnabled ? '#535aff' : '#888'}
-                                trackColor={{ false: '#202020', true: 'rgba(83, 90, 255, 0.3)' }}
-                                ios_backgroundColor="#202020"
+                                trackColor={{ false: '#E5E5EA', true: '#34C759' }}
+                                ios_backgroundColor="#E5E5EA"
                             />
                         </View>
 
                         {/* Auth Credentials */}
                         {instance.authEnabled && (
                             <>
-                                <View style={styles.separator} />
+                                <View style={styles.rowSeparator} />
 
-                                <View style={styles.inputWrapper}>
-                                    <View style={styles.labelRow}>
-                                        <Ionicons name="person-outline" size={18} color="#535aff" style={styles.labelIcon} />
-                                        <Text style={styles.label}>Username</Text>
-                                    </View>
+                                <View style={styles.formRow}>
+                                    <Text style={styles.formLabel}>Username</Text>
                                     <TextInput
-                                        style={styles.input}
+                                        style={styles.formInput}
                                         value={instance.username}
                                         onChangeText={(text) => updateInstance(instance.id, { username: text })}
                                         autoCapitalize="none"
-                                        placeholder="Enter username"
-                                        placeholderTextColor="#666"
+                                        placeholder="Username"
+                                        placeholderTextColor="#8E8E93"
+                                        textAlign="right"
                                     />
                                 </View>
 
-                                <View style={styles.separator} />
+                                <View style={styles.rowSeparator} />
 
-                                <View style={styles.inputWrapper}>
-                                    <View style={styles.labelRow}>
-                                        <Ionicons name="lock-closed-outline" size={18} color="#535aff" style={styles.labelIcon} />
-                                        <Text style={styles.label}>Password</Text>
-                                    </View>
+                                <View style={styles.formRow}>
+                                    <Text style={styles.formLabel}>Password</Text>
                                     <PasswordInput
                                         value={instance.password}
                                         onChangeText={(text) => updateInstance(instance.id, { password: text })}
+                                        placeholder="Password"
                                     />
                                 </View>
                             </>
                         )}
 
-                        <View style={styles.separator} />
+                        <View style={styles.sectionSeparator} />
 
                         {/* Custom Headers Section */}
-                        <View style={styles.headersSection}>
-                            <View style={styles.headersSectionHeader}>
-                                <View style={styles.labelRow}>
-                                    <Ionicons name="code-outline" size={18} color="#535aff" style={styles.labelIcon} />
-                                    <Text style={styles.label}>Custom Headers</Text>
-                                </View>
-                                <Pressable
-                                    onPress={() => addCustomHeader(instance.id)}
-                                    style={styles.addHeaderButton}
-                                >
-                                    <Ionicons name="add-circle-outline" size={18} color="#535aff" />
-                                    <Text style={styles.addHeaderText}>Add</Text>
-                                </Pressable>
-                            </View>
+                        <View style={styles.headersSectionTitle}>
+                            <Text style={styles.sectionFooter}>CUSTOM HEADERS</Text>
+                            <Pressable
+                                onPress={() => addCustomHeader(instance.id)}
+                                hitSlop={8}
+                            >
+                                <Text style={styles.addHeaderLink}>Add</Text>
+                            </Pressable>
+                        </View>
 
-                            {instance.customHeaders.length === 0 ? (
-                                <View style={styles.emptyHeaders}>
-                                    <Text style={styles.emptyHeadersText}>No custom headers added</Text>
-                                </View>
-                            ) : (
-                                <View style={styles.headersList}>
-                                    {instance.customHeaders.map((header, index) => (
-                                        <View key={index} style={styles.headerItem}>
+                        {instance.customHeaders.length === 0 ? (
+                            <View style={styles.emptyHeaders}>
+                                <Text style={styles.emptyHeadersText}>No custom headers</Text>
+                            </View>
+                        ) : (
+                            <View style={styles.headersList}>
+                                {instance.customHeaders.map((header, index) => (
+                                    <View key={index}>
+                                        {index > 0 && <View style={styles.rowSeparator} />}
+                                        <View style={styles.headerItem}>
                                             <View style={styles.headerInputs}>
                                                 <TextInput
-                                                    style={[styles.input, styles.headerKeyInput]}
+                                                    style={[styles.formInput, styles.headerKeyInput]}
                                                     value={header.key}
                                                     onChangeText={(text) => updateCustomHeader(instance.id, index, { key: text })}
-                                                    placeholder="Header name"
-                                                    placeholderTextColor="#666"
+                                                    placeholder="Header"
+                                                    placeholderTextColor="#8E8E93"
                                                     autoCapitalize="none"
                                                 />
+                                                <View style={styles.headerColon}>
+                                                    <Text style={styles.headerColonText}>:</Text>
+                                                </View>
                                                 <TextInput
-                                                    style={[styles.input, styles.headerValueInput]}
+                                                    style={[styles.formInput, styles.headerValueInput]}
                                                     value={header.value}
                                                     onChangeText={(text) => updateCustomHeader(instance.id, index, { value: text })}
                                                     placeholder="Value"
-                                                    placeholderTextColor="#666"
+                                                    placeholderTextColor="#8E8E93"
                                                 />
                                             </View>
                                             <Pressable
                                                 onPress={() => deleteCustomHeader(instance.id, index)}
                                                 style={styles.deleteHeaderButton}
+                                                hitSlop={8}
                                             >
-                                                <Ionicons name="close-circle" size={20} color="#ff4444" />
+                                                <Ionicons name="remove-circle-outline" size={22} color="#FF3B30" />
                                             </Pressable>
                                         </View>
-                                    ))}
-                                </View>
-                            )}
-                        </View>
+                                    </View>
+                                ))}
+                            </View>
+                        )}
 
                         {/* Delete Button */}
                         {instances.length > 1 && (
                             <>
-                                <View style={styles.separator} />
+                                <View style={styles.sectionSeparator} />
                                 <Pressable
                                     onPress={() => deleteInstance(instance.id)}
-                                    style={styles.deleteButton}
+                                    style={({ pressed }) => [
+                                        styles.deleteButton,
+                                        pressed && styles.cellPressed
+                                    ]}
                                 >
-                                    <Ionicons name="trash-outline" size={18} color="#ff4444" />
                                     <Text style={styles.deleteButtonText}>Delete Instance</Text>
                                 </Pressable>
                             </>
@@ -430,30 +402,39 @@ const ProwlarrScreen = () => {
 
             {/* Header */}
             <View style={styles.header}>
-                <View style={styles.headerTitleRow}>
-                    <View>
-                        <Text style={styles.headerTitle}>Prowlarr</Text>
-                        <Text style={styles.headerSubtitle}>Indexer management</Text>
-                    </View>
-                </View>
+                <Text style={styles.headerTitle}>Prowlarr</Text>
             </View>
 
             <ScrollView
                 showsVerticalScrollIndicator={false}
                 contentContainerStyle={styles.content}
             >
+                {/* Section Header */}
+                <View style={styles.sectionHeaderContainer}>
+                    <Text style={styles.sectionHeader}>INSTANCES</Text>
+                </View>
+
                 {/* Instances Section */}
                 <View style={styles.section}>
-                    <View style={styles.sectionHeaderRow}>
-                        <Text style={styles.sectionHeader}>INSTANCES ({instances.length})</Text>
-                        <Pressable onPress={addInstance} style={styles.addButton}>
-                            <Ionicons name="add-circle-outline" size={20} color="#535aff" />
-                            <Text style={styles.addButtonText}>Add Instance</Text>
-                        </Pressable>
-                    </View>
-
                     {instances.map(renderInstance)}
                 </View>
+
+                {/* Add Instance Button */}
+                <Pressable
+                    onPress={addInstance}
+                    style={({ pressed }) => [
+                        styles.addInstanceButton,
+                        pressed && styles.cellPressed
+                    ]}
+                >
+                    <Ionicons name="add-circle" size={22} color="#007AFF" />
+                    <Text style={styles.addInstanceText}>Add Instance</Text>
+                </Pressable>
+
+                {/* Footer Text */}
+                <Text style={styles.footerText}>
+                    Select an active instance by tapping the radio button. Custom headers can be added for advanced configuration.
+                </Text>
 
                 {/* Save Button */}
                 <Pressable
@@ -461,55 +442,43 @@ const ProwlarrScreen = () => {
                     disabled={saving}
                     style={({ pressed }) => [
                         styles.saveButton,
-                        pressed && styles.saveButtonPressed,
+                        pressed && !saving && styles.saveButtonPressed,
                         saving && styles.saveButtonDisabled
                     ]}
                 >
-                    <Ionicons
-                        name={saving ? "hourglass-outline" : "checkmark-circle-outline"}
-                        size={20}
-                        color="#fff"
-                        style={styles.saveButtonIcon}
-                    />
                     <Text style={styles.saveButtonText}>
-                        {saving ? 'Saving...' : 'Save All Configurations'}
+                        {saving ? 'Saving...' : 'Save'}
                     </Text>
                 </Pressable>
-
-                {/* Info Note */}
-                <View style={styles.infoCard}>
-                    <Ionicons name="information-circle-outline" size={20} color="#535aff" />
-                    <Text style={styles.infoText}>
-                        Select an active instance by tapping the radio button. You can configure multiple Prowlarr instances and add custom headers for advanced use cases.
-                    </Text>
-                </View>
             </ScrollView>
         </SafeAreaView>
     );
 };
 
-const PasswordInput = ({ value, onChangeText, placeholder = "Enter password" }: { value: string; onChangeText: (text: string) => void; placeholder?: string }) => {
+const PasswordInput = ({ value, onChangeText, placeholder = "Required" }: { value: string; onChangeText: (text: string) => void; placeholder?: string }) => {
     const [showPassword, setShowPassword] = useState(false);
 
     return (
         <View style={styles.passwordContainer}>
             <TextInput
-                style={[styles.input, styles.passwordInput]}
+                style={styles.passwordInput}
                 value={value}
                 onChangeText={onChangeText}
                 secureTextEntry={!showPassword}
                 autoCapitalize="none"
                 placeholder={placeholder}
-                placeholderTextColor="#666"
+                placeholderTextColor="#8E8E93"
+                textAlign="right"
             />
             <Pressable
                 onPress={() => setShowPassword(!showPassword)}
                 style={styles.eyeIcon}
+                hitSlop={8}
             >
                 <Ionicons
                     name={showPassword ? "eye-off-outline" : "eye-outline"}
-                    size={20}
-                    color="#666"
+                    size={18}
+                    color="#8E8E93"
                 />
             </Pressable>
         </View>
@@ -519,323 +488,262 @@ const PasswordInput = ({ value, onChangeText, placeholder = "Enter password" }: 
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        width: '100%',
-        margin: 'auto',
-        maxWidth: 780
+        backgroundColor: '#000000',
     },
     header: {
-        paddingHorizontal: 24,
-        paddingTop: 20,
-        paddingBottom: 24,
-    },
-    headerTitleRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 16,
-    },
-    headerIconContainer: {
-        width: 56,
-        height: 56,
-        borderRadius: 10,
-        backgroundColor: 'rgba(83, 90, 255, 0.15)',
-        justifyContent: 'center',
-        alignItems: 'center',
+        paddingHorizontal: 20,
+        paddingTop: 8,
+        paddingBottom: 16,
+        backgroundColor: '#000000',
     },
     headerTitle: {
         fontSize: 34,
         fontWeight: '700',
-        color: '#fff',
-        marginBottom: 2,
-        letterSpacing: -0.5,
-    },
-    headerSubtitle: {
-        fontSize: 15,
-        color: '#888',
-        fontWeight: '500',
+        color: '#FFFFFF',
+        letterSpacing: 0.37,
     },
     content: {
-        paddingHorizontal: 20,
         paddingBottom: 40,
     },
-    section: {
-        marginBottom: 28,
-    },
-    sectionHeaderRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginBottom: 12,
-        paddingHorizontal: 4,
+    sectionHeaderContainer: {
+        paddingHorizontal: 20,
+        paddingTop: 22,
+        paddingBottom: 6,
+        backgroundColor: '#000000',
     },
     sectionHeader: {
         fontSize: 13,
-        fontWeight: '600',
-        color: '#888',
-        letterSpacing: 0.5,
+        fontWeight: '400',
+        color: '#8E8E93',
+        letterSpacing: -0.08,
     },
-    addButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 6,
-    },
-    addButtonText: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#535aff',
+    section: {
+        marginBottom: 35,
     },
     instanceCard: {
-        backgroundColor: '#101010',
+        backgroundColor: '#1C1C1E',
+        marginHorizontal: 20,
+        marginBottom: 20,
         borderRadius: 10,
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#202020',
-        marginBottom: 12,
         overflow: 'hidden',
     },
     instanceHeader: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
+        paddingVertical: 11,
+        paddingHorizontal: 16,
     },
-    instanceHeaderLeft: {
+    instanceHeaderContent: {
         flexDirection: 'row',
         alignItems: 'center',
-        flex: 1,
-        marginRight: 12,
+        gap: 12,
+    },
+    cellPressed: {
+        backgroundColor: '#2C2C2E',
     },
     radioButton: {
-        marginRight: 12,
+        padding: 4,
     },
     radioOuter: {
-        width: 24,
-        height: 24,
-        borderRadius: 10,
-        borderWidth: 2,
-        borderColor: '#666',
+        width: 22,
+        height: 22,
+        borderRadius: 11,
+        borderWidth: 1.5,
+        borderColor: '#48484A',
         justifyContent: 'center',
         alignItems: 'center',
+        backgroundColor: '#1C1C1E',
     },
     radioOuterActive: {
-        borderColor: '#535aff',
+        borderColor: '#0A84FF',
+        backgroundColor: '#0A84FF',
     },
     radioInner: {
-        width: 12,
-        height: 12,
-        borderRadius: 6,
-        backgroundColor: '#535aff',
+        width: 8,
+        height: 8,
+        borderRadius: 4,
+        backgroundColor: '#FFFFFF',
     },
     instanceInfo: {
         flex: 1,
     },
     instanceName: {
-        fontSize: 16,
-        fontWeight: '600',
-        color: '#fff',
-        marginBottom: 2,
+        fontSize: 17,
+        fontWeight: '400',
+        color: '#FFFFFF',
+        letterSpacing: -0.41,
     },
     instanceUrl: {
-        fontSize: 13,
-        color: '#888',
-    },
-    instanceHeaderRight: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    activeBadge: {
-        backgroundColor: 'rgba(83, 90, 255, 0.2)',
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 8,
-    },
-    activeBadgeText: {
-        fontSize: 12,
-        fontWeight: '600',
-        color: '#535aff',
+        fontSize: 15,
+        color: '#8E8E93',
+        marginTop: 1,
+        letterSpacing: -0.24,
     },
     instanceDetails: {
-        backgroundColor: '#101010',
+        backgroundColor: '#1C1C1E',
     },
-    inputWrapper: {
-        padding: 16,
-    },
-    labelRow: {
+    formRow: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginBottom: 10,
-    },
-    labelIcon: {
-        marginRight: 6,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: '600',
-        color: '#fff',
-    },
-    input: {
-        height: 44,
-        backgroundColor: '#1a1a1a',
-        borderRadius: 10,
-        paddingHorizontal: 14,
-        fontSize: 15,
-        color: '#fff',
-        borderWidth: StyleSheet.hairlineWidth,
-        borderColor: '#303030',
-    },
-    passwordContainer: {
-        position: 'relative',
-    },
-    passwordInput: {
-        paddingRight: 44,
-    },
-    eyeIcon: {
-        position: 'absolute',
-        right: 12,
-        top: 7,
-        padding: 4,
-    },
-    toggleWrapper: {
-        flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: 16,
+        paddingVertical: 11,
+        paddingHorizontal: 16,
+        minHeight: 44,
     },
-    toggleLeft: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        flex: 1,
+    formLabel: {
+        fontSize: 17,
+        color: '#FFFFFF',
+        letterSpacing: -0.41,
         marginRight: 16,
     },
-    toggleIconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 10,
-        backgroundColor: 'rgba(83, 90, 255, 0.15)',
-        justifyContent: 'center',
+    formInput: {
+        flex: 1,
+        fontSize: 17,
+        color: '#FFFFFF',
+        letterSpacing: -0.41,
+        paddingVertical: 0,
+    },
+    passwordContainer: {
+        flex: 1,
+        flexDirection: 'row',
         alignItems: 'center',
-        marginRight: 12,
     },
-    toggleLabel: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#fff',
-        marginBottom: 2,
+    passwordInput: {
+        flex: 1,
+        fontSize: 17,
+        color: '#FFFFFF',
+        letterSpacing: -0.41,
+        paddingVertical: 0,
+        paddingRight: 8,
     },
-    toggleDescription: {
-        fontSize: 13,
-        color: '#888',
+    eyeIcon: {
+        padding: 4,
     },
-    separator: {
-        height: 1,
-        backgroundColor: '#202020',
+    rowSeparator: {
+        height: 0.5,
+        backgroundColor: '#38383A',
+        marginLeft: 16,
     },
-    headersSection: {
-        padding: 16,
+    sectionSeparator: {
+        height: 20,
+        backgroundColor: '#000000',
     },
-    headersSectionHeader: {
+    headersSectionTitle: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        backgroundColor: '#000000',
     },
-    addHeaderButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 4,
-    },
-    addHeaderText: {
+    sectionFooter: {
         fontSize: 13,
-        fontWeight: '600',
-        color: '#535aff',
+        fontWeight: '400',
+        color: '#8E8E93',
+        letterSpacing: -0.08,
+    },
+    addHeaderLink: {
+        fontSize: 17,
+        color: '#0A84FF',
+        letterSpacing: -0.41,
     },
     emptyHeaders: {
-        paddingVertical: 20,
+        paddingVertical: 28,
         alignItems: 'center',
+        backgroundColor: '#1C1C1E',
     },
     emptyHeadersText: {
-        fontSize: 13,
-        color: '#666',
+        fontSize: 17,
+        color: '#8E8E93',
+        letterSpacing: -0.41,
     },
     headersList: {
-        gap: 10,
+        backgroundColor: '#1C1C1E',
     },
     headerItem: {
         flexDirection: 'row',
         alignItems: 'center',
-        gap: 8,
+        paddingVertical: 11,
+        paddingHorizontal: 16,
+        gap: 12,
     },
     headerInputs: {
         flex: 1,
         flexDirection: 'row',
+        alignItems: 'center',
         gap: 8,
     },
     headerKeyInput: {
-        flex: 2,
+        flex: 1,
+    },
+    headerColon: {
+        paddingHorizontal: 4,
+    },
+    headerColonText: {
+        fontSize: 17,
+        color: '#8E8E93',
     },
     headerValueInput: {
-        flex: 3,
+        flex: 1.5,
     },
     deleteHeaderButton: {
         padding: 4,
     },
     deleteButton: {
-        flexDirection: 'row',
+        paddingVertical: 11,
+        paddingHorizontal: 16,
         alignItems: 'center',
-        justifyContent: 'center',
-        padding: 16,
-        gap: 8,
+        backgroundColor: '#1C1C1E',
     },
     deleteButtonText: {
-        fontSize: 15,
-        fontWeight: '600',
-        color: '#ff4444',
+        fontSize: 17,
+        fontWeight: '400',
+        color: '#FF453A',
+        letterSpacing: -0.41,
+    },
+    addInstanceButton: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#1C1C1E',
+        marginHorizontal: 20,
+        paddingVertical: 11,
+        borderRadius: 10,
+        gap: 8,
+        marginBottom: 8,
+    },
+    addInstanceText: {
+        fontSize: 17,
+        fontWeight: '400',
+        color: '#0A84FF',
+        letterSpacing: -0.41,
+    },
+    footerText: {
+        fontSize: 13,
+        color: '#8E8E93',
+        lineHeight: 18,
+        paddingHorizontal: 36,
+        paddingTop: 8,
+        paddingBottom: 24,
+        textAlign: 'left',
+        letterSpacing: -0.08,
     },
     saveButton: {
-        backgroundColor: '#535aff',
-        flexDirection: 'row',
-        justifyContent: 'center',
-        alignItems: 'center',
-        paddingVertical: 16,
-        paddingHorizontal: 24,
+        backgroundColor: '#0A84FF',
+        marginHorizontal: 20,
+        paddingVertical: 14,
         borderRadius: 10,
-        marginTop: 8,
-        marginBottom: 20,
-        maxWidth: 320,
-        width: '100%',
-        margin: 'auto',
-        shadowColor: '#535aff',
-        shadowOffset: { width: 0, height: 4 },
-        shadowOpacity: 0.3,
-        shadowRadius: 8,
+        alignItems: 'center',
     },
     saveButtonPressed: {
-        backgroundColor: '#4248d9',
+        backgroundColor: '#0066CC',
     },
     saveButtonDisabled: {
-        opacity: 0.6,
-    },
-    saveButtonIcon: {
-        marginRight: 8,
+        opacity: 0.5,
     },
     saveButtonText: {
-        color: '#fff',
-        fontSize: 16,
+        color: '#FFFFFF',
+        fontSize: 17,
         fontWeight: '600',
-    },
-    infoCard: {
-        flexDirection: 'row',
-        backgroundColor: 'rgba(83, 90, 255, 0.1)',
-        borderRadius: 10,
-        padding: 14,
-        borderWidth: 1,
-        borderColor: 'rgba(83, 90, 255, 0.2)',
-    },
-    infoText: {
-        flex: 1,
-        fontSize: 13,
-        color: '#aaa',
-        lineHeight: 18,
-        marginLeft: 10,
+        letterSpacing: -0.41,
     },
 });
 
