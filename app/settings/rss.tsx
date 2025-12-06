@@ -48,7 +48,7 @@ const RSSFeedsScreen = () => {
                     name: '',
                     url: '',
                     enabled: true,
-                    refreshInterval: 30
+                    refreshInterval: 30,
                 };
                 setFeeds([defaultFeed]);
                 setExpandedFeedId(defaultFeed.id);
@@ -75,7 +75,7 @@ const RSSFeedsScreen = () => {
                     showAlert('Invalid URL', `Feed "${feed.name}" has an invalid URL (must start with http/https).`);
                     setSaving(false);
                     return;
-                }                
+                }
             }
 
             storageService.setItem(RSS_FEEDS_KEY, JSON.stringify(feeds));
@@ -94,7 +94,7 @@ const RSSFeedsScreen = () => {
             name: '',
             url: '',
             enabled: true,
-            refreshInterval: 30
+            refreshInterval: 30,
         };
         setFeeds([...feeds, newFeed]);
         setExpandedFeedId(newFeed.id);
@@ -124,7 +124,7 @@ const RSSFeedsScreen = () => {
     const updateFeed = (id: string, updates: Partial<RSSFeedConfig>) => {
         setFeeds(feeds.map(f => f.id === id ? { ...f, ...updates } : f));
     };
-    
+
     const toggleExpanded = (id: string) => {
         setExpandedFeedId(expandedFeedId === id ? '' : id);
     };
@@ -253,12 +253,9 @@ const RSSFeedsScreen = () => {
                             </View>
                         </View>
 
-                        <View style={styles.sectionSeparator} />
-                       
                         {/* Delete Button */}
                         {feeds.length > 1 && (
                             <>
-                                <View style={styles.sectionSeparator} />
                                 <Pressable
                                     onPress={() => deleteFeed(feed.id)}
                                     style={({ pressed }) => [
@@ -332,36 +329,6 @@ const RSSFeedsScreen = () => {
                 </Pressable>
             </ScrollView>
         </SafeAreaView>
-    );
-};
-
-const PasswordInput = ({ value, onChangeText, placeholder = "Required" }: { value: string; onChangeText: (text: string) => void; placeholder?: string }) => {
-    const [showPassword, setShowPassword] = useState(false);
-
-    return (
-        <View style={styles.passwordContainer}>
-            <TextInput
-                style={styles.passwordInput}
-                value={value}
-                onChangeText={onChangeText}
-                secureTextEntry={!showPassword}
-                autoCapitalize="none"
-                placeholder={placeholder}
-                placeholderTextColor="#8E8E93"
-                textAlign="right"
-            />
-            <Pressable
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeIcon}
-                hitSlop={8}
-            >
-                <Ionicons
-                    name={showPassword ? "eye-off-outline" : "eye-outline"}
-                    size={18}
-                    color="#8E8E93"
-                />
-            </Pressable>
-        </View>
     );
 };
 
@@ -491,22 +458,6 @@ const styles = StyleSheet.create({
         color: '#8E8E93',
         letterSpacing: -0.41,
     },
-    passwordContainer: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    passwordInput: {
-        flex: 1,
-        fontSize: 16,
-        color: '#FFFFFF',
-        letterSpacing: -0.41,
-        paddingVertical: 0,
-        paddingRight: 8,
-    },
-    eyeIcon: {
-        padding: 4,
-    },
     rowSeparator: {
         height: 0.5,
         backgroundColor: '#38383A',
@@ -515,66 +466,6 @@ const styles = StyleSheet.create({
     sectionSeparator: {
         height: 20,
         backgroundColor: '#000000',
-    },
-    headersSectionTitle: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-        backgroundColor: '#000000',
-    },
-    sectionFooter: {
-        fontSize: 13,
-        fontWeight: '400',
-        color: '#8E8E93',
-    },
-    addHeaderLink: {
-        fontSize: 16,
-        color: '#0A84FF',
-        letterSpacing: -0.41,
-    },
-    emptyHeaders: {
-        paddingVertical: 28,
-        alignItems: 'center',
-        backgroundColor: '#1C1C1E',
-    },
-    emptyHeadersText: {
-        fontSize: 16,
-        color: '#8E8E93',
-        letterSpacing: -0.41,
-    },
-    headersList: {
-        backgroundColor: '#1C1C1E',
-    },
-    headerItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 11,
-        paddingHorizontal: 16,
-        gap: 12,
-    },
-    headerInputs: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    headerKeyInput: {
-        flex: 1,
-    },
-    headerColon: {
-        paddingHorizontal: 4,
-    },
-    headerColonText: {
-        fontSize: 16,
-        color: '#8E8E93',
-    },
-    headerValueInput: {
-        flex: 1.5,
-    },
-    deleteHeaderButton: {
-        padding: 4,
     },
     deleteButton: {
         paddingVertical: 11,
