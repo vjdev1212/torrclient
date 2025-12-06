@@ -1,0 +1,38 @@
+# TorrClient
+
+TorrClient is a sleek, modern TorrServer client featuring an integrated media player—your perfect partner for smooth, effortless streaming.
+
+---
+
+## Download
+
+<!-- [![Get it on Google Play](https://img.shields.io/badge/Google_Play-414141?style=for-the-badge&logo=google-play&logoColor=white)](https://play.google.com/store/apps/details?id=com.vijayyuvi.strmify) -->
+[![Install via AltStore](https://img.shields.io/badge/AltStore-4CAF50?style=for-the-badge&logo=apple&logoColor=white)](https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/sources/sidestore-source.json)
+[![Install via SideStore](https://img.shields.io/badge/SideStore-A020F0?style=for-the-badge&logo=apple&logoColor=white)](https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/sources/sidestore-source.json)
+
+Or download directly from [GitHub Releases](https://github.com/vjdev1212/torrclient/releases)
+
+---
+
+<!-- ## Screenshots
+
+### Mobile
+
+<p float="left">
+  <img src="https://github.com/user-attachments/assets/af0a2a2c-6116-43dc-ba5e-1493bd219e7a" width="19%" />
+  <img src="https://github.com/user-attachments/assets/ad4c5370-d9ff-48a9-86c7-ea4c146b67b5" width="19%" />
+  <img src="https://github.com/user-attachments/assets/6f6205e3-0b03-4b4b-a75b-900dc0e3f27b" width="19%" />
+  <img src="https://github.com/user-attachments/assets/56bfc73a-de3c-4393-84d6-b67908478ac4" width="19%" />
+  <img src="https://github.com/user-attachments/assets/0d486463-3ac8-49f9-af8e-834a24a125b7" width="19%" />
+</p>
+
+### Tablet
+
+<p align="center">
+  <img src="https://github.com/user-attachments/assets/17e0a24b-7355-4da1-8eaf-5810bf7f9d19" width="49%" />
+  <img src="https://github.com/user-attachments/assets/167bd238-ab33-435e-9b28-b83f9e801523" width="49%" />
+  <img src="https://github.com/user-attachments/assets/235c6021-60cc-486d-93bd-5d45f5b72035" width="49%" />
+  <img src="https://github.com/user-attachments/assets/e21b35cb-e110-4d5a-9d8c-de6986eea191" width="49%" />
+</p>
+
+--- -->
