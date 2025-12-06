@@ -134,10 +134,10 @@ const RSSFeedsScreen = () => {
             showAlert('Invalid Feed', 'Please configure a URL for this feed first.');
             return;
         }
-        // router.push({
-        //     pathname: '/rss/viewer',
-        //     params: { feedId: feed.id }
-        // });
+        router.push({
+            pathname: '/(tabs)/rss',
+            params: { feedId: feed.id }
+        });
     };
 
     const renderFeed = (feed: RSSFeedConfig) => {
