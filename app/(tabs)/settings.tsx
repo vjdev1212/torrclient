@@ -19,7 +19,7 @@ const SettingsScreen = () => {
 
   const integrationsList: { title: string, route: string, icon: keyof typeof Ionicons.glyphMap, description?: string }[] = [
     { title: 'Prowlarr', route: '/settings/prowlarr', icon: 'search-outline', description: 'Manage Prowlarr configurations' },
-    { title: 'RSS', route: '/settings/rss', icon: 'logo-rss', description: 'Configure your RSS Feeds' },
+    { title: 'RSS Feeds', route: '/settings/rss', icon: 'logo-rss', description: 'Configure your RSS Feeds' },
   ];
 
   // SettingItem Component
