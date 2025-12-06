@@ -6,11 +6,13 @@ import {
     ActivityIndicator,
     RefreshControl,
     Linking,
+    TextInput,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { MenuView } from '@react-native-menu/menu';
 import { Text, View } from '@/components/Themed';
 import { isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
@@ -41,42 +43,50 @@ const RSS_FEEDS_KEY = StorageKeys.RSS_FEEDS_KEY || 'TORRCLIENT_RSS_FEEDS_KEY';
 
 const RSSViewerScreen = () => {
     const router = useRouter();
-    const params = useLocalSearchParams();
-    const feedId = params.feedId as string;
 
-    const [feed, setFeed] = useState<RSSFeedConfig | null>(null);
+    const [feeds, setFeeds] = useState<RSSFeedConfig[]>([]);
+    const [selectedFeed, setSelectedFeed] = useState<RSSFeedConfig | null>(null);
     const [items, setItems] = useState<RSSItem[]>([]);
+    const [filteredItems, setFilteredItems] = useState<RSSItem[]>([]);
+    const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
     useEffect(() => {
-        loadFeed();
+        loadFeeds();
     }, []);
 
-    const loadFeed = async () => {
+    useEffect(() => {
+        filterItems();
+    }, [searchQuery, items]);
+
+    const loadFeeds = async () => {
         try {
             const feedsJson = storageService.getItem(RSS_FEEDS_KEY);
             if (!feedsJson) {
-                setError('Feed configuration not found');
+                setError('No RSS feeds configured. Please add a feed first.');
                 setLoading(false);
                 return;
             }
 
-            const feeds: RSSFeedConfig[] = JSON.parse(feedsJson);
-            const currentFeed = feeds.find(f => f.id === feedId);
-
-            if (!currentFeed) {
-                setError('Feed not found');
+            const loadedFeeds: RSSFeedConfig[] = JSON.parse(feedsJson);
+            
+            if (loadedFeeds.length === 0) {
+                setError('No RSS feeds configured. Please add a feed first.');
                 setLoading(false);
                 return;
             }
 
-            setFeed(currentFeed);
-            await fetchRSSFeed(currentFeed);
+            setFeeds(loadedFeeds);
+
+            // Select the first enabled feed, or just the first feed
+            const defaultFeed = loadedFeeds.find(f => f.enabled) || loadedFeeds[0];
+            setSelectedFeed(defaultFeed);
+            await fetchRSSFeed(defaultFeed);
         } catch (error) {
-            console.error('Failed to load feed:', error);
-            setError('Failed to load feed configuration');
+            console.error('Failed to load feeds:', error);
+            setError('Failed to load feed configuration. Please try again.');
             setLoading(false);
         }
     };
@@ -115,7 +125,6 @@ const RSSViewerScreen = () => {
     const parseRSS = (xmlText: string): RSSItem[] => {
         const items: RSSItem[] = [];
         
-        // Simple XML parsing (in production, use a proper XML parser)
         const itemMatches = xmlText.match(/<item[^>]*>[\s\S]*?<\/item>/gi);
         
         if (!itemMatches) return items;
@@ -127,7 +136,6 @@ const RSSViewerScreen = () => {
             const pubDate = extractTag(itemXml, 'pubDate');
             const guid = extractTag(itemXml, 'guid') || link;
 
-            // Extract enclosure (for torrent links)
             const enclosureMatch = itemXml.match(/<enclosure[^>]*>/i);
             let enclosure;
             if (enclosureMatch) {
@@ -178,12 +186,41 @@ const RSSViewerScreen = () => {
             .trim();
     };
 
+    const filterItems = () => {
+        if (!searchQuery.trim()) {
+            setFilteredItems(items);
+            return;
+        }
+
+        const query = searchQuery.toLowerCase();
+        const filtered = items.filter(item => 
+            item.title.toLowerCase().includes(query) ||
+            item.description.toLowerCase().includes(query)
+        );
+        setFilteredItems(filtered);
+    };
+
     const handleRefresh = async () => {
-        if (!feed || refreshing) return;
+        if (!selectedFeed || refreshing) return;
         if (isHapticsSupported()) {
             await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
-        await fetchRSSFeed(feed, true);
+        await fetchRSSFeed(selectedFeed, true);
+    };
+
+    const handleFeedSelect = async (feedId: string) => {
+        const feed = feeds.find(f => f.id === feedId);
+        if (!feed) return;
+
+        setSelectedFeed(feed);
+        setSearchQuery('');
+        setItems([]);
+        
+        if (isHapticsSupported()) {
+            await Haptics.selectionAsync();
+        }
+        
+        await fetchRSSFeed(feed);
     };
 
     const handleAddToTorrServer = async (item: RSSItem) => {
@@ -191,7 +228,6 @@ const RSSViewerScreen = () => {
             await Haptics.selectionAsync();
         }
 
-        // Get torrent link from enclosure or link
         const torrentLink = item.enclosure?.url || item.link;
 
         if (!torrentLink) {
@@ -199,7 +235,6 @@ const RSSViewerScreen = () => {
             return;
         }
 
-        // Navigate to add torrent screen
         router.push({
             pathname: '/torrent/add',
             params: { 
@@ -224,6 +259,11 @@ const RSSViewerScreen = () => {
         } catch (error) {
             showAlert('Error', 'Failed to open link.');
         }
+    };
+
+    const handleClearSearch = () => {
+        setSearchQuery('');
+        if (isHapticsSupported()) Haptics.selectionAsync();
     };
 
     const formatDate = (dateString: string): string => {
@@ -262,6 +302,15 @@ const RSSViewerScreen = () => {
         return `${mb.toFixed(2)} MB`;
     };
 
+    const getFeedMenuActions = () => {
+        return feeds.map(feed => ({
+            id: feed.id,
+            title: feed.name || 'Unnamed Feed',
+            state: selectedFeed?.id === feed.id ? ('on' as const) : ('off' as const),
+            titleColor: selectedFeed?.id === feed.id ? '#007AFF' : undefined,
+        }));
+    };
+
     if (loading && items.length === 0) {
         return (
             <SafeAreaView style={styles.container} edges={['top']}>
@@ -282,13 +331,23 @@ const RSSViewerScreen = () => {
                     </View>
                     <Text style={styles.errorTitle}>Failed to Load Feed</Text>
                     <Text style={styles.errorSubtitle}>{error}</Text>
-                    <TouchableOpacity
-                        style={styles.retryButton}
-                        onPress={handleRefresh}
-                        activeOpacity={0.7}
-                    >
-                        <Text style={styles.retryButtonText}>Try Again</Text>
-                    </TouchableOpacity>
+                    {error.includes('configured') ? (
+                        <TouchableOpacity
+                            style={styles.retryButton}
+                            onPress={() => router.back()}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.retryButtonText}>Go Back</Text>
+                        </TouchableOpacity>
+                    ) : (
+                        <TouchableOpacity
+                            style={styles.retryButton}
+                            onPress={handleRefresh}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.retryButtonText}>Try Again</Text>
+                        </TouchableOpacity>
+                    )}
                 </View>
             </SafeAreaView>
         );
@@ -306,53 +365,92 @@ const RSSViewerScreen = () => {
                         tintColor="#007AFF"
                     />
                 }
+                keyboardShouldPersistTaps="handled"
             >
                 <View style={styles.contentWrapper}>
                     {/* Header */}
                     <View style={styles.header}>
-                        <TouchableOpacity
-                            onPress={() => router.back()}
-                            style={styles.backButton}
-                            hitSlop={8}
-                        >
-                            <Ionicons name="chevron-back" size={28} color="#007AFF" />
-                        </TouchableOpacity>
-                        <View style={styles.headerTitleContainer}>
-                            <Text style={styles.headerTitle} numberOfLines={1}>
-                                {feed?.name || 'RSS Feed'}
-                            </Text>
-                            <Text style={styles.headerSubtitle}>
-                                {items.length} {items.length === 1 ? 'item' : 'items'}
-                            </Text>
-                        </View>
-                        <TouchableOpacity
-                            onPress={handleRefresh}
-                            style={styles.refreshButton}
-                            disabled={refreshing}
-                            hitSlop={8}
-                        >
-                            <Ionicons 
-                                name="refresh" 
-                                size={24} 
-                                color={refreshing ? "#8E8E93" : "#007AFF"} 
-                            />
-                        </TouchableOpacity>
+                        <Text style={styles.headerTitle}>RSS Feeds</Text>
+                        <Text style={styles.headerSubtitle}>
+                            Browse your feed items
+                        </Text>
                     </View>
 
+                    {/* Feed Selector */}
+                    {feeds.length > 0 && (
+                        <MenuView
+                            onPressAction={({ nativeEvent }) => {
+                                handleFeedSelect(nativeEvent.event);
+                            }}
+                            actions={getFeedMenuActions()}
+                            shouldOpenOnLongPress={false}
+                            themeVariant="dark"
+                        >
+                            <View style={styles.feedSelector}>
+                                <View style={styles.feedSelectorContent}>
+                                    <Ionicons name="newspaper" size={18} color="#8E8E93" />
+                                    <Text style={styles.feedSelectorText} numberOfLines={1}>
+                                        {selectedFeed?.name || 'Select Feed'}
+                                    </Text>
+                                    <Ionicons name="chevron-down" size={16} color="#8E8E93" />
+                                </View>
+                            </View>
+                        </MenuView>
+                    )}
+
+                    {/* Search Bar */}
+                    <View style={styles.searchBarContainer}>
+                        <Ionicons name="search-outline" size={20} color="#8E8E93" style={styles.searchIcon} />
+                        <TextInput
+                            style={styles.searchInput}
+                            value={searchQuery}
+                            onChangeText={setSearchQuery}
+                            placeholder="Search in feed..."
+                            autoCapitalize="none"
+                            placeholderTextColor="#8E8E93"
+                            returnKeyType="search"
+                        />
+                        {searchQuery.length > 0 && (
+                            <TouchableOpacity onPress={handleClearSearch} style={styles.clearButton}>
+                                <Ionicons name="close-circle" size={20} color="#8E8E93" />
+                            </TouchableOpacity>
+                        )}
+                    </View>
+
+                    {/* Results Count */}
+                    {items.length > 0 && (
+                        <Text style={styles.resultsHeader}>
+                            {searchQuery ? (
+                                `${filteredItems.length} of ${items.length} ${items.length === 1 ? 'ITEM' : 'ITEMS'}`
+                            ) : (
+                                `${items.length} ${items.length === 1 ? 'ITEM' : 'ITEMS'}`
+                            )}
+                        </Text>
+                    )}
+
                     {/* Items */}
-                    {items.length === 0 ? (
+                    {filteredItems.length === 0 ? (
                         <View style={styles.emptyState}>
                             <View style={styles.emptyStateIcon}>
-                                <Ionicons name="newspaper-outline" size={48} color="#007AFF" />
+                                <Ionicons 
+                                    name={searchQuery ? "search-outline" : "newspaper-outline"} 
+                                    size={48} 
+                                    color="#007AFF" 
+                                />
                             </View>
-                            <Text style={styles.emptyStateTitle}>No Items</Text>
+                            <Text style={styles.emptyStateTitle}>
+                                {searchQuery ? 'No Results' : 'No Items'}
+                            </Text>
                             <Text style={styles.emptyStateSubtext}>
-                                This feed doesn't have any items yet
+                                {searchQuery 
+                                    ? 'Try adjusting your search query'
+                                    : "This feed doesn't have any items yet"
+                                }
                             </Text>
                         </View>
                     ) : (
                         <View style={styles.itemsContainer}>
-                            {items.map((item, index) => (
+                            {filteredItems.map((item, index) => (
                                 <View key={item.guid || index} style={styles.itemCard}>
                                     {/* Item Header */}
                                     <View style={styles.itemHeader}>
@@ -487,34 +585,72 @@ const styles = StyleSheet.create({
         letterSpacing: -0.41,
     },
     header: {
-        flexDirection: 'row',
-        alignItems: 'center',
         paddingTop: 8,
-        paddingBottom: 16,
-        backgroundColor: 'transparent',
-        gap: 12,
-    },
-    backButton: {
-        padding: 4,
-    },
-    headerTitleContainer: {
-        flex: 1,
+        paddingBottom: 12,
         backgroundColor: 'transparent',
     },
     headerTitle: {
-        fontSize: 28,
+        fontSize: 34,
         fontWeight: '700',
         color: '#fff',
         letterSpacing: 0.35,
+        marginBottom: 2,
     },
     headerSubtitle: {
         fontSize: 13,
         color: '#8E8E93',
         fontWeight: '400',
-        marginTop: 2,
     },
-    refreshButton: {
-        padding: 4,
+    feedSelector: {
+        marginBottom: 12,
+        backgroundColor: 'transparent',
+    },
+    feedSelectorContent: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1C1C1E',
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 10,
+        gap: 8,
+        height: 44,
+    },
+    feedSelectorText: {
+        flex: 1,
+        fontSize: 16,
+        color: '#fff',
+        fontWeight: '400',
+        letterSpacing: -0.41,
+    },
+    searchBarContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1C1C1E',
+        borderRadius: 10,
+        paddingHorizontal: 8,
+        height: 36,
+        marginBottom: 16,
+    },
+    searchIcon: {
+        marginRight: 6,
+        marginLeft: 2,
+    },
+    searchInput: {
+        flex: 1,
+        fontSize: 16,
+        color: '#fff',
+        paddingVertical: 8,
+        letterSpacing: -0.41,
+    },
+    clearButton: {
+        padding: 2,
+        marginLeft: 4,
+    },
+    resultsHeader: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: '#8E8E93',
+        marginBottom: 12,
     },
     itemsContainer: {
         backgroundColor: 'transparent',
