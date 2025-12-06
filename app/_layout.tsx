@@ -233,6 +233,21 @@ function RootLayoutNav() {
                 }
               }}
             />
+            <Stack.Screen
+              name="settings/rss"
+              options={{
+                headerShown: true,
+                headerTransparent: true,
+                headerBackground: InvisibleHeaderBackground,
+                headerTitle: '',
+                headerTintColor: '#ffffff',
+                headerBackTitle: '',
+                headerShadowVisible: false,
+                headerStyle: {
+                  backgroundColor: 'transparent',
+                }
+              }}
+            />
           </Stack>
         </ThemeProvider>
       </ActionSheetProvider>
