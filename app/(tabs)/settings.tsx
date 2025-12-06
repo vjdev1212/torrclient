@@ -14,12 +14,12 @@ const SettingsScreen = () => {
 
   const preferencesList: { title: string, route: string, icon: keyof typeof Ionicons.glyphMap, description?: string }[] = [
     { title: 'TorrServer', route: '/settings/torrserver', icon: 'server-outline', description: 'Configure server connection' },
-    { title: 'Media Player', route: '/settings/mediaplayer', icon: 'play-circle-outline', description: 'Select preferred media player' },
+    { title: 'Media Player', route: '/settings/mediaplayer', icon: 'play-circle-outline', description: 'Select the preferred media player' },
   ];
 
   const integrationsList: { title: string, route: string, icon: keyof typeof Ionicons.glyphMap, description?: string }[] = [
-    { title: 'Prowlarr', route: '/settings/prowlarr', icon: 'search-outline', description: 'Manage Prowlarr settings' },
-    { title: 'RSS', route: '/settings/rss', icon: 'search-outline', description: 'Manage Prowlarr settings' },
+    { title: 'Prowlarr', route: '/settings/prowlarr', icon: 'search-outline', description: 'Manage Prowlarr configurations' },
+    { title: 'RSS', route: '/settings/rss', icon: 'logo-rss', description: 'Configure your RSS Feeds' },
   ];
 
   // SettingItem Component
