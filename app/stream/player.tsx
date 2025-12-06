@@ -236,11 +236,7 @@ const MediaPlayerScreen: React.FC = () => {
       return require("../../components/vlcplayer").MediaPlayer;
     }
 
-    return require("../../components/vlcplayer").MediaPlayer;
-
-    // Native Player having issues in playing Audio with range stream
-    
-    // return require("../../components/nativeplayer").MediaPlayer;
+    return require("../../components/nativeplayer").MediaPlayer;
   }
 
   const Player = getPlayer();
