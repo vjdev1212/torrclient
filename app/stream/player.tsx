@@ -47,7 +47,6 @@ const MediaPlayerScreen: React.FC = () => {
   const [hasTriedNative, setHasTriedNative] = useState(false);
 
   useEffect(() => {
-    // Check if we have a direct video URL (continue watching scenario)
     if (url) {
       setVideoUrl(url as string);
       setIsLoadingStream(false);
