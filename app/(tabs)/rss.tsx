@@ -37,7 +37,7 @@ interface RSSItem {
     };
 }
 
-const RSS_FEEDS_KEY = StorageKeys.RSS_FEEDS_KEY || 'rss_feeds';
+const RSS_FEEDS_KEY = StorageKeys.RSS_FEEDS_KEY || 'TORRCLIENT_RSS_FEEDS_KEY';
 
 const RSSViewerScreen = () => {
     const router = useRouter();
