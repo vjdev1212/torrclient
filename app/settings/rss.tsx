@@ -20,15 +20,6 @@ interface RSSFeedConfig {
     url: string;
     enabled: boolean;
     refreshInterval: number; // in minutes
-    authEnabled: boolean;
-    username: string;
-    password: string;
-    customHeaders: CustomHeader[];
-}
-
-interface CustomHeader {
-    key: string;
-    value: string;
 }
 
 const RSS_FEEDS_KEY = StorageKeys.RSS_FEEDS_KEY || 'TORRCLIENT_RSS_FEEDS_KEY';
@@ -57,11 +48,7 @@ const RSSFeedsScreen = () => {
                     name: '',
                     url: '',
                     enabled: true,
-                    refreshInterval: 30,
-                    authEnabled: false,
-                    username: '',
-                    password: '',
-                    customHeaders: [],
+                    refreshInterval: 30
                 };
                 setFeeds([defaultFeed]);
                 setExpandedFeedId(defaultFeed.id);
@@ -88,12 +75,7 @@ const RSSFeedsScreen = () => {
                     showAlert('Invalid URL', `Feed "${feed.name}" has an invalid URL (must start with http/https).`);
                     setSaving(false);
                     return;
-                }
-                if (feed.authEnabled && (!feed.username || !feed.password)) {
-                    showAlert('Missing Credentials', `Feed "${feed.name}" has authentication enabled but missing username or password.`);
-                    setSaving(false);
-                    return;
-                }
+                }                
             }
 
             storageService.setItem(RSS_FEEDS_KEY, JSON.stringify(feeds));
@@ -112,11 +94,7 @@ const RSSFeedsScreen = () => {
             name: '',
             url: '',
             enabled: true,
-            refreshInterval: 30,
-            authEnabled: false,
-            username: '',
-            password: '',
-            customHeaders: [],
+            refreshInterval: 30
         };
         setFeeds([...feeds, newFeed]);
         setExpandedFeedId(newFeed.id);
@@ -146,34 +124,7 @@ const RSSFeedsScreen = () => {
     const updateFeed = (id: string, updates: Partial<RSSFeedConfig>) => {
         setFeeds(feeds.map(f => f.id === id ? { ...f, ...updates } : f));
     };
-
-    const addCustomHeader = (feedId: string) => {
-        const feed = feeds.find(f => f.id === feedId);
-        if (!feed) return;
-
-        const newHeader: CustomHeader = { key: '', value: '' };
-        updateFeed(feedId, {
-            customHeaders: [...feed.customHeaders, newHeader]
-        });
-    };
-
-    const updateCustomHeader = (feedId: string, headerIndex: number, updates: Partial<CustomHeader>) => {
-        const feed = feeds.find(f => f.id === feedId);
-        if (!feed) return;
-
-        const updatedHeaders = [...feed.customHeaders];
-        updatedHeaders[headerIndex] = { ...updatedHeaders[headerIndex], ...updates };
-        updateFeed(feedId, { customHeaders: updatedHeaders });
-    };
-
-    const deleteCustomHeader = (feedId: string, headerIndex: number) => {
-        const feed = feeds.find(f => f.id === feedId);
-        if (!feed) return;
-
-        const updatedHeaders = feed.customHeaders.filter((_, idx) => idx !== headerIndex);
-        updateFeed(feedId, { customHeaders: updatedHeaders });
-    };
-
+    
     const toggleExpanded = (id: string) => {
         setExpandedFeedId(expandedFeedId === id ? '' : id);
     };
@@ -303,105 +254,7 @@ const RSSFeedsScreen = () => {
                         </View>
 
                         <View style={styles.sectionSeparator} />
-
-                        {/* Basic Authentication Toggle */}
-                        <View style={styles.formRow}>
-                            <Text style={styles.formLabel}>Basic Auth</Text>
-                            <Switch
-                                value={feed.authEnabled}
-                                onValueChange={(value) => updateFeed(feed.id, { authEnabled: value })}
-                                trackColor={{ false: '#E5E5EA', true: '#34C759' }}
-                                ios_backgroundColor="#E5E5EA"
-                            />
-                        </View>
-
-                        {/* Auth Credentials */}
-                        {feed.authEnabled && (
-                            <>
-                                <View style={styles.rowSeparator} />
-
-                                <View style={styles.formRow}>
-                                    <Text style={styles.formLabel}>Username</Text>
-                                    <TextInput
-                                        style={styles.formInput}
-                                        value={feed.username}
-                                        onChangeText={(text) => updateFeed(feed.id, { username: text })}
-                                        autoCapitalize="none"
-                                        placeholder="Username"
-                                        placeholderTextColor="#8E8E93"
-                                        textAlign="right"
-                                    />
-                                </View>
-
-                                <View style={styles.rowSeparator} />
-
-                                <View style={styles.formRow}>
-                                    <Text style={styles.formLabel}>Password</Text>
-                                    <PasswordInput
-                                        value={feed.password}
-                                        onChangeText={(text) => updateFeed(feed.id, { password: text })}
-                                        placeholder="Password"
-                                    />
-                                </View>
-                            </>
-                        )}
-
-                        <View style={styles.sectionSeparator} />
-
-                        {/* Custom Headers Section */}
-                        <View style={styles.headersSectionTitle}>
-                            <Text style={styles.sectionFooter}>CUSTOM HEADERS</Text>
-                            <Pressable
-                                onPress={() => addCustomHeader(feed.id)}
-                                hitSlop={8}
-                            >
-                                <Text style={styles.addHeaderLink}>Add</Text>
-                            </Pressable>
-                        </View>
-
-                        {feed.customHeaders.length === 0 ? (
-                            <View style={styles.emptyHeaders}>
-                                <Text style={styles.emptyHeadersText}>No custom headers</Text>
-                            </View>
-                        ) : (
-                            <View style={styles.headersList}>
-                                {feed.customHeaders.map((header, index) => (
-                                    <View key={index}>
-                                        {index > 0 && <View style={styles.rowSeparator} />}
-                                        <View style={styles.headerItem}>
-                                            <View style={styles.headerInputs}>
-                                                <TextInput
-                                                    style={[styles.formInput, styles.headerKeyInput]}
-                                                    value={header.key}
-                                                    onChangeText={(text) => updateCustomHeader(feed.id, index, { key: text })}
-                                                    placeholder="Header"
-                                                    placeholderTextColor="#8E8E93"
-                                                    autoCapitalize="none"
-                                                />
-                                                <View style={styles.headerColon}>
-                                                    <Text style={styles.headerColonText}>:</Text>
-                                                </View>
-                                                <TextInput
-                                                    style={[styles.formInput, styles.headerValueInput]}
-                                                    value={header.value}
-                                                    onChangeText={(text) => updateCustomHeader(feed.id, index, { value: text })}
-                                                    placeholder="Value"
-                                                    placeholderTextColor="#8E8E93"
-                                                />
-                                            </View>
-                                            <Pressable
-                                                onPress={() => deleteCustomHeader(feed.id, index)}
-                                                style={styles.deleteHeaderButton}
-                                                hitSlop={8}
-                                            >
-                                                <Ionicons name="remove-circle-outline" size={22} color="#FF3B30" />
-                                            </Pressable>
-                                        </View>
-                                    </View>
-                                ))}
-                            </View>
-                        )}
-
+                       
                         {/* Delete Button */}
                         {feeds.length > 1 && (
                             <>
