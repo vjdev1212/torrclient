@@ -1,6 +1,6 @@
 # TorrClient
 
-TorrClient is a sleek, modern TorrServer client featuring an integrated media player—your perfect partner for smooth, effortless streaming.
+TorrClient is a sleek, modern TorrServer client—your perfect partner for smooth, effortless streaming.
 
 ---
 
