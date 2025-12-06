@@ -14,19 +14,19 @@ Or download directly from [GitHub Releases](https://github.com/vjdev1212/torrcli
 
 ---
 
-<!-- ## Screenshots
+## Screenshots
 
 ### Mobile
 
 <p float="left">
-  <img src="https://github.com/user-attachments/assets/af0a2a2c-6116-43dc-ba5e-1493bd219e7a" width="19%" />
-  <img src="https://github.com/user-attachments/assets/ad4c5370-d9ff-48a9-86c7-ea4c146b67b5" width="19%" />
-  <img src="https://github.com/user-attachments/assets/6f6205e3-0b03-4b4b-a75b-900dc0e3f27b" width="19%" />
-  <img src="https://github.com/user-attachments/assets/56bfc73a-de3c-4393-84d6-b67908478ac4" width="19%" />
-  <img src="https://github.com/user-attachments/assets/0d486463-3ac8-49f9-af8e-834a24a125b7" width="19%" />
+  <img src="https://github.com/vjdev1212/torrclient/blob/00a2f539fd962ec4937e5ef0a9964b487900144f/torrclient-screenshots/1-Home.png" width="19%" />
+  <img src="https://github.com/vjdev1212/torrclient/blob/00a2f539fd962ec4937e5ef0a9964b487900144f/torrclient-screenshots/2-Library.png" width="19%" />
+  <img src="https://github.com/vjdev1212/torrclient/blob/00a2f539fd962ec4937e5ef0a9964b487900144f/torrclient-screenshots/3-Search.png" width="19%" />
+  <img src="https://github.com/vjdev1212/torrclient/blob/00a2f539fd962ec4937e5ef0a9964b487900144f/torrclient-screenshots/4-RSS.png" width="19%" />
+  <img src="https://github.com/vjdev1212/torrclient/blob/00a2f539fd962ec4937e5ef0a9964b487900144f/torrclient-screenshots/5-Settings.png" width="19%" />
 </p>
 
-### Tablet
+<!-- ### Tablet
 
 <p align="center">
   <img src="https://github.com/user-attachments/assets/17e0a24b-7355-4da1-8eaf-5810bf7f9d19" width="49%" />
