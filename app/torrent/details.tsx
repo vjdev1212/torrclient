@@ -21,7 +21,6 @@ const TorrentDetails = () => {
   const [defaultMediaPlayer, setDefaultMediaPlayer] = useState<string>('default');
   const { width, height } = useWindowDimensions();
   const isPortrait = height >= width;
-  const isMobile = width < 768;
   const ref = useRef<ScrollView | null>(null);
 
   useEffect(() => {
@@ -399,7 +398,6 @@ const TorrentDetails = () => {
     </View>
   );
 
-  const contentPadding = !isPortrait ? 32 : 0;
 
   return (
     <View style={styles.container}>
