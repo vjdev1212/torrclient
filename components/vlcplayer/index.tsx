@@ -222,8 +222,8 @@ const VlcMediaPlayerComponent: React.FC<MediaPlayerProps> = ({
     // Memoize VLC handlers to prevent recreation
     const vlcHandlers = useMemo(() => ({
         onLoad: (data: any) => {
-            console.log('VLC onLoad');
-
+            console.log('VLC onLoad');  
+                     
             // Batch state updates
             requestAnimationFrame(() => {
                 playerState.setIsBuffering(false);
@@ -541,8 +541,11 @@ const VlcMediaPlayerComponent: React.FC<MediaPlayerProps> = ({
                     }]}
                     source={{
                         uri: videoUrl,
-                        initType: 1,
-                        initOptions: []
+                        initType: 2,
+                        initOptions: [
+                            '--no-sub-autodetect-file',
+                            '--no-spu'
+                        ]
                     }}
                     autoplay={true}
                     playInBackground={true}

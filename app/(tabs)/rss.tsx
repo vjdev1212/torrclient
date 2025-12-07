@@ -268,7 +268,7 @@ const RSSViewerScreen = () => {
         // Generate stream URL in TorrServer format
         const baseUrl = getTorrServerUrl();
         const encodedLink = encodeURIComponent(torrentLink);
-        const streamUrl = `${baseUrl}/stream?link=${encodedLink}&index=1&save=false&play&preload`;
+        const streamUrl = `${baseUrl}/stream?link=${encodedLink}&index=1&play&preload`;
 
         console.log('Stream Link', streamUrl)
         router.push({
