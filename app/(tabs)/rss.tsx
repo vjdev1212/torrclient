@@ -215,16 +215,30 @@ const RSSViewerScreen = () => {
     };
 
     const handleFeedSelect = async (feedId: string) => {
+        // Handle "None" selection
+        if (feedId === 'none') {
+            if (isHapticsSupported()) {
+                await Haptics.selectionAsync();
+            }
+            
+            setSelectedFeed(null);
+            setSearchQuery('');
+            setItems([]);
+            setFilteredItems([]);
+            return;
+        }
+
         const feed = feeds.find(f => f.id === feedId);
         if (!feed) return;
+
+        if (isHapticsSupported()) {
+            await Haptics.selectionAsync();
+        }
 
         setSelectedFeed(feed);
         setSearchQuery('');
         setItems([]);
-        
-        if (isHapticsSupported()) {
-            await Haptics.selectionAsync();
-        }
+        setFilteredItems([]);
         
         await fetchRSSFeed(feed);
     };
@@ -336,12 +350,23 @@ const RSSViewerScreen = () => {
     };
 
     const getFeedMenuActions = () => {
-        return feeds.map(feed => ({
+        const feedActions = feeds.map(feed => ({
             id: feed.id,
             title: feed.name || 'Unnamed Feed',
             state: selectedFeed?.id === feed.id ? ('on' as const) : ('off' as const),
             titleColor: selectedFeed?.id === feed.id ? '#007AFF' : undefined,
         }));
+
+        // Add a "None" option at the beginning
+        return [
+            {
+                id: 'none',
+                title: 'None',
+                state: selectedFeed === null ? ('on' as const) : ('off' as const),
+                titleColor: selectedFeed === null ? '#007AFF' : undefined,
+            },
+            ...feedActions,
+        ];
     };
 
     if (loading && items.length === 0) {
