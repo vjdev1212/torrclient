@@ -18,6 +18,7 @@ import { Text, View } from '@/components/Themed';
 import { isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { StorageKeys, storageService } from '@/utils/StorageService';
+import { getTorrServerUrl } from '@/utils/TorrServer';
 
 interface RSSFeedConfig {
     id: string;
@@ -79,7 +80,7 @@ const RSSViewerScreen = () => {
             }
 
             const loadedFeeds: RSSFeedConfig[] = JSON.parse(feedsJson);
-
+            
             if (loadedFeeds.length === 0) {
                 setError('No RSS feeds configured. Please add a feed first.');
                 setLoading(false);
@@ -132,9 +133,9 @@ const RSSViewerScreen = () => {
 
     const parseRSS = (xmlText: string): RSSItem[] => {
         const items: RSSItem[] = [];
-
+        
         const itemMatches = xmlText.match(/<item[^>]*>[\s\S]*?<\/item>/gi);
-
+        
         if (!itemMatches) return items;
 
         itemMatches.forEach(itemXml => {
@@ -201,7 +202,7 @@ const RSSViewerScreen = () => {
         }
 
         const query = searchQuery.toLowerCase();
-        const filtered = items.filter(item =>
+        const filtered = items.filter(item => 
             item.title.toLowerCase().includes(query) ||
             item.description.toLowerCase().includes(query)
         );
@@ -223,11 +224,11 @@ const RSSViewerScreen = () => {
         setSelectedFeed(feed);
         setSearchQuery('');
         setItems([]);
-
+        
         if (isHapticsSupported()) {
             await Haptics.selectionAsync();
         }
-
+        
         await fetchRSSFeed(feed);
     };
 
@@ -245,9 +246,9 @@ const RSSViewerScreen = () => {
 
         router.push({
             pathname: '/torrent/add',
-            params: {
+            params: { 
                 magnet: torrentLink,
-                titleParam: item.title
+                titleParam: item.title 
             },
         });
     };
@@ -264,11 +265,17 @@ const RSSViewerScreen = () => {
             return;
         }
 
+        // Generate stream URL in TorrServer format
+        const baseUrl = getTorrServerUrl();
+        const encodedLink = encodeURIComponent(torrentLink);
+        const streamUrl = `${baseUrl}/stream?link=${encodedLink}&index=1&save=false&play&preload`;
+
+        console.log('Stream Link', streamUrl)
         router.push({
             pathname: '/stream/player',
-            params: {
-                url: torrentLink,
-                title: item.title
+            params: { 
+                url: streamUrl,
+                title: item.title 
             },
         });
     };
@@ -297,7 +304,7 @@ const RSSViewerScreen = () => {
 
     const formatDate = (dateString: string): string => {
         if (!dateString) return 'Unknown date';
-
+        
         try {
             const date = new Date(dateString);
             const now = new Date();
@@ -309,11 +316,11 @@ const RSSViewerScreen = () => {
             if (diffMins < 60) return `${diffMins}m ago`;
             if (diffHours < 24) return `${diffHours}h ago`;
             if (diffDays < 7) return `${diffDays}d ago`;
-
-            return date.toLocaleDateString('en-US', {
-                month: 'short',
+            
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
                 day: 'numeric',
-                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined 
             });
         } catch {
             return dateString;
@@ -323,10 +330,10 @@ const RSSViewerScreen = () => {
     const formatSize = (bytes: string): string => {
         const size = parseInt(bytes);
         if (isNaN(size)) return '';
-
+        
         const gb = size / (1024 * 1024 * 1024);
         if (gb >= 1) return `${gb.toFixed(2)} GB`;
-
+        
         const mb = size / (1024 * 1024);
         return `${mb.toFixed(2)} MB`;
     };
@@ -461,17 +468,17 @@ const RSSViewerScreen = () => {
                     {filteredItems.length === 0 ? (
                         <View style={styles.emptyState}>
                             <View style={styles.emptyStateIcon}>
-                                <Ionicons
-                                    name={searchQuery ? "search-outline" : "newspaper-outline"}
-                                    size={48}
-                                    color="#007AFF"
+                                <Ionicons 
+                                    name={searchQuery ? "search-outline" : "newspaper-outline"} 
+                                    size={48} 
+                                    color="#007AFF" 
                                 />
                             </View>
                             <Text style={styles.emptyStateTitle}>
                                 {searchQuery ? 'No Results' : 'No Items'}
                             </Text>
                             <Text style={styles.emptyStateSubtext}>
-                                {searchQuery
+                                {searchQuery 
                                     ? 'Try adjusting your search query'
                                     : "This feed doesn't have any items yet"
                                 }
@@ -500,16 +507,9 @@ const RSSViewerScreen = () => {
                                     </View>
 
                                     {/* Item Title */}
-                                    <Text style={styles.itemTitle} numberOfLines={3}>
+                                    <Text style={styles.itemTitle}>
                                         {item.title}
-                                    </Text>
-
-                                    {/* Item Description */}
-                                    {item.description && (
-                                        <Text style={styles.itemDescription} numberOfLines={2}>
-                                            {item.description}
-                                        </Text>
-                                    )}
+                                    </Text>                                    
 
                                     {/* Action Buttons */}
                                     <View style={styles.actionButtons}>
