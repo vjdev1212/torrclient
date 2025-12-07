@@ -17,6 +17,7 @@ import { Text, View } from '@/components/Themed';
 import { isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import ProwlarrClient, { ProwlarrSearchResult, ProwlarrIndexer, ProwlarrCategory } from '@/clients/prowlarr';
+import { getTorrServerUrl } from '@/utils/TorrServer';
 
 const ProwlarrSearchScreen = () => {
     const router = useRouter();
@@ -133,15 +134,48 @@ const ProwlarrSearchScreen = () => {
         loadData();
     };
 
-    const handleSelectTorrent = async (result: ProwlarrSearchResult) => {
+    const handleAddTorrent = async (result: ProwlarrSearchResult) => {
         if (isHapticsSupported()) {
             await Haptics.selectionAsync();
         }
 
         const link = result.magnetUrl || result.hash || result.infoHash || result.downloadUrl || result.guid || '';
+        
+        if (!link) {
+            showAlert('No Link', 'This torrent does not have a valid link.');
+            return;
+        }
+
         router.push({
             pathname: '/torrent/add',
             params: { magnet: link, titleParam: result.title },
+        });
+    };
+
+    const handleStreamNow = async (result: ProwlarrSearchResult) => {
+        if (isHapticsSupported()) {
+            await Haptics.selectionAsync();
+        }
+
+        const torrentLink = result.hash || result.infoHash || result.magnetUrl || result.downloadUrl || result.guid || '';
+
+        if (!torrentLink) {
+            showAlert('No Link', 'This torrent does not have a valid link.');
+            return;
+        }
+
+        // Generate stream URL in TorrServer format
+        const baseUrl = getTorrServerUrl();
+        const encodedLink = encodeURIComponent(torrentLink);
+        const streamUrl = `${baseUrl}/stream?link=${encodedLink}&index=1&play&preload`;
+
+        console.log('Stream Link', streamUrl);
+        router.push({
+            pathname: '/stream/player',
+            params: { 
+                url: streamUrl,
+                title: result.title 
+            },
         });
     };
 
@@ -410,11 +444,9 @@ const ProwlarrSearchScreen = () => {
                                     </View>
                                 ) : (
                                     results.map((result, index) => (
-                                        <TouchableOpacity
+                                        <View
                                             key={result.guid || index}
                                             style={styles.resultCard}
-                                            onPress={() => handleSelectTorrent(result)}
-                                            activeOpacity={0.6}
                                         >
                                             {/* Header with Category Badge */}
                                             <View style={styles.cardHeader}>
@@ -430,7 +462,7 @@ const ProwlarrSearchScreen = () => {
                                             </View>
 
                                             {/* Title */}
-                                            <Text style={styles.resultTitle} numberOfLines={3}>
+                                            <Text style={styles.resultTitle}>
                                                 {result.title}
                                             </Text>
 
@@ -454,12 +486,26 @@ const ProwlarrSearchScreen = () => {
                                                 </View>
                                             </View>
 
-                                            {/* Download Indicator */}
-                                            <View style={styles.downloadIndicator}>
-                                                <Ionicons name="arrow-down-circle" size={16} color="#007AFF" />
-                                                <Text style={styles.downloadText}>Add Torrent</Text>
+                                            {/* Action Buttons */}
+                                            <View style={styles.actionButtons}>
+                                                <TouchableOpacity
+                                                    style={styles.streamButton}
+                                                    onPress={() => handleStreamNow(result)}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <Ionicons name="play-circle" size={18} color="#FFFFFF" />
+                                                    <Text style={styles.streamButtonText}>Play</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={styles.addButton}
+                                                    onPress={() => handleAddTorrent(result)}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <Ionicons name="add-circle" size={18} color="#FFFFFF" />
+                                                    <Text style={styles.addButtonText}>Add</Text>
+                                                </TouchableOpacity>
                                             </View>
-                                        </TouchableOpacity>
+                                        </View>
                                     ))
                                 )}
                             </View>
@@ -739,20 +785,44 @@ const styles = StyleSheet.create({
         fontWeight: '500',
         color: '#34C759',  
     },
-    downloadIndicator: {
+    actionButtons: {
         flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
+        gap: 8,
         backgroundColor: 'transparent',
         paddingTop: 12,
         borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: 'rgba(142, 142, 147, 0.2)',
+    },
+    streamButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#007AFF',
+        paddingVertical: 10,
+        borderRadius: 8,
         gap: 6,
     },
-    downloadText: {
+    streamButtonText: {
         fontSize: 15,
         fontWeight: '500',
-        color: '#007AFF',
+        color: '#FFFFFF',
+        letterSpacing: -0.24,
+    },
+    addButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#007AFF',
+        paddingVertical: 10,
+        borderRadius: 8,
+        gap: 6,
+    },
+    addButtonText: {
+        fontSize: 15,
+        fontWeight: '500',
+        color: '#FFFFFF',
         letterSpacing: -0.24,
     },
 });
