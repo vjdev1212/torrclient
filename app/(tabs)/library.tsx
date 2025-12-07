@@ -21,6 +21,7 @@ const LibraryScreen = () => {
   const [debounceTimeout, setDebounceTimeout] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [categories, setCategories] = useState<string[]>(['all']);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchTorrents = async () => {
     setLoading(true);
@@ -68,6 +69,15 @@ const LibraryScreen = () => {
   useEffect(() => {
     fetchTorrents();
   }, []);
+
+  const handleRefresh = async () => {
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    setRefreshing(true);
+    await fetchTorrents();
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     if (debounceTimeout) clearTimeout(debounceTimeout);
@@ -143,7 +153,7 @@ const LibraryScreen = () => {
   const categoryActions = categories.map(cat => ({
     id: cat,
     title: getCategoryDisplayName(cat),
-    state: selectedCategory === cat ? 'on' : 'off',   
+    state: selectedCategory === cat ? 'on' : 'off',
   }));
 
   // Initial loading state - centered loader
@@ -170,7 +180,7 @@ const LibraryScreen = () => {
           </View>
           <Text style={styles.errorTitle}>Connection Failed</Text>
           <Text style={styles.errorSubtitle}>{error}</Text>
-          <Pressable 
+          <Pressable
             style={styles.retryButton}
             onPress={handleRetry}
           >
@@ -197,7 +207,7 @@ const LibraryScreen = () => {
               {allTorrents.length} {allTorrents.length === 1 ? 'item' : 'items'}
             </Text>
           </View>
-          <Pressable 
+          <Pressable
             style={styles.addButton}
             onPress={handleAddTorrent}
           >
@@ -227,7 +237,7 @@ const LibraryScreen = () => {
         </View>
       </View>
 
-      {/* Category Filter */}
+      {/* Category Filter and Refresh Button */}
       <View style={styles.filterContainer}>
         <MenuView
           ref={categoryMenuRef}
@@ -246,6 +256,23 @@ const LibraryScreen = () => {
             <Ionicons name="chevron-down" size={16} color="#0A84FF" />
           </Pressable>
         </MenuView>
+
+        <Pressable
+          style={[styles.refreshButton, refreshing && styles.refreshButtonDisabled]}
+          onPress={handleRefresh}
+          disabled={refreshing}
+        >
+          {refreshing ? (
+            <ActivityIndicator size="small" color="#0A84FF" />
+          ) : (
+            <>
+              <Ionicons name="refresh" size={20} color="#0A84FF" />
+              <Text style={styles.filterButtonText}>
+                Refresh
+              </Text>
+            </>
+          )}
+        </Pressable>
       </View>
 
       {/* Content Area */}
@@ -370,7 +397,7 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 13,
     color: '#8E8E93',
-    fontWeight: '400',    
+    fontWeight: '400',
   },
   addButton: {
     flexDirection: 'row',
@@ -419,6 +446,9 @@ const styles = StyleSheet.create({
   filterContainer: {
     paddingHorizontal: 20,
     paddingBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   filterButton: {
     flexDirection: 'row',
@@ -428,13 +458,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 36,
     gap: 6,
-    alignSelf: 'flex-start',
   },
   filterButtonText: {
     fontSize: 15,
     color: '#0A84FF',
     fontWeight: '500',
     letterSpacing: -0.24,
+  },
+  refreshButton: {
+    height: 36,
+    gap: 6,
+    borderRadius: 10,
+    backgroundColor: '#1C1C1E',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+  refreshButtonDisabled: {
+    opacity: 0.5,
   },
   contentContainer: {
     flex: 1,
