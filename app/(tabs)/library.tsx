@@ -1,5 +1,5 @@
 import { Text, ActivityIndicator, TextInput, View, StatusBar } from '@/components/Themed';
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -7,7 +7,7 @@ import { isHapticsSupported } from '@/utils/platform';
 import TorrentGrid from '@/components/TorrentGrid';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { MenuView, MenuComponentRef, MenuAction } from '@react-native-menu/menu';
 
 const LibraryScreen = () => {
@@ -65,9 +65,17 @@ const LibraryScreen = () => {
     }
   };
 
-  useEffect(() => {
-    fetchTorrents();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      console.log('Library screen focused - fetching torrents');
+      fetchTorrents();
+      
+      return () => {
+        // Optional cleanup when screen loses focus
+        console.log('Library screen unfocused');
+      };
+    }, [])
+  );
 
   useEffect(() => {
     if (debounceTimeout) clearTimeout(debounceTimeout);
