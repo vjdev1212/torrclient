@@ -18,18 +18,26 @@
       "subtitle": "A client for TorrServer",
       "localizedDescription": "TorrClient is a sleek, modern TorrServer client—your perfect partner for smooth, effortless streaming",
       "iconURL": "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/assets/images/icon.png",
-      "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.4/TorrClient_v1.0.4.ipa",
+      "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.5/TorrClient_v1.0.5.ipa",
       "tintColor": "#535aff",
       "category": "entertainment",
       "screenshots": [        
       ],
       "versions": [
         {
+          "version": "1.0.5",
+          "date": "2025-12-07",
+          "localizedDescription": "1. Added support for instant streaming without adding to TorrServer.\n2. 2. Bug fixes and enhancements.",
+          "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.5/TorrClient_v1.0.5.ipa",
+          "size": 27762483,
+          "minOSVersion": "18.0"
+        },
+        {
           "version": "1.0.4",
           "date": "2025-12-06",
           "localizedDescription": "1. RSS Feeds Support\n2. UI Improvements and Bug fixes.",
           "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.4/TorrClient_v1.0.4.ipa",
-          "size": 8680000,
+          "size": 27762483,
           "minOSVersion": "18.0"
         },
         {
@@ -37,33 +45,9 @@
           "date": "2025-12-04",
           "localizedDescription": "• Prowlarr Integration\n• UI Improvements.",
           "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.3/TorrClient_v1.0.3.ipa",
-          "size": 8680000,
+          "size": 27762483,
           "minOSVersion": "18.0"
-        },
-        {
-          "version": "1.0.2",
-          "date": "2025-12-02",
-          "localizedDescription": "• Media Player selection support\n• UI Improvements and Adjustments",
-          "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.2/TorrClient_v1.0.2.ipa",
-          "size": 8680000,
-          "minOSVersion": "18.0"
-        },
-        {
-          "version": "1.0.1",
-          "date": "2025-12-01",
-          "localizedDescription": "• Added support for media player integration",
-          "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.1/TorrClient_v1.0.1.ipa",
-          "size": 8680000,
-          "minOSVersion": "18.0"
-        }, 
-        {
-          "version": "1.0.0",
-          "date": "2025-11-11",
-          "localizedDescription": "• Initial Release.",
-          "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.0/TorrClient_v1.0.0.ipa",
-          "size": 8680000,
-          "minOSVersion": "18.0"
-        }                                       
+        }        
       ],
       "appPermissions": {
         "entitlements": [],
@@ -73,10 +57,10 @@
   ],
   "news": [
     {
-      "title": "TorrClient v1.0.4 Released",
-      "identifier": "torrclient-v1.0.4-release",
-      "caption": "1. RSS Feeds Support\n2. UI Improvements and Bug fixes.",
-      "date": "2025-12-06",
+      "title": "TorrClient v1.0.5 Released",
+      "identifier": "torrclient-v1.0.5-release",
+      "caption": "1. Added support for instant streaming without adding to TorrServer.\n2. 2. Bug fixes and enhancements.",
+      "date": "2025-12-07",
       "tintColor": "#535aff",
       "imageURL": "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/assets/banners/torrclient-feature-graphic.png",
       "notify": true,
