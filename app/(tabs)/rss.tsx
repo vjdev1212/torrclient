@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { MenuView } from '@react-native-menu/menu';
@@ -57,6 +58,13 @@ const RSSViewerScreen = () => {
         loadFeeds();
     }, []);
 
+    useFocusEffect(
+        React.useCallback(() => {
+            // Reload feeds when screen comes into focus
+            loadFeeds();
+        }, [])
+    );
+
     useEffect(() => {
         filterItems();
     }, [searchQuery, items]);
@@ -71,7 +79,7 @@ const RSSViewerScreen = () => {
             }
 
             const loadedFeeds: RSSFeedConfig[] = JSON.parse(feedsJson);
-            
+
             if (loadedFeeds.length === 0) {
                 setError('No RSS feeds configured. Please add a feed first.');
                 setLoading(false);
@@ -124,9 +132,9 @@ const RSSViewerScreen = () => {
 
     const parseRSS = (xmlText: string): RSSItem[] => {
         const items: RSSItem[] = [];
-        
+
         const itemMatches = xmlText.match(/<item[^>]*>[\s\S]*?<\/item>/gi);
-        
+
         if (!itemMatches) return items;
 
         itemMatches.forEach(itemXml => {
@@ -193,7 +201,7 @@ const RSSViewerScreen = () => {
         }
 
         const query = searchQuery.toLowerCase();
-        const filtered = items.filter(item => 
+        const filtered = items.filter(item =>
             item.title.toLowerCase().includes(query) ||
             item.description.toLowerCase().includes(query)
         );
@@ -215,11 +223,11 @@ const RSSViewerScreen = () => {
         setSelectedFeed(feed);
         setSearchQuery('');
         setItems([]);
-        
+
         if (isHapticsSupported()) {
             await Haptics.selectionAsync();
         }
-        
+
         await fetchRSSFeed(feed);
     };
 
@@ -237,9 +245,30 @@ const RSSViewerScreen = () => {
 
         router.push({
             pathname: '/torrent/add',
-            params: { 
+            params: {
                 magnet: torrentLink,
-                titleParam: item.title 
+                titleParam: item.title
+            },
+        });
+    };
+
+    const handleStreamNow = async (item: RSSItem) => {
+        if (isHapticsSupported()) {
+            await Haptics.selectionAsync();
+        }
+
+        const torrentLink = item.enclosure?.url || item.link;
+
+        if (!torrentLink) {
+            showAlert('No Link', 'This item does not have a torrent link.');
+            return;
+        }
+
+        router.push({
+            pathname: '/stream/player',
+            params: {
+                url: torrentLink,
+                title: item.title
             },
         });
     };
@@ -268,7 +297,7 @@ const RSSViewerScreen = () => {
 
     const formatDate = (dateString: string): string => {
         if (!dateString) return 'Unknown date';
-        
+
         try {
             const date = new Date(dateString);
             const now = new Date();
@@ -280,11 +309,11 @@ const RSSViewerScreen = () => {
             if (diffMins < 60) return `${diffMins}m ago`;
             if (diffHours < 24) return `${diffHours}h ago`;
             if (diffDays < 7) return `${diffDays}d ago`;
-            
-            return date.toLocaleDateString('en-US', { 
-                month: 'short', 
+
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
                 day: 'numeric',
-                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined 
+                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
             });
         } catch {
             return dateString;
@@ -294,10 +323,10 @@ const RSSViewerScreen = () => {
     const formatSize = (bytes: string): string => {
         const size = parseInt(bytes);
         if (isNaN(size)) return '';
-        
+
         const gb = size / (1024 * 1024 * 1024);
         if (gb >= 1) return `${gb.toFixed(2)} GB`;
-        
+
         const mb = size / (1024 * 1024);
         return `${mb.toFixed(2)} MB`;
     };
@@ -432,17 +461,17 @@ const RSSViewerScreen = () => {
                     {filteredItems.length === 0 ? (
                         <View style={styles.emptyState}>
                             <View style={styles.emptyStateIcon}>
-                                <Ionicons 
-                                    name={searchQuery ? "search-outline" : "newspaper-outline"} 
-                                    size={48} 
-                                    color="#007AFF" 
+                                <Ionicons
+                                    name={searchQuery ? "search-outline" : "newspaper-outline"}
+                                    size={48}
+                                    color="#007AFF"
                                 />
                             </View>
                             <Text style={styles.emptyStateTitle}>
                                 {searchQuery ? 'No Results' : 'No Items'}
                             </Text>
                             <Text style={styles.emptyStateSubtext}>
-                                {searchQuery 
+                                {searchQuery
                                     ? 'Try adjusting your search query'
                                     : "This feed doesn't have any items yet"
                                 }
@@ -485,12 +514,20 @@ const RSSViewerScreen = () => {
                                     {/* Action Buttons */}
                                     <View style={styles.actionButtons}>
                                         <TouchableOpacity
+                                            style={styles.streamButton}
+                                            onPress={() => handleStreamNow(item)}
+                                            activeOpacity={0.7}
+                                        >
+                                            <Ionicons name="play-circle" size={18} color="#FFFFFF" />
+                                            <Text style={styles.streamButtonText}>Play</Text>
+                                        </TouchableOpacity>
+                                        <TouchableOpacity
                                             style={styles.addButton}
                                             onPress={() => handleAddToTorrServer(item)}
                                             activeOpacity={0.7}
                                         >
                                             <Ionicons name="add-circle" size={18} color="#FFFFFF" />
-                                            <Text style={styles.addButtonText}>Add to TorrServer</Text>
+                                            <Text style={styles.addButtonText}>Add</Text>
                                         </TouchableOpacity>
                                         {item.link && (
                                             <TouchableOpacity
@@ -718,6 +755,22 @@ const styles = StyleSheet.create({
         paddingTop: 12,
         borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: 'rgba(142, 142, 147, 0.2)',
+    },
+    streamButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#007AFF',
+        paddingVertical: 10,
+        borderRadius: 8,
+        gap: 6,
+    },
+    streamButtonText: {
+        fontSize: 15,
+        fontWeight: '500',
+        color: '#FFFFFF',
+        letterSpacing: -0.24,
     },
     addButton: {
         flex: 1,
