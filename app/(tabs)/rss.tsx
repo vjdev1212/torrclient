@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { MenuView } from '@react-native-menu/menu';
@@ -17,6 +18,7 @@ import { Text, View } from '@/components/Themed';
 import { isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { StorageKeys, storageService } from '@/utils/StorageService';
+import { getTorrServerUrl } from '@/utils/TorrServer';
 
 interface RSSFeedConfig {
     id: string;
@@ -57,6 +59,13 @@ const RSSViewerScreen = () => {
         loadFeeds();
     }, []);
 
+    useFocusEffect(
+        React.useCallback(() => {
+            // Reload feeds when screen comes into focus
+            loadFeeds();
+        }, [])
+    );
+
     useEffect(() => {
         filterItems();
     }, [searchQuery, items]);
@@ -79,11 +88,8 @@ const RSSViewerScreen = () => {
             }
 
             setFeeds(loadedFeeds);
-
-            // Select the first enabled feed, or just the first feed
-            const defaultFeed = loadedFeeds.find(f => f.enabled) || loadedFeeds[0];
-            setSelectedFeed(defaultFeed);
-            await fetchRSSFeed(defaultFeed);
+            // Don't auto-select any feed
+            setLoading(false);
         } catch (error) {
             console.error('Failed to load feeds:', error);
             setError('Failed to load feed configuration. Please try again.');
@@ -244,6 +250,33 @@ const RSSViewerScreen = () => {
         });
     };
 
+    const handleStreamNow = async (item: RSSItem) => {
+        if (isHapticsSupported()) {
+            await Haptics.selectionAsync();
+        }
+
+        const torrentLink = item.enclosure?.url || item.link;
+
+        if (!torrentLink) {
+            showAlert('No Link', 'This item does not have a torrent link.');
+            return;
+        }
+
+        // Generate stream URL in TorrServer format
+        const baseUrl = getTorrServerUrl();
+        const encodedLink = encodeURIComponent(torrentLink);
+        const streamUrl = `${baseUrl}/stream?link=${encodedLink}&index=1&play&preload`;
+
+        console.log('Stream Link', streamUrl)
+        router.push({
+            pathname: '/stream/player',
+            params: { 
+                url: streamUrl,
+                title: item.title 
+            },
+        });
+    };
+
     const handleOpenLink = async (url: string) => {
         if (isHapticsSupported()) {
             await Haptics.selectionAsync();
@@ -398,113 +431,129 @@ const RSSViewerScreen = () => {
                         </MenuView>
                     )}
 
-                    {/* Search Bar */}
-                    <View style={styles.searchBarContainer}>
-                        <Ionicons name="search-outline" size={20} color="#8E8E93" style={styles.searchIcon} />
-                        <TextInput
-                            style={styles.searchInput}
-                            value={searchQuery}
-                            onChangeText={setSearchQuery}
-                            placeholder="Search in feed..."
-                            autoCapitalize="none"
-                            placeholderTextColor="#8E8E93"
-                            returnKeyType="search"
-                        />
-                        {searchQuery.length > 0 && (
-                            <TouchableOpacity onPress={handleClearSearch} style={styles.clearButton}>
-                                <Ionicons name="close-circle" size={20} color="#8E8E93" />
-                            </TouchableOpacity>
-                        )}
-                    </View>
-
-                    {/* Results Count */}
-                    {items.length > 0 && (
-                        <Text style={styles.resultsHeader}>
-                            {searchQuery ? (
-                                `${filteredItems.length} of ${items.length} ${items.length === 1 ? 'ITEM' : 'ITEMS'}`
-                            ) : (
-                                `${items.length} ${items.length === 1 ? 'ITEM' : 'ITEMS'}`
-                            )}
-                        </Text>
-                    )}
-
-                    {/* Items */}
-                    {filteredItems.length === 0 ? (
+                    {/* Show placeholder state when no feed is selected */}
+                    {!selectedFeed ? (
                         <View style={styles.emptyState}>
                             <View style={styles.emptyStateIcon}>
-                                <Ionicons 
-                                    name={searchQuery ? "search-outline" : "newspaper-outline"} 
-                                    size={48} 
-                                    color="#007AFF" 
-                                />
+                                <Ionicons name="newspaper-outline" size={48} color="#007AFF" />
                             </View>
-                            <Text style={styles.emptyStateTitle}>
-                                {searchQuery ? 'No Results' : 'No Items'}
-                            </Text>
+                            <Text style={styles.emptyStateTitle}>Select a Feed</Text>
                             <Text style={styles.emptyStateSubtext}>
-                                {searchQuery 
-                                    ? 'Try adjusting your search query'
-                                    : "This feed doesn't have any items yet"
-                                }
+                                Choose a feed from the selector above to view its items
                             </Text>
                         </View>
                     ) : (
-                        <View style={styles.itemsContainer}>
-                            {filteredItems.map((item, index) => (
-                                <View key={item.guid || index} style={styles.itemCard}>
-                                    {/* Item Header */}
-                                    <View style={styles.itemHeader}>
-                                        <View style={styles.itemDateBadge}>
-                                            <Ionicons name="time-outline" size={12} color="#8E8E93" />
-                                            <Text style={styles.itemDate}>
-                                                {formatDate(item.pubDate)}
-                                            </Text>
-                                        </View>
-                                        {item.enclosure && (
-                                            <View style={styles.sizeBadge}>
-                                                <Ionicons name="cube-outline" size={12} color="#8E8E93" />
-                                                <Text style={styles.sizeText}>
-                                                    {formatSize(item.enclosure.length)}
-                                                </Text>
-                                            </View>
-                                        )}
-                                    </View>
+                        <>
+                            {/* Search Bar */}
+                            <View style={styles.searchBarContainer}>
+                                <Ionicons name="search-outline" size={20} color="#8E8E93" style={styles.searchIcon} />
+                                <TextInput
+                                    style={styles.searchInput}
+                                    value={searchQuery}
+                                    onChangeText={setSearchQuery}
+                                    placeholder="Search in feed..."
+                                    autoCapitalize="none"
+                                    placeholderTextColor="#8E8E93"
+                                    returnKeyType="search"
+                                />
+                                {searchQuery.length > 0 && (
+                                    <TouchableOpacity onPress={handleClearSearch} style={styles.clearButton}>
+                                        <Ionicons name="close-circle" size={20} color="#8E8E93" />
+                                    </TouchableOpacity>
+                                )}
+                            </View>
 
-                                    {/* Item Title */}
-                                    <Text style={styles.itemTitle} numberOfLines={3}>
-                                        {item.title}
-                                    </Text>
-
-                                    {/* Item Description */}
-                                    {item.description && (
-                                        <Text style={styles.itemDescription} numberOfLines={2}>
-                                            {item.description}
-                                        </Text>
+                            {/* Results Count */}
+                            {items.length > 0 && (
+                                <Text style={styles.resultsHeader}>
+                                    {searchQuery ? (
+                                        `${filteredItems.length} of ${items.length} ${items.length === 1 ? 'ITEM' : 'ITEMS'}`
+                                    ) : (
+                                        `${items.length} ${items.length === 1 ? 'ITEM' : 'ITEMS'}`
                                     )}
+                                </Text>
+                            )}
 
-                                    {/* Action Buttons */}
-                                    <View style={styles.actionButtons}>
-                                        <TouchableOpacity
-                                            style={styles.addButton}
-                                            onPress={() => handleAddToTorrServer(item)}
-                                            activeOpacity={0.7}
-                                        >
-                                            <Ionicons name="add-circle" size={18} color="#FFFFFF" />
-                                            <Text style={styles.addButtonText}>Add to TorrServer</Text>
-                                        </TouchableOpacity>
-                                        {item.link && (
-                                            <TouchableOpacity
-                                                style={styles.linkButton}
-                                                onPress={() => handleOpenLink(item.link)}
-                                                activeOpacity={0.7}
-                                            >
-                                                <Ionicons name="open-outline" size={18} color="#007AFF" />
-                                            </TouchableOpacity>
-                                        )}
+                            {/* Items */}
+                            {filteredItems.length === 0 ? (
+                                <View style={styles.emptyState}>
+                                    <View style={styles.emptyStateIcon}>
+                                        <Ionicons 
+                                            name={searchQuery ? "search-outline" : "newspaper-outline"} 
+                                            size={48} 
+                                            color="#007AFF" 
+                                        />
                                     </View>
+                                    <Text style={styles.emptyStateTitle}>
+                                        {searchQuery ? 'No Results' : 'No Items'}
+                                    </Text>
+                                    <Text style={styles.emptyStateSubtext}>
+                                        {searchQuery 
+                                            ? 'Try adjusting your search query'
+                                            : "This feed doesn't have any items yet"
+                                        }
+                                    </Text>
                                 </View>
-                            ))}
-                        </View>
+                            ) : (
+                                <View style={styles.itemsContainer}>
+                                    {filteredItems.map((item, index) => (
+                                        <View key={item.guid || index} style={styles.itemCard}>
+                                            {/* Item Header */}
+                                            <View style={styles.itemHeader}>
+                                                <View style={styles.itemDateBadge}>
+                                                    <Ionicons name="time-outline" size={12} color="#8E8E93" />
+                                                    <Text style={styles.itemDate}>
+                                                        {formatDate(item.pubDate)}
+                                                    </Text>
+                                                </View>
+                                                {item.enclosure && (
+                                                    <View style={styles.sizeBadge}>
+                                                        <Ionicons name="cube-outline" size={12} color="#8E8E93" />
+                                                        <Text style={styles.sizeText}>
+                                                            {formatSize(item.enclosure.length)}
+                                                        </Text>
+                                                    </View>
+                                                )}
+                                            </View>
+
+                                            {/* Item Title */}
+                                            <Text style={styles.itemTitle}>
+                                                {item.title}
+                                            </Text>                                    
+
+                                            {/* Action Buttons */}
+                                            <View style={styles.actionButtons}>
+                                                <TouchableOpacity
+                                                    style={styles.streamButton}
+                                                    onPress={() => handleStreamNow(item)}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <Ionicons name="play-circle" size={18} color="#FFFFFF" />
+                                                    <Text style={styles.streamButtonText}>Play</Text>
+                                                </TouchableOpacity>
+                                                <TouchableOpacity
+                                                    style={styles.addButton}
+                                                    onPress={() => handleAddToTorrServer(item)}
+                                                    activeOpacity={0.7}
+                                                >
+                                                    <Ionicons name="add-circle" size={18} color="#FFFFFF" />
+                                                    <Text style={styles.addButtonText}>Add</Text>
+                                                </TouchableOpacity>
+                                                {item.link && (
+                                                    <TouchableOpacity
+                                                        style={styles.linkButton}
+                                                        onPress={() => handleOpenLink(item.link)}
+                                                        activeOpacity={0.7}
+                                                    >
+                                                        <Ionicons name="open-outline" size={18} color="#007AFF" />
+                                                    </TouchableOpacity>
+                                                )}
+                                            </View>
+                                        </View>
+                                    ))}
+                                </View>
+                            )}
+                        </>
                     )}
 
                     <BottomSpacing space={100} />
@@ -718,6 +767,22 @@ const styles = StyleSheet.create({
         paddingTop: 12,
         borderTopWidth: StyleSheet.hairlineWidth,
         borderTopColor: 'rgba(142, 142, 147, 0.2)',
+    },
+    streamButton: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+        backgroundColor: '#007AFF',
+        paddingVertical: 10,
+        borderRadius: 8,
+        gap: 6,
+    },
+    streamButtonText: {
+        fontSize: 15,
+        fontWeight: '500',
+        color: '#FFFFFF',
+        letterSpacing: -0.24,
     },
     addButton: {
         flex: 1,
