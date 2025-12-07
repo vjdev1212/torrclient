@@ -2,9 +2,11 @@ import { Subtitle } from "@/components/coreplayer/models";
 import { StorageKeys, storageService } from "@/utils/StorageService";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Platform, ActivityIndicator, View, Text, StyleSheet } from "react-native";
+import { Platform, ActivityIndicator, View, Text, StyleSheet, StatusBar } from "react-native";
 import OpenSubtitlesClient, { SubtitleResult } from "@/clients/opensubtitles";
 import { getLanguageName } from "@/utils/Helpers";
+import * as ScreenOrientation from 'expo-screen-orientation';
+
 
 interface BackEvent {
   message: string;
@@ -45,6 +47,34 @@ const MediaPlayerScreen: React.FC = () => {
   // Player fallback state
   const [currentPlayerType, setCurrentPlayerType] = useState<"native" | "vlc">("native");
   const [hasTriedNative, setHasTriedNative] = useState(false);
+
+  // Orientation setup/cleanup
+  const setupOrientation = async () => {
+    if (Platform.OS !== 'web') {
+      try {
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+        StatusBar.setHidden(true);
+      } catch (error) {
+        console.warn("Failed to set orientation:", error);
+      }
+    }
+  };
+
+  const cleanupOrientation = async () => {
+    if (Platform.OS !== 'web') {
+      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.DEFAULT);
+      StatusBar.setHidden(false);
+    }
+  };
+
+
+  useEffect(() => {
+    setupOrientation();
+    return () => {
+
+      cleanupOrientation();
+    };
+  }, []);
 
   useEffect(() => {
     if (url) {
@@ -119,7 +149,7 @@ const MediaPlayerScreen: React.FC = () => {
 
     try {
       setIsLoadingSubtitles(true);
-      
+
       const response = await openSubtitlesClient.searchByFileName(
         title as string,
         ['en'],
@@ -211,7 +241,7 @@ const MediaPlayerScreen: React.FC = () => {
       console.error('Failed to save watch history:', error);
     }
   };
-    
+
   const handleBack = async (): Promise<void> => {
     router.back();
   };
@@ -242,25 +272,25 @@ const MediaPlayerScreen: React.FC = () => {
 
   if (isLoadingStream) {
     return (
-        <View style={styles.loadingContainer}>          
-          <View style={styles.loadingOverlay}>
-            <ActivityIndicator size="large" color="#0A84FF" />
-            <Text style={styles.loadingText}>Loading stream. Please wait...</Text>
-          </View>
+      <View style={styles.loadingContainer}>
+        <View style={styles.loadingOverlay}>
+          <ActivityIndicator size="large" color="#0A84FF" />
+          <Text style={styles.loadingText}>Loading stream. Please wait...</Text>
         </View>
+      </View>
     );
   }
 
   return (
-      <Player
-        videoUrl={videoUrl}
-        back={handleBack}
-        subtitles={subtitles}
-        openSubtitlesClient={openSubtitlesClient}
-        isLoadingSubtitles={isLoadingSubtitles}
-        updateProgress={handleUpdateProgress}
-        onPlaybackError={handlePlaybackError}
-      />      
+    <Player
+      videoUrl={videoUrl}
+      back={handleBack}
+      subtitles={subtitles}
+      openSubtitlesClient={openSubtitlesClient}
+      isLoadingSubtitles={isLoadingSubtitles}
+      updateProgress={handleUpdateProgress}
+      onPlaybackError={handlePlaybackError}
+    />
   );
 };
 

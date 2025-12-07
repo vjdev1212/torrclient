@@ -6,7 +6,7 @@ import { Ionicons, MaterialIcons } from "@expo/vector-icons";
 import { MenuComponentRef, MenuView } from '@react-native-menu/menu';
 import { styles } from "../coreplayer/styles";
 import { playHaptic } from "../coreplayer/utils";
-import { usePlayerState, useSubtitleState, useUIState, usePlayerSettings, useTimers, usePlayerAnimations, hideControls, CONSTANTS, setupOrientation, cleanupOrientation, loadSubtitle, handleSubtitleError, findActiveSubtitle, calculateProgress, performSeek, buildSpeedActions, buildSubtitleActions, buildAudioActions, calculateSliderValues, WaitingLobby, SubtitleDisplay, CenterControls, ProgressBar, ContentFitLabel, SubtitleSource, ErrorDisplay } from "../coreplayer";
+import { usePlayerState, useSubtitleState, useUIState, usePlayerSettings, useTimers, usePlayerAnimations, hideControls, CONSTANTS, loadSubtitle, handleSubtitleError, findActiveSubtitle, calculateProgress, performSeek, buildSpeedActions, buildSubtitleActions, buildAudioActions, calculateSliderValues, WaitingLobby, SubtitleDisplay, CenterControls, ProgressBar, ContentFitLabel, SubtitleSource, ErrorDisplay } from "../coreplayer";
 import { View, Text } from "../Themed";
 import { MediaPlayerProps } from "../coreplayer/models";
 
@@ -90,15 +90,13 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
         lastKnownTimeRef.current = playerState.currentTime;
     }, [playerState.currentTime]);
 
-    // Orientation and cleanup
+    // Cleanup
     useEffect(() => {
-        setupOrientation();
         return () => {
             if (updateProgress) {
                 const progressValue = calculateProgress(lastKnownTimeRef.current, playerState.duration);
                 updateProgress({ progress: progressValue });
             }
-            cleanupOrientation();
             clearAllTimers();
             if (seekTimeoutRef.current) {
                 clearTimeout(seekTimeoutRef.current);
