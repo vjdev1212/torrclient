@@ -27,7 +27,7 @@
         {
           "version": "1.0.5",
           "date": "2025-12-07",
-          "localizedDescription": "1. Added support for instant streaming without adding to TorrServer.\n2. 2. Bug fixes and enhancements.",
+          "localizedDescription": "1. Added support for instant streaming without adding to TorrServer.\n2. Bug fixes and enhancements.",
           "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.5/TorrClient_v1.0.5.ipa",
           "size": 27762483,
           "minOSVersion": "18.0"
@@ -59,7 +59,7 @@
     {
       "title": "TorrClient v1.0.5 Released",
       "identifier": "torrclient-v1.0.5-release",
-      "caption": "1. Added support for instant streaming without adding to TorrServer.\n2. 2. Bug fixes and enhancements.",
+      "caption": "1. Added support for instant streaming without adding to TorrServer.\n2. Bug fixes and enhancements.",
       "date": "2025-12-07",
       "tintColor": "#535aff",
       "imageURL": "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/assets/banners/torrclient-feature-graphic.png",
