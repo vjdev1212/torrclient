@@ -313,8 +313,8 @@ const TorrentDetails = () => {
   };
 
   const formatBytes = (bytes: number) => {
+    if (!bytes || bytes === 0 || isNaN(bytes)) return '0 B';
     const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    if (bytes === 0) return '0 Bytes';
     const i = Math.floor(Math.log(bytes) / Math.log(1024));
     const value = bytes / Math.pow(1024, i);
     return `${value.toFixed(2)} ${units[i]}`;
@@ -327,7 +327,7 @@ const TorrentDetails = () => {
           <View style={styles.infoCard}>
             <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
             <View style={styles.separator} />
-            <InfoRow label="Size" value={formatBytes(torrentData.size)} />
+            <InfoRow label="Size" value={torrentData.size ? formatBytes(torrentData.size) : 'Unknown'} />
             <View style={styles.separator} />
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>Status</Text>
@@ -344,7 +344,7 @@ const TorrentDetails = () => {
           <View style={styles.infoCard}>
             <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
             <View style={styles.separator} />
-            <InfoRow label="Size" value={formatBytes(torrentData.size)} />
+            <InfoRow label="Size" value={torrentData.size ? formatBytes(torrentData.size) : 'Unknown'} />
             <View style={styles.separator} />
             <InfoRow label="Status" value="Loading..." />
           </View>
@@ -358,27 +358,27 @@ const TorrentDetails = () => {
         <View style={styles.infoCard}>
           <InfoRow label="Category" value={getFormattedCategory(torrentData.category)} />
           <View style={styles.separator} />
-          <InfoRow label="Size" value={formatBytes(torrentData.size)} />
+          <InfoRow label="Size" value={torrentData.size ? formatBytes(torrentData.size) : 'Unknown'} />
           <View style={styles.separator} />
           <InfoRow label="Status" value={cacheData.Torrent.stat_string} />
         </View>
 
         <Text style={styles.groupTitle}>NETWORK</Text>
         <View style={styles.infoCard}>
-          <InfoRow label="Peers" value={cacheData.Torrent.total_peers} />
+          <InfoRow label="Peers" value={cacheData.Torrent.total_peers || 0} />
           <View style={styles.separator} />
-          <InfoRow label="Seeders" value={cacheData.Torrent.connected_seeders} />
+          <InfoRow label="Seeders" value={cacheData.Torrent.connected_seeders || 0} />
           <View style={styles.separator} />
-          <InfoRow 
-            label="Download Speed" 
+          <InfoRow
+            label="Download Speed"
             value={cacheData.Torrent?.download_speed > 0
               ? `${formatBytes(cacheData.Torrent.download_speed)}/s`
               : '0 KB/s'}
           />
           <View style={styles.separator} />
-          <InfoRow label="Active Peers" value={cacheData.Torrent.active_peers} />
+          <InfoRow label="Active Peers" value={cacheData.Torrent.active_peers || 0} />
           <View style={styles.separator} />
-          <InfoRow label="Pending Peers" value={cacheData.Torrent.pending_peers} />
+          <InfoRow label="Pending Peers" value={cacheData.Torrent.pending_peers || 0} />
         </View>
 
         <Text style={styles.groupTitle}>DATA TRANSFER</Text>
@@ -390,6 +390,7 @@ const TorrentDetails = () => {
       </View>
     );
   });
+
 
   const InfoRow = ({ label, value }: { label: string, value: any }) => (
     <View style={styles.infoRow}>
@@ -453,7 +454,7 @@ const TorrentDetails = () => {
                 <Ionicons name="pencil" size={20} color="#007AFF" />
                 <Text style={styles.actionButtonText}>Edit</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={handleDrop}
@@ -462,7 +463,7 @@ const TorrentDetails = () => {
                 <Ionicons name="pause-circle" size={20} color="#FF9500" />
                 <Text style={[styles.actionButtonText, { color: '#FF9500' }]}>Drop</Text>
               </TouchableOpacity>
-              
+
               <TouchableOpacity
                 style={styles.actionButton}
                 onPress={handleWipe}
@@ -484,7 +485,7 @@ const TorrentDetails = () => {
                     <React.Fragment key={index}>
                       {index > 0 && <View style={styles.separator} />}
                       <MenuView
-                        title="File Actions"                    
+                        title="File Actions"
                         onPressAction={({ nativeEvent }) => {
                           handleMenuAction(file, nativeEvent.event);
                         }}
