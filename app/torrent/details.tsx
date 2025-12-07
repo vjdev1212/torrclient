@@ -9,7 +9,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { MenuView } from '@react-native-menu/menu';
-import { storageService, StorageKeys } from '@/utils/StorageService';
 
 const TorrentDetails = () => {
   const { hash } = useLocalSearchParams();
@@ -18,17 +17,9 @@ const TorrentDetails = () => {
   const [baseUrl, setBaseUrl] = useState<any>('');
   const [loading, setLoading] = useState(true);
   const [cacheLoading, setCacheLoading] = useState(true);
-  const [defaultMediaPlayer, setDefaultMediaPlayer] = useState<string>('default');
   const { width, height } = useWindowDimensions();
   const isPortrait = height >= width;
   const ref = useRef<ScrollView | null>(null);
-
-  useEffect(() => {
-    const savedPlayer = storageService.getItem(StorageKeys.DEFAULT_MEDIA_PLAYER_KEY);
-    if (savedPlayer) {
-      setDefaultMediaPlayer(savedPlayer);
-    }
-  }, []);
 
   useEffect(() => {
     let interval: any;
@@ -157,7 +148,12 @@ const TorrentDetails = () => {
 
     const encodedPath = encodeURIComponent(file.path);
     const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play&preload`;
-    handlePlayWithDefaultPlayer(streamUrl);
+    
+    // Navigate to player screen and let it handle player selection
+    router.push({
+      pathname: '/stream/player',
+      params: { url: streamUrl, title: torrentData.title },
+    });
   };
 
   const handleMenuAction = async (file: any, actionId: string) => {
@@ -166,7 +162,11 @@ const TorrentDetails = () => {
 
     if (actionId === 'play') {
       const playUrl = `${streamUrl}&play&preload`;
-      handlePlayWithDefaultPlayer(playUrl);
+      // Navigate to player screen and let it handle player selection
+      router.push({
+        pathname: '/stream/player',
+        params: { url: playUrl, title: torrentData.title },
+      });
     } else if (actionId === 'preload') {
       try {
         const preloadUrl = `${streamUrl}&preload`;
@@ -179,41 +179,6 @@ const TorrentDetails = () => {
       } catch {
         showAlert('Preload failed', 'Unable to start preload.');
       }
-    }
-  };
-
-  const handlePlayWithDefaultPlayer = (streamUrl: string) => {
-    if (defaultMediaPlayer && defaultMediaPlayer !== 'ask') {
-      routeToPlayer(defaultMediaPlayer, streamUrl);
-    } else {
-      routeToPlayer('default', streamUrl);
-    }
-  };
-
-  const routeToPlayer = (playerType: string, streamUrl: string) => {
-    console.log('Routing to player:', playerType, streamUrl);
-    switch (playerType.toLowerCase()) {
-      case 'infuse':
-        Linking.openURL(`infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`);
-        break;
-      case 'vidhub':
-        Linking.openURL(`open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}`);
-        break;
-      case 'vlc':
-        Linking.openURL(`vlc://${streamUrl}`);
-        break;
-      case 'external':
-        Linking.openURL(streamUrl);
-        break;
-      case 'newwindow':
-        Linking.openURL(streamUrl);
-        break;
-      default:
-        router.push({
-          pathname: '/stream/player',
-          params: { url: streamUrl, title: torrentData.title },
-        });
-        break;
     }
   };
 

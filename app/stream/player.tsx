@@ -2,7 +2,7 @@ import { Subtitle } from "@/components/coreplayer/models";
 import { StorageKeys, storageService } from "@/utils/StorageService";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Platform, ActivityIndicator, View, Text, StyleSheet, StatusBar } from "react-native";
+import { Platform, ActivityIndicator, View, Text, StyleSheet, StatusBar, Linking } from "react-native";
 import OpenSubtitlesClient, { SubtitleResult } from "@/clients/opensubtitles";
 import { getLanguageName } from "@/utils/Helpers";
 import * as ScreenOrientation from 'expo-screen-orientation';
@@ -43,15 +43,25 @@ const MediaPlayerScreen: React.FC = () => {
 
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [isLoadingStream, setIsLoadingStream] = useState<boolean>(true);
+  const [defaultMediaPlayer, setDefaultMediaPlayer] = useState<string>('default');
+  const [shouldManageOrientation, setShouldManageOrientation] = useState<boolean>(false);
 
   // Player fallback state
   const [currentPlayerType, setCurrentPlayerType] = useState<"native" | "vlc">("native");
   const [hasTriedNative, setHasTriedNative] = useState(false);
 
+  // Check if player is internal/default
+  const isInternalPlayer = (playerType: string | null): boolean => {
+    if (!playerType) return true;
+    const normalizedPlayer = playerType.toLowerCase().trim();
+    return normalizedPlayer === 'default' || normalizedPlayer === 'ask';
+  };
+
   // Orientation setup/cleanup
   const setupOrientation = async () => {
     if (Platform.OS !== 'web') {
       try {
+        console.log('Setting up orientation - locking to landscape');
         await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
         StatusBar.setHidden(true);
       } catch (error) {
@@ -62,29 +72,105 @@ const MediaPlayerScreen: React.FC = () => {
 
   const cleanupOrientation = async () => {
     if (Platform.OS !== 'web') {
-      await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.DEFAULT);
-      StatusBar.setHidden(false);
+      try {
+        console.log('Cleaning up orientation - restoring default');
+        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.DEFAULT);
+        StatusBar.setHidden(false);
+      } catch (error) {
+        console.warn("Failed to cleanup orientation:", error);
+      }
     }
   };
 
+  // Route to external player if needed
+  const routeToExternalPlayer = (playerType: string, streamUrl: string) => {
+    console.log('Routing to external player:', playerType, streamUrl);
+    const normalizedPlayer = playerType.toLowerCase().trim();
+    
+    switch (normalizedPlayer) {
+      case 'infuse':
+        Linking.openURL(`infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`);
+        router.back();
+        break;
+      case 'vidhub':
+        Linking.openURL(`open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}`);
+        router.back();
+        break;
+      case 'vlc':
+        Linking.openURL(`vlc://${streamUrl}`);
+        router.back();
+        break;
+      case 'external':
+        Linking.openURL(streamUrl);
+        router.back();
+        break;
+      case 'newwindow':
+        Linking.openURL(streamUrl);
+        router.back();
+        break;
+      default:
+        // Use internal player (native or vlc)
+        return false;
+    }
+    return true;
+  };
 
+  // Handle orientation based on player selection
   useEffect(() => {
-    setupOrientation();
-    return () => {
+    const handlePlayerAndOrientation = async () => {
+      const savedPlayer = storageService.getItem(StorageKeys.DEFAULT_MEDIA_PLAYER_KEY);
+      console.log('Player selection effect - Saved Player:', savedPlayer);
+      
+      const useInternalPlayer = isInternalPlayer(savedPlayer as string);
+      console.log('Will use internal player:', useInternalPlayer);
+      
+      setShouldManageOrientation(useInternalPlayer);
+      
+      if (useInternalPlayer) {
+        await setupOrientation();
+      }
+    };
 
-      cleanupOrientation();
+    handlePlayerAndOrientation();
+
+    return () => {
+      if (shouldManageOrientation) {
+        cleanupOrientation();
+      }
     };
   }, []);
 
   useEffect(() => {
-    if (url) {
-      setVideoUrl(url as string);
-      setIsLoadingStream(false);
+    console.log('URL Effect - URL:', url);
+    
+    if (!url) {
       initializeClient();
       return;
     }
+
+    // Get default media player preference
+    const savedPlayer = storageService.getItem(StorageKeys.DEFAULT_MEDIA_PLAYER_KEY);
+    console.log('URL Effect - Saved Player:', savedPlayer);
+    
+    if (savedPlayer) {
+      setDefaultMediaPlayer(savedPlayer);
+      
+      // Check if we should route to external player
+      if (!isInternalPlayer(savedPlayer)) {
+        console.log('Routing to external player:', savedPlayer);
+        const routedExternally = routeToExternalPlayer(savedPlayer, url as string);
+        if (routedExternally) {
+          // External player opened, don't continue loading
+          return;
+        }
+      }
+    }
+    
+    console.log('Using internal player, setting video URL');
+    setVideoUrl(url as string);
+    setIsLoadingStream(false);
     initializeClient();
-  }, []);
+  }, [url]);
 
   useEffect(() => {
     if (openSubtitlesClient) {
@@ -243,6 +329,10 @@ const MediaPlayerScreen: React.FC = () => {
   };
 
   const handleBack = async (): Promise<void> => {
+    // Cleanup orientation before going back
+    if (shouldManageOrientation) {
+      await cleanupOrientation();
+    }
     router.back();
   };
 
