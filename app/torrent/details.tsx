@@ -100,7 +100,7 @@ const TorrentDetails = () => {
           fetchDetails(url),
           fetchCache(url)
         ]).then(() => {
-          interval = setInterval(() => fetchCache(url), 3000);
+          interval = setInterval(() => fetchCache(url), 1000);
         });
       });
     }
@@ -148,7 +148,7 @@ const TorrentDetails = () => {
 
     const encodedPath = encodeURIComponent(file.path);
     const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play&preload`;
-    
+
     // Navigate to player screen and let it handle player selection
     router.push({
       pathname: '/stream/player',
@@ -363,6 +363,29 @@ const TorrentDetails = () => {
     </View>
   );
 
+  const getFileActions = () => {
+    return [
+      {
+        id: 'play',
+        title: 'Play',
+        image: Platform.select({
+          ios: 'play',
+          android: 'ic_media_play',
+        }),
+        imageColor: '#ffffff',
+      },
+      {
+        id: 'preload',
+        title: 'Preload',
+        image: Platform.select({
+          ios: 'arrow.triangle.2.circlepath',
+          android: 'ic_popup_sync',
+        }),
+        imageColor: '#ffffff',
+      },
+    ];
+  }
+
 
   return (
     <View style={styles.container}>
@@ -448,21 +471,12 @@ const TorrentDetails = () => {
                     <React.Fragment key={index}>
                       {index > 0 && <View style={styles.separator} />}
                       <MenuView
-                        title="File Actions"
+                        title="Actions"
                         onPressAction={({ nativeEvent }) => {
                           handleMenuAction(file, nativeEvent.event);
                         }}
                         themeVariant="dark"
-                        actions={[
-                          {
-                            id: 'play',
-                            title: 'Play'
-                          },
-                          {
-                            id: 'preload',
-                            title: 'Preload'
-                          },
-                        ]}
+                        actions={getFileActions()}
                         shouldOpenOnLongPress={false}
                       >
                         <TouchableOpacity

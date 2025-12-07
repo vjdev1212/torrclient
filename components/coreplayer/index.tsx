@@ -1,14 +1,11 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Animated, ActivityIndicator, Image, Platform, StatusBar } from 'react-native';
-import * as ScreenOrientation from 'expo-screen-orientation';
+import { View, Text, TouchableOpacity, Animated, ActivityIndicator, Image } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import Slider from '@react-native-assets/slider';
 import { showAlert } from '@/utils/platform';
 import { parseSubtitleFile } from './subtitle';
 import { styles } from './styles';
 import { formatTime } from './utils';
-import { MediaPlayerProps } from './models';
-import { MenuAction } from '@react-native-menu/menu';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 

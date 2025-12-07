@@ -1,5 +1,5 @@
 import { Text, ActivityIndicator, TextInput, View, StatusBar } from '@/components/Themed';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -7,7 +7,7 @@ import { isHapticsSupported } from '@/utils/platform';
 import TorrentGrid from '@/components/TorrentGrid';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useFocusEffect } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { MenuView, MenuComponentRef, MenuAction } from '@react-native-menu/menu';
 
 const LibraryScreen = () => {
@@ -21,6 +21,7 @@ const LibraryScreen = () => {
   const [debounceTimeout, setDebounceTimeout] = useState<any>(null);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [categories, setCategories] = useState<string[]>(['all']);
+  const [refreshing, setRefreshing] = useState(false);
 
   const fetchTorrents = async () => {
     setLoading(true);
@@ -65,17 +66,18 @@ const LibraryScreen = () => {
     }
   };
 
-  useFocusEffect(
-    useCallback(() => {
-      console.log('Library screen focused - fetching torrents');
-      fetchTorrents();
-      
-      return () => {
-        // Optional cleanup when screen loses focus
-        console.log('Library screen unfocused');
-      };
-    }, [])
-  );
+  useEffect(() => {
+    fetchTorrents();
+  }, []);
+
+  const handleRefresh = async () => {
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    }
+    setRefreshing(true);
+    await fetchTorrents();
+    setRefreshing(false);
+  };
 
   useEffect(() => {
     if (debounceTimeout) clearTimeout(debounceTimeout);
@@ -151,7 +153,7 @@ const LibraryScreen = () => {
   const categoryActions = categories.map(cat => ({
     id: cat,
     title: getCategoryDisplayName(cat),
-    state: selectedCategory === cat ? 'on' : 'off',   
+    state: selectedCategory === cat ? 'on' : 'off',
   }));
 
   // Initial loading state - centered loader
@@ -178,7 +180,7 @@ const LibraryScreen = () => {
           </View>
           <Text style={styles.errorTitle}>Connection Failed</Text>
           <Text style={styles.errorSubtitle}>{error}</Text>
-          <Pressable 
+          <Pressable
             style={styles.retryButton}
             onPress={handleRetry}
           >
@@ -205,7 +207,7 @@ const LibraryScreen = () => {
               {allTorrents.length} {allTorrents.length === 1 ? 'item' : 'items'}
             </Text>
           </View>
-          <Pressable 
+          <Pressable
             style={styles.addButton}
             onPress={handleAddTorrent}
           >
@@ -235,7 +237,7 @@ const LibraryScreen = () => {
         </View>
       </View>
 
-      {/* Category Filter */}
+      {/* Category Filter and Refresh Button */}
       <View style={styles.filterContainer}>
         <MenuView
           ref={categoryMenuRef}
@@ -254,6 +256,23 @@ const LibraryScreen = () => {
             <Ionicons name="chevron-down" size={16} color="#0A84FF" />
           </Pressable>
         </MenuView>
+
+        <Pressable
+          style={[styles.refreshButton, refreshing && styles.refreshButtonDisabled]}
+          onPress={handleRefresh}
+          disabled={refreshing}
+        >
+          {refreshing ? (
+            <ActivityIndicator size="small" color="#0A84FF" />
+          ) : (
+            <>
+              <Ionicons name="refresh" size={20} color="#0A84FF" />
+              <Text style={styles.filterButtonText}>
+                Refresh
+              </Text>
+            </>
+          )}
+        </Pressable>
       </View>
 
       {/* Content Area */}
@@ -378,7 +397,7 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     fontSize: 13,
     color: '#8E8E93',
-    fontWeight: '400',    
+    fontWeight: '400',
   },
   addButton: {
     flexDirection: 'row',
@@ -427,6 +446,9 @@ const styles = StyleSheet.create({
   filterContainer: {
     paddingHorizontal: 20,
     paddingBottom: 8,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   filterButton: {
     flexDirection: 'row',
@@ -436,13 +458,25 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     height: 36,
     gap: 6,
-    alignSelf: 'flex-start',
   },
   filterButtonText: {
     fontSize: 15,
     color: '#0A84FF',
     fontWeight: '500',
     letterSpacing: -0.24,
+  },
+  refreshButton: {
+    height: 36,
+    gap: 6,
+    borderRadius: 10,
+    backgroundColor: '#1C1C1E',
+    justifyContent: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 12,
+  },
+  refreshButtonDisabled: {
+    opacity: 0.5,
   },
   contentContainer: {
     flex: 1,

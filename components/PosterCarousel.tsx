@@ -65,7 +65,7 @@ export default function PosterCarousel({
             carouselHeight: isLandscape ? height * 0.9 : height * 0.5,
             itemWidth: width,
             titleSize: isLandscape ? 34 : 28,
-            contentPadding: 16, // iOS standard
+            contentPadding: 16,
             bottomPadding: isLandscape ? 32 : 40,
         };
     };
