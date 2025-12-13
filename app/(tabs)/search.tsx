@@ -7,9 +7,11 @@ import {
     ActivityIndicator,
     KeyboardAvoidingView,
     Platform,
+    RefreshControl,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { MenuView } from '@react-native-menu/menu';
@@ -18,69 +20,137 @@ import { isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import ProwlarrClient, { ProwlarrSearchResult, ProwlarrIndexer, ProwlarrCategory } from '@/clients/prowlarr';
 import { getTorrServerUrl } from '@/utils/TorrServer';
+import { StorageKeys, storageService } from '@/utils/StorageService';
 
-const ProwlarrSearchScreen = () => {
+// Types
+type SearchSource = 'prowlarr' | 'rss';
+
+interface RSSFeedConfig {
+    id: string;
+    name: string;
+    url: string;
+    enabled: boolean;
+    refreshInterval: number;
+}
+
+interface RSSItem {
+    title: string;
+    link: string;
+    description: string;
+    pubDate: string;
+    guid: string;
+    enclosure?: {
+        url: string;
+        type: string;
+        length: string;
+    };
+}
+
+interface UnifiedSearchResult {
+    source: SearchSource;
+    prowlarrResult?: ProwlarrSearchResult;
+    rssItem?: RSSItem;
+}
+
+const RSS_FEEDS_KEY = StorageKeys.RSS_FEEDS_KEY || 'TORRCLIENT_RSS_FEEDS_KEY';
+
+const UnifiedSearchScreen = () => {
     const router = useRouter();
+    
+    // Search state
+    const [searchSource, setSearchSource] = useState<SearchSource>('prowlarr');
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
+    const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const [results, setResults] = useState<ProwlarrSearchResult[]>([]);
+    const [results, setResults] = useState<UnifiedSearchResult[]>([]);
     const [searched, setSearched] = useState(false);
 
+    // Prowlarr state
     const [indexers, setIndexers] = useState<ProwlarrIndexer[]>([]);
     const [categories, setCategories] = useState<ProwlarrCategory[]>([]);
     const [selectedIndexer, setSelectedIndexer] = useState<number | null>(null);
     const [selectedCategory, setSelectedCategory] = useState<number | null>(null);
     const [selectedCategoryName, setSelectedCategoryName] = useState<string>('All Categories');
 
+    // RSS state
+    const [rssFeeds, setRssFeeds] = useState<RSSFeedConfig[]>([]);
+    const [selectedRssFeed, setSelectedRssFeed] = useState<RSSFeedConfig | null>(null);
+    const [rssItems, setRssItems] = useState<RSSItem[]>([]);
+
     useEffect(() => {
         loadData();
     }, []);
 
+    useFocusEffect(
+        React.useCallback(() => {
+            if (searchSource === 'rss') {
+                loadRssFeeds();
+            }
+        }, [searchSource])
+    );
+
     const loadData = async () => {
         setLoadingData(true);
         setError(null);
+        
         try {
+            // Load Prowlarr data
             const client = new ProwlarrClient();
             await client.initialize();
 
-            // Load indexers
             const fetchedIndexers = await client.getIndexers();
-
             if (!fetchedIndexers || !Array.isArray(fetchedIndexers)) {
                 throw new Error('Invalid indexers data received from Prowlarr');
             }
 
             const enabledIndexers = fetchedIndexers.filter(i => i.enable);
-            
             if (enabledIndexers.length === 0) {
                 throw new Error('No enabled indexers found in Prowlarr');
             }
 
             setIndexers(enabledIndexers);
 
-            // Load categories from Prowlarr API
             const fetchedCategories = await client.getCategories();
-
-            // Filter for Movies and TV categories
             const moviesTVCategories = fetchedCategories.filter(
                 category => category.id === 2000 || category.id === 5000
             );
-
             setCategories(moviesTVCategories);
+
+            // Load RSS feeds
+            await loadRssFeeds();
+
             setLoadingData(false);
         } catch (error) {
             console.error('Failed to load data:', error);
-            setError(error instanceof Error ? error.message : 'Failed to load Prowlarr data');
+            setError(error instanceof Error ? error.message : 'Failed to load data');
             setLoadingData(false);
         }
     };
 
-    const handleSearch = async () => {
-        if (!query.trim()) {
-            return;
+    const loadRssFeeds = async () => {
+        try {
+            const feedsJson = storageService.getItem(RSS_FEEDS_KEY);
+            if (feedsJson) {
+                const loadedFeeds: RSSFeedConfig[] = JSON.parse(feedsJson);
+                setRssFeeds(loadedFeeds);
+            }
+        } catch (error) {
+            console.error('Failed to load RSS feeds:', error);
         }
+    };
+
+    const handleSearch = async () => {
+        if (searchSource === 'prowlarr') {
+            await handleProwlarrSearch();
+        } else {
+            await handleRssSearch();
+        }
+    };
+
+    const handleProwlarrSearch = async () => {
+        if (!query.trim()) return;
 
         if (isHapticsSupported()) await Haptics.selectionAsync();
         setLoading(true);
@@ -98,25 +168,157 @@ const ProwlarrSearchScreen = () => {
                 limit: 100,
             });
 
-            // Sort by relevance: seeders desc, then size desc, then age asc
             const sorted = searchResults.sort((a, b) => {
                 const seedersA = a.seeders || 0;
                 const seedersB = b.seeders || 0;
                 if (seedersB !== seedersA) return seedersB - seedersA;
-
                 if (b.size !== a.size) return b.size - a.size;
-
                 const ageA = a.ageMinutes || 999999;
                 const ageB = b.ageMinutes || 999999;
                 return ageA - ageB;
             });
 
-            setResults(sorted);
+            setResults(sorted.map(r => ({ source: 'prowlarr', prowlarrResult: r })));
         } catch (error) {
             console.error('Search error:', error);
             showAlert('Search Error', 'Failed to search torrents. Please check your Prowlarr configuration.');
         } finally {
             setLoading(false);
+        }
+    };
+
+    const handleRssSearch = async () => {
+        if (!selectedRssFeed) {
+            showAlert('No Feed Selected', 'Please select an RSS feed first.');
+            return;
+        }
+
+        setSearched(true);
+        const searchQuery = query.trim().toLowerCase();
+        
+        if (!searchQuery) {
+            // Show all items if no search query
+            setResults(rssItems.map(item => ({ source: 'rss', rssItem: item })));
+        } else {
+            // Filter items
+            const filtered = rssItems.filter(item => 
+                item.title.toLowerCase().includes(searchQuery) ||
+                item.description.toLowerCase().includes(searchQuery)
+            );
+            setResults(filtered.map(item => ({ source: 'rss', rssItem: item })));
+        }
+    };
+
+    const fetchRSSFeed = async (feedConfig: RSSFeedConfig) => {
+        setLoading(true);
+        setError(null);
+
+        try {
+            const headers: HeadersInit = {
+                'Accept': 'application/rss+xml, application/xml, text/xml',
+            };
+
+            const response = await fetch(feedConfig.url, { headers });
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+            }
+
+            const xmlText = await response.text();
+            const parsedItems = parseRSS(xmlText);
+            setRssItems(parsedItems);
+            
+            // Auto-display items if no search query
+            if (!query.trim()) {
+                setResults(parsedItems.map(item => ({ source: 'rss', rssItem: item })));
+                setSearched(true);
+            }
+        } catch (error) {
+            console.error('Failed to fetch RSS feed:', error);
+            setError(error instanceof Error ? error.message : 'Failed to fetch feed');
+            showAlert('RSS Error', 'Failed to fetch RSS feed.');
+        } finally {
+            setLoading(false);
+        }
+    };
+
+    const parseRSS = (xmlText: string): RSSItem[] => {
+        const items: RSSItem[] = [];
+        const itemMatches = xmlText.match(/<item[^>]*>[\s\S]*?<\/item>/gi);
+        
+        if (!itemMatches) return items;
+
+        itemMatches.forEach(itemXml => {
+            const title = extractTag(itemXml, 'title');
+            const link = extractTag(itemXml, 'link');
+            const description = extractTag(itemXml, 'description');
+            const pubDate = extractTag(itemXml, 'pubDate');
+            const guid = extractTag(itemXml, 'guid') || link;
+
+            const enclosureMatch = itemXml.match(/<enclosure[^>]*>/i);
+            let enclosure;
+            if (enclosureMatch) {
+                const enclosureTag = enclosureMatch[0];
+                const url = extractAttribute(enclosureTag, 'url');
+                const type = extractAttribute(enclosureTag, 'type');
+                const length = extractAttribute(enclosureTag, 'length');
+                enclosure = { url, type, length };
+            }
+
+            if (title) {
+                items.push({
+                    title: cleanHTML(title),
+                    link,
+                    description: cleanHTML(description),
+                    pubDate,
+                    guid,
+                    enclosure,
+                });
+            }
+        });
+
+        return items;
+    };
+
+    const extractTag = (xml: string, tagName: string): string => {
+        const regex = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i');
+        const match = xml.match(regex);
+        return match ? match[1].trim() : '';
+    };
+
+    const extractAttribute = (tag: string, attrName: string): string => {
+        const regex = new RegExp(`${attrName}=["']([^"']+)["']`, 'i');
+        const match = tag.match(regex);
+        return match ? match[1] : '';
+    };
+
+    const cleanHTML = (text: string): string => {
+        return text
+            .replace(/<!\[CDATA\[(.*?)\]\]>/g, '$1')
+            .replace(/<[^>]+>/g, '')
+            .replace(/&nbsp;/g, ' ')
+            .replace(/&amp;/g, '&')
+            .replace(/&lt;/g, '<')
+            .replace(/&gt;/g, '>')
+            .replace(/&quot;/g, '"')
+            .replace(/&#39;/g, "'")
+            .trim();
+    };
+
+    const handleRefresh = async () => {
+        if (refreshing) return;
+        
+        if (isHapticsSupported()) {
+            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+
+        if (searchSource === 'rss' && selectedRssFeed) {
+            setRefreshing(true);
+            await fetchRSSFeed(selectedRssFeed);
+            setRefreshing(false);
+        } else if (searchSource === 'prowlarr' && searched) {
+            setRefreshing(true);
+            await handleProwlarrSearch();
+            setRefreshing(false);
         }
     };
 
@@ -134,12 +336,49 @@ const ProwlarrSearchScreen = () => {
         loadData();
     };
 
-    const handleAddTorrent = async (result: ProwlarrSearchResult) => {
-        if (isHapticsSupported()) {
-            await Haptics.selectionAsync();
-        }
+    const handleSourceChange = async (source: SearchSource) => {
+        if (isHapticsSupported()) await Haptics.selectionAsync();
+        
+        setSearchSource(source);
+        setQuery('');
+        setResults([]);
+        setSearched(false);
+        setError(null);
 
-        const link = result.magnetUrl || result.hash || result.infoHash || result.downloadUrl || result.guid || '';
+        if (source === 'rss') {
+            await loadRssFeeds();
+        }
+    };
+
+    const handleRssFeedSelect = async (feedId: string) => {
+        const feed = rssFeeds.find(f => f.id === feedId);
+        if (!feed) return;
+
+        if (isHapticsSupported()) await Haptics.selectionAsync();
+
+        setSelectedRssFeed(feed);
+        setQuery('');
+        setResults([]);
+        setSearched(false);
+        
+        await fetchRSSFeed(feed);
+    };
+
+    const handleAddTorrent = async (result: UnifiedSearchResult) => {
+        if (isHapticsSupported()) await Haptics.selectionAsync();
+
+        let link = '';
+        let title = '';
+
+        if (result.source === 'prowlarr' && result.prowlarrResult) {
+            const r = result.prowlarrResult;
+            link = r.magnetUrl || r.hash || r.infoHash || r.downloadUrl || r.guid || '';
+            title = r.title;
+        } else if (result.source === 'rss' && result.rssItem) {
+            const item = result.rssItem;
+            link = item.enclosure?.url || item.link;
+            title = item.title;
+        }
         
         if (!link) {
             showAlert('No Link', 'This torrent does not have a valid link.');
@@ -148,23 +387,31 @@ const ProwlarrSearchScreen = () => {
 
         router.push({
             pathname: '/torrent/add',
-            params: { magnet: link, titleParam: result.title },
+            params: { magnet: link, titleParam: title },
         });
     };
 
-    const handleStreamNow = async (result: ProwlarrSearchResult) => {
-        if (isHapticsSupported()) {
-            await Haptics.selectionAsync();
-        }
+    const handleStreamNow = async (result: UnifiedSearchResult) => {
+        if (isHapticsSupported()) await Haptics.selectionAsync();
 
-        const torrentLink = result.hash || result.infoHash || result.magnetUrl || result.downloadUrl || result.guid || '';
+        let torrentLink = '';
+        let title = '';
+
+        if (result.source === 'prowlarr' && result.prowlarrResult) {
+            const r = result.prowlarrResult;
+            torrentLink = r.hash || r.infoHash || r.magnetUrl || r.downloadUrl || r.guid || '';
+            title = r.title;
+        } else if (result.source === 'rss' && result.rssItem) {
+            const item = result.rssItem;
+            torrentLink = item.enclosure?.url || item.link;
+            title = item.title;
+        }
 
         if (!torrentLink) {
             showAlert('No Link', 'This torrent does not have a valid link.');
             return;
         }
 
-        // Generate stream URL in TorrServer format
         const baseUrl = getTorrServerUrl();
         const encodedLink = encodeURIComponent(torrentLink);
         const streamUrl = `${baseUrl}/stream?link=${encodedLink}&index=1&play&preload`;
@@ -174,17 +421,51 @@ const ProwlarrSearchScreen = () => {
             pathname: '/stream/player',
             params: { 
                 url: streamUrl,
-                title: result.title 
+                title: title 
             },
         });
     };
 
+    const formatDate = (dateString: string): string => {
+        if (!dateString) return 'Unknown';
+        
+        try {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now.getTime() - date.getTime();
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            if (diffDays < 7) return `${diffDays}d ago`;
+            
+            return date.toLocaleDateString('en-US', { 
+                month: 'short', 
+                day: 'numeric',
+                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined 
+            });
+        } catch {
+            return dateString;
+        }
+    };
+
+    const formatSize = (bytes: string | number): string => {
+        const size = typeof bytes === 'string' ? parseInt(bytes) : bytes;
+        if (isNaN(size)) return '';
+        
+        const gb = size / (1024 * 1024 * 1024);
+        if (gb >= 1) return `${gb.toFixed(2)} GB`;
+        
+        const mb = size / (1024 * 1024);
+        return `${mb.toFixed(2)} MB`;
+    };
+
     const getCategoryDisplayName = (categoryId: number): string => {
-        // Main categories
         if (categoryId === 2000) return 'Movies (All)';
         if (categoryId === 5000) return 'TV (All)';
 
-        // Find in subcategories
         for (const category of categories) {
             const subcategory = category.subCategories.find(sub => sub.id === categoryId);
             if (subcategory) {
@@ -193,7 +474,6 @@ const ProwlarrSearchScreen = () => {
                 return `${mainName} - ${subName}`;
             }
         }
-
         return 'Other';
     };
 
@@ -201,6 +481,22 @@ const ProwlarrSearchScreen = () => {
         if (!categoryIds || categoryIds.length === 0) return 'Unknown';
         return getCategoryDisplayName(categoryIds[0]);
     };
+
+    // Menu actions
+    const getSourceMenuActions = () => [
+        {
+            id: 'prowlarr',
+            title: 'Prowlarr',
+            state: searchSource === 'prowlarr' ? ('on' as const) : ('off' as const),
+            titleColor: searchSource === 'prowlarr' ? '#007AFF' : undefined,
+        },
+        {
+            id: 'rss',
+            title: 'RSS Feeds',
+            state: searchSource === 'rss' ? ('on' as const) : ('off' as const),
+            titleColor: searchSource === 'rss' ? '#007AFF' : undefined,
+        },
+    ];
 
     const getIndexerMenuActions = () => {
         const actions = [
@@ -228,35 +524,37 @@ const ProwlarrSearchScreen = () => {
                 state: selectedCategory === null ? ('on' as const) : ('off' as const),
                 titleColor: selectedCategory === null ? '#007AFF' : undefined,
             },
-            ...categories.map(category => {
-                // Check if any subcategory is selected
-                const isSubcategorySelected = category.subCategories.some(sub => sub.id === selectedCategory);
-
-                return {
-                    id: category.id.toString(),
-                    title: `${category.name} (All)`,
-                    state: selectedCategory === category.id ? ('on' as const) : ('off' as const),
-                    titleColor: selectedCategory === category.id ? '#007AFF' : undefined,
-                    subactions: [
-                        // Add main category as first subaction
-                        {
-                            id: category.id.toString(),
-                            title: 'All',
-                            state: selectedCategory === category.id ? ('on' as const) : ('off' as const),
-                            titleColor: selectedCategory === category.id ? '#007AFF' : undefined,
-                        },
-                        // Add all subcategories
-                        ...category.subCategories.map(sub => ({
-                            id: sub.id.toString(),
-                            title: sub.name.replace(`${category.name}/`, ''),
-                            state: selectedCategory === sub.id ? ('on' as const) : ('off' as const),
-                            titleColor: selectedCategory === sub.id ? '#007AFF' : undefined,
-                        })),
-                    ],
-                };
-            }),
+            ...categories.map(category => ({
+                id: category.id.toString(),
+                title: `${category.name} (All)`,
+                state: selectedCategory === category.id ? ('on' as const) : ('off' as const),
+                titleColor: selectedCategory === category.id ? '#007AFF' : undefined,
+                subactions: [
+                    {
+                        id: category.id.toString(),
+                        title: 'All',
+                        state: selectedCategory === category.id ? ('on' as const) : ('off' as const),
+                        titleColor: selectedCategory === category.id ? '#007AFF' : undefined,
+                    },
+                    ...category.subCategories.map(sub => ({
+                        id: sub.id.toString(),
+                        title: sub.name.replace(`${category.name}/`, ''),
+                        state: selectedCategory === sub.id ? ('on' as const) : ('off' as const),
+                        titleColor: selectedCategory === sub.id ? '#007AFF' : undefined,
+                    })),
+                ],
+            })),
         ];
         return actions;
+    };
+
+    const getRssFeedMenuActions = () => {
+        return rssFeeds.map(feed => ({
+            id: feed.id,
+            title: feed.name || 'Unnamed Feed',
+            state: selectedRssFeed?.id === feed.id ? ('on' as const) : ('off' as const),
+            titleColor: selectedRssFeed?.id === feed.id ? '#007AFF' : undefined,
+        }));
     };
 
     const handleIndexerSelect = async (indexerId: string) => {
@@ -265,9 +563,7 @@ const ProwlarrSearchScreen = () => {
         } else {
             setSelectedIndexer(parseInt(indexerId));
         }
-        if (isHapticsSupported()) {
-            await Haptics.selectionAsync();
-        }
+        if (isHapticsSupported()) await Haptics.selectionAsync();
     };
 
     const handleCategorySelect = async (categoryId: string) => {
@@ -279,22 +575,20 @@ const ProwlarrSearchScreen = () => {
             setSelectedCategory(catId);
             setSelectedCategoryName(getCategoryDisplayName(catId));
         }
-        if (isHapticsSupported()) {
-            await Haptics.selectionAsync();
-        }
+        if (isHapticsSupported()) await Haptics.selectionAsync();
     };
 
     const selectedIndexerName = selectedIndexer !== null
         ? indexers.find(i => i.id === selectedIndexer)?.name || 'All Indexers'
         : 'All Indexers';
 
-    // Initial loading state - centered
+    // Initial loading
     if (loadingData && indexers.length === 0 && !error) {
         return (
             <SafeAreaView style={styles.container} edges={['top']}>
                 <View style={styles.centeredContainer}>
                     <ActivityIndicator size="large" color="#007AFF" />
-                    <Text style={styles.centeredText}>Loading indexers...</Text>
+                    <Text style={styles.centeredText}>Loading...</Text>
                 </View>
             </SafeAreaView>
         );
@@ -311,7 +605,7 @@ const ProwlarrSearchScreen = () => {
                     <Text style={styles.errorTitle}>Connection Failed</Text>
                     <Text style={styles.errorSubtitle}>{error}</Text>
                     <Text style={styles.errorHint}>
-                        Check your Prowlarr configuration in settings
+                        Check your configuration in settings
                     </Text>
                     <TouchableOpacity 
                         style={styles.retryButton}
@@ -336,15 +630,40 @@ const ProwlarrSearchScreen = () => {
                     contentContainerStyle={styles.scrollContainer}
                     showsVerticalScrollIndicator={false}
                     keyboardShouldPersistTaps="handled"
+                    refreshControl={
+                        <RefreshControl
+                            refreshing={refreshing}
+                            onRefresh={handleRefresh}
+                            tintColor="#007AFF"
+                        />
+                    }
                 >
                     <View style={styles.contentWrapper}>
                         {/* Header */}
                         <View style={styles.header}>
                             <Text style={styles.headerTitle}>Search</Text>
                             <Text style={styles.headerSubtitle}>
-                                Find torrents with Prowlarr
+                                Find content from multiple sources
                             </Text>
                         </View>
+
+                        {/* Source Selector */}
+                        <MenuView
+                            onPressAction={({ nativeEvent }) => {
+                                handleSourceChange(nativeEvent.event as SearchSource);
+                            }}
+                            actions={getSourceMenuActions()}
+                            shouldOpenOnLongPress={false}
+                            themeVariant="dark"
+                        >
+                            <View style={styles.sourceSelector}>
+                                <Ionicons name="layers-outline" size={18} color="#8E8E93" />
+                                <Text style={styles.sourceSelectorText} numberOfLines={1}>
+                                    {searchSource === 'prowlarr' ? 'Prowlarr' : 'RSS Feeds'}
+                                </Text>
+                                <Ionicons name="chevron-down" size={16} color="#8E8E93" />
+                            </View>
+                        </MenuView>
 
                         {/* Search Bar */}
                         <View style={styles.searchBarContainer}>
@@ -353,7 +672,7 @@ const ProwlarrSearchScreen = () => {
                                 style={styles.searchInput}
                                 value={query}
                                 onChangeText={setQuery}
-                                placeholder="Movies, TV Shows, Music"
+                                placeholder={searchSource === 'prowlarr' ? "Movies, TV Shows, Music" : "Search in feed..."}
                                 autoCapitalize="none"
                                 placeholderTextColor="#8E8E93"
                                 returnKeyType="search"
@@ -367,60 +686,97 @@ const ProwlarrSearchScreen = () => {
                             )}
                         </View>
 
-                        {/* Filters */}
-                        <View style={styles.filtersContainer}>
-                            <MenuView
-                                onPressAction={({ nativeEvent }) => {
-                                    handleIndexerSelect(nativeEvent.event);
-                                }}
-                                actions={getIndexerMenuActions()}
-                                shouldOpenOnLongPress={false}
-                                themeVariant="dark"
-                            >
-                                <View style={[styles.filterButton]}>
-                                    <Ionicons name="server-outline" size={18} color="#8E8E93" />
-                                    <Text style={styles.filterButtonText} numberOfLines={1}>
-                                        {selectedIndexerName}
-                                    </Text>
-                                    <Ionicons name="chevron-down" size={16} color="#8E8E93" />
-                                </View>
-                            </MenuView>
+                        {/* Filters - Prowlarr */}
+                        {searchSource === 'prowlarr' && (
+                            <View style={styles.filtersContainer}>
+                                <MenuView
+                                    onPressAction={({ nativeEvent }) => {
+                                        handleIndexerSelect(nativeEvent.event);
+                                    }}
+                                    actions={getIndexerMenuActions()}
+                                    shouldOpenOnLongPress={false}
+                                    themeVariant="dark"
+                                >
+                                    <View style={styles.filterButton}>
+                                        <Ionicons name="server-outline" size={18} color="#8E8E93" />
+                                        <Text style={styles.filterButtonText} numberOfLines={1}>
+                                            {selectedIndexerName}
+                                        </Text>
+                                        <Ionicons name="chevron-down" size={16} color="#8E8E93" />
+                                    </View>
+                                </MenuView>
 
-                            <MenuView
-                                onPressAction={({ nativeEvent }) => {
-                                    handleCategorySelect(nativeEvent.event);
-                                }}
-                                actions={getCategoryMenuActions()}
-                                shouldOpenOnLongPress={false}
-                                themeVariant="dark"
-                            >
-                                <View style={[styles.filterButton]}>
-                                    <Ionicons name="film-outline" size={18} color="#8E8E93" />
-                                    <Text style={styles.filterButtonText} numberOfLines={1}>
-                                        {selectedCategoryName}
-                                    </Text>
-                                    <Ionicons name="chevron-down" size={16} color="#8E8E93" />
-                                </View>
-                            </MenuView>
-                        </View>
-
-                        {/* Loading Search Indicator */}
-                        {loading && (
-                            <View style={styles.loadingContainer}>
-                                <ActivityIndicator size="large" color="#007AFF" />
-                                <Text style={styles.loadingText}>Searching...</Text>
+                                <MenuView
+                                    onPressAction={({ nativeEvent }) => {
+                                        handleCategorySelect(nativeEvent.event);
+                                    }}
+                                    actions={getCategoryMenuActions()}
+                                    shouldOpenOnLongPress={false}
+                                    themeVariant="dark"
+                                >
+                                    <View style={styles.filterButton}>
+                                        <Ionicons name="film-outline" size={18} color="#8E8E93" />
+                                        <Text style={styles.filterButtonText} numberOfLines={1}>
+                                            {selectedCategoryName}
+                                        </Text>
+                                        <Ionicons name="chevron-down" size={16} color="#8E8E93" />
+                                    </View>
+                                </MenuView>
                             </View>
                         )}
 
-                        {/* Empty state - No search yet */}
+                        {/* Filters - RSS */}
+                        {searchSource === 'rss' && rssFeeds.length > 0 && (
+                            <View style={styles.filtersContainer}>
+                                <MenuView
+                                    onPressAction={({ nativeEvent }) => {
+                                        handleRssFeedSelect(nativeEvent.event);
+                                    }}
+                                    actions={getRssFeedMenuActions()}
+                                    shouldOpenOnLongPress={false}
+                                    themeVariant="dark"
+                                >
+                                    <View style={styles.filterButton}>
+                                        <Ionicons name="newspaper-outline" size={18} color="#8E8E93" />
+                                        <Text style={styles.filterButtonText} numberOfLines={1}>
+                                            {selectedRssFeed?.name || 'Select Feed'}
+                                        </Text>
+                                        <Ionicons name="chevron-down" size={16} color="#8E8E93" />
+                                    </View>
+                                </MenuView>
+                            </View>
+                        )}
+
+                        {/* Loading */}
+                        {loading && (
+                            <View style={styles.loadingContainer}>
+                                <ActivityIndicator size="large" color="#007AFF" />
+                                <Text style={styles.loadingText}>
+                                    {searchSource === 'prowlarr' ? 'Searching...' : 'Loading feed...'}
+                                </Text>
+                            </View>
+                        )}
+
+                        {/* Empty state */}
                         {!loading && !searched && (
                             <View style={styles.emptyState}>
                                 <View style={styles.emptyStateIcon}>
-                                    <Ionicons name="search-outline" size={48} color="#007AFF" />
+                                    <Ionicons 
+                                        name={searchSource === 'prowlarr' ? 'search-outline' : 'newspaper-outline'} 
+                                        size={48} 
+                                        color="#007AFF" 
+                                    />
                                 </View>
-                                <Text style={styles.emptyStateTitle}>Search Torrents</Text>
+                                <Text style={styles.emptyStateTitle}>
+                                    {searchSource === 'prowlarr' ? 'Search Torrents' : 'Select RSS Feed'}
+                                </Text>
                                 <Text style={styles.emptyStateSubtext}>
-                                    Enter a movie or TV show name to search across indexers
+                                    {searchSource === 'prowlarr' 
+                                        ? 'Enter a movie or TV show name to search'
+                                        : rssFeeds.length === 0
+                                            ? 'No RSS feeds configured. Add feeds in settings.'
+                                            : 'Choose a feed from the selector above'
+                                    }
                                 </Text>
                             </View>
                         )}
@@ -443,70 +799,130 @@ const ProwlarrSearchScreen = () => {
                                         </Text>
                                     </View>
                                 ) : (
-                                    results.map((result, index) => (
-                                        <View
-                                            key={result.guid || index}
-                                            style={styles.resultCard}
-                                        >
-                                            {/* Header with Category Badge */}
-                                            <View style={styles.cardHeader}>
-                                                <View style={styles.categoryBadge}>
-                                                    <Text style={styles.categoryText}>
-                                                        {getCategoryBadge(result.categories)}
-                                                    </Text>
-                                                </View>
-                                                <View style={styles.qualityBadge}>
-                                                    <Ionicons name="arrow-up" size={11} color="#34C759" />
-                                                    <Text style={styles.seedersText}>{result.seeders || 0}</Text>
-                                                </View>
-                                            </View>
+                                    results.map((result, index) => {
+                                        // Prowlarr Result
+                                        if (result.source === 'prowlarr' && result.prowlarrResult) {
+                                            const r = result.prowlarrResult;
+                                            return (
+                                                <View key={r.guid || index} style={styles.resultCard}>
+                                                    {/* Header */}
+                                                    <View style={styles.cardHeader}>
+                                                        <View style={styles.sourceBadge}>
+                                                            <Ionicons name="server" size={10} color="#007AFF" />
+                                                            <Text style={styles.sourceText}>PROWLARR</Text>
+                                                        </View>
+                                                        <View style={styles.categoryBadge}>
+                                                            <Text style={styles.categoryText}>
+                                                                {getCategoryBadge(r.categories)}
+                                                            </Text>
+                                                        </View>
+                                                        <View style={styles.qualityBadge}>
+                                                            <Ionicons name="arrow-up" size={11} color="#34C759" />
+                                                            <Text style={styles.seedersText}>{r.seeders || 0}</Text>
+                                                        </View>
+                                                    </View>
 
-                                            {/* Title */}
-                                            <Text style={styles.resultTitle}>
-                                                {result.title}
-                                            </Text>
+                                                    {/* Title */}
+                                                    <Text style={styles.resultTitle}>{r.title}</Text>
 
-                                            {/* Meta Info */}
-                                            <View style={styles.metaContainer}>
-                                                <View style={styles.metaChip}>
-                                                    <Ionicons name="server" size={12} color="#8E8E93" />
-                                                    <Text style={styles.metaChipText}>{result.indexer}</Text>
-                                                </View>
-                                                <View style={styles.metaChip}>
-                                                    <Ionicons name="cube" size={12} color="#8E8E93" />
-                                                    <Text style={styles.metaChipText}>
-                                                        {ProwlarrClient.formatFileSize(result.size)}
-                                                    </Text>
-                                                </View>
-                                                <View style={styles.metaChip}>
-                                                    <Ionicons name="time" size={12} color="#8E8E93" />
-                                                    <Text style={styles.metaChipText}>
-                                                        {ProwlarrClient.formatAge(result.ageMinutes)}
-                                                    </Text>
-                                                </View>
-                                            </View>
+                                                    {/* Meta Info */}
+                                                    <View style={styles.metaContainer}>
+                                                        <View style={styles.metaChip}>
+                                                            <Ionicons name="server" size={12} color="#8E8E93" />
+                                                            <Text style={styles.metaChipText}>{r.indexer}</Text>
+                                                        </View>
+                                                        <View style={styles.metaChip}>
+                                                            <Ionicons name="cube" size={12} color="#8E8E93" />
+                                                            <Text style={styles.metaChipText}>
+                                                                {ProwlarrClient.formatFileSize(r.size)}
+                                                            </Text>
+                                                        </View>
+                                                        <View style={styles.metaChip}>
+                                                            <Ionicons name="time" size={12} color="#8E8E93" />
+                                                            <Text style={styles.metaChipText}>
+                                                                {ProwlarrClient.formatAge(r.ageMinutes)}
+                                                            </Text>
+                                                        </View>
+                                                    </View>
 
-                                            {/* Action Buttons */}
-                                            <View style={styles.actionButtons}>
-                                                <TouchableOpacity
-                                                    style={styles.streamButton}
-                                                    onPress={() => handleStreamNow(result)}
-                                                    activeOpacity={0.7}
-                                                >
-                                                    <Ionicons name="play-circle" size={18} color="#FFFFFF" />
-                                                    <Text style={styles.streamButtonText}>Play</Text>
-                                                </TouchableOpacity>
-                                                <TouchableOpacity
-                                                    style={styles.addButton}
-                                                    onPress={() => handleAddTorrent(result)}
-                                                    activeOpacity={0.7}
-                                                >
-                                                    <Ionicons name="add-circle" size={18} color="#FFFFFF" />
-                                                    <Text style={styles.addButtonText}>Add</Text>
-                                                </TouchableOpacity>
-                                            </View>
-                                        </View>
-                                    ))
+                                                    {/* Action Buttons */}
+                                                    <View style={styles.actionButtons}>
+                                                        <TouchableOpacity
+                                                            style={styles.streamButton}
+                                                            onPress={() => handleStreamNow(result)}
+                                                            activeOpacity={0.7}
+                                                        >
+                                                            <Ionicons name="play-circle" size={18} color="#FFFFFF" />
+                                                            <Text style={styles.streamButtonText}>Play</Text>
+                                                        </TouchableOpacity>
+                                                        <TouchableOpacity
+                                                            style={styles.addButton}
+                                                            onPress={() => handleAddTorrent(result)}
+                                                            activeOpacity={0.7}
+                                                        >
+                                                            <Ionicons name="add-circle" size={18} color="#FFFFFF" />
+                                                            <Text style={styles.addButtonText}>Add</Text>
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                </View>
+                                            );
+                                        }
+
+                                        // RSS Result
+                                        if (result.source === 'rss' && result.rssItem) {
+                                            const item = result.rssItem;
+                                            return (
+                                                <View key={item.guid || index} style={styles.resultCard}>
+                                                    {/* Header */}
+                                                    <View style={styles.cardHeader}>
+                                                        <View style={styles.sourceBadge}>
+                                                            <Ionicons name="newspaper" size={10} color="#FF9500" />
+                                                            <Text style={styles.sourceTextRss}>RSS</Text>
+                                                        </View>
+                                                        <View style={styles.itemDateBadge}>
+                                                            <Ionicons name="time-outline" size={12} color="#8E8E93" />
+                                                            <Text style={styles.itemDate}>
+                                                                {formatDate(item.pubDate)}
+                                                            </Text>
+                                                        </View>
+                                                        {item.enclosure && (
+                                                            <View style={styles.sizeBadge}>
+                                                                <Ionicons name="cube-outline" size={12} color="#8E8E93" />
+                                                                <Text style={styles.sizeText}>
+                                                                    {formatSize(item.enclosure.length)}
+                                                                </Text>
+                                                            </View>
+                                                        )}
+                                                    </View>
+
+                                                    {/* Title */}
+                                                    <Text style={styles.resultTitle}>{item.title}</Text>
+
+                                                    {/* Action Buttons */}
+                                                    <View style={styles.actionButtons}>
+                                                        <TouchableOpacity
+                                                            style={styles.streamButton}
+                                                            onPress={() => handleStreamNow(result)}
+                                                            activeOpacity={0.7}
+                                                        >
+                                                            <Ionicons name="play-circle" size={18} color="#FFFFFF" />
+                                                            <Text style={styles.streamButtonText}>Play</Text>
+                                                        </TouchableOpacity>
+                                                        <TouchableOpacity
+                                                            style={styles.addButton}
+                                                            onPress={() => handleAddTorrent(result)}
+                                                            activeOpacity={0.7}
+                                                        >
+                                                            <Ionicons name="add-circle" size={18} color="#FFFFFF" />
+                                                            <Text style={styles.addButtonText}>Add</Text>
+                                                        </TouchableOpacity>
+                                                    </View>
+                                                </View>
+                                            );
+                                        }
+
+                                        return null;
+                                    })
                                 )}
                             </View>
                         )}
@@ -519,7 +935,7 @@ const ProwlarrSearchScreen = () => {
     );
 };
 
-export default ProwlarrSearchScreen;
+export default UnifiedSearchScreen;
 
 const styles = StyleSheet.create({
     container: {
@@ -615,7 +1031,25 @@ const styles = StyleSheet.create({
     headerSubtitle: {
         fontSize: 13,
         color: '#8E8E93',
-        fontWeight: '400',      
+        fontWeight: '400',
+    },
+    sourceSelector: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: '#1C1C1E',
+        paddingHorizontal: 12,
+        paddingVertical: 10,
+        borderRadius: 10,
+        gap: 8,
+        height: 44,
+        marginBottom: 12,
+    },
+    sourceSelectorText: {
+        flex: 1,
+        fontSize: 16,
+        color: '#fff',
+        fontWeight: '500',
+        letterSpacing: -0.41,
     },
     searchBarContainer: {
         flexDirection: 'row',
@@ -724,10 +1158,90 @@ const styles = StyleSheet.create({
     },
     cardHeader: {
         flexDirection: 'row',
-        justifyContent: 'space-between',
         alignItems: 'center',
         marginBottom: 12,
         backgroundColor: 'transparent',
+        gap: 8,
+    },
+    sourceBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0, 122, 255, 0.15)',
+        paddingHorizontal: 8,
+        paddingVertical: 5,
+        borderRadius: 6,
+        gap: 4,
+    },
+    sourceText: {
+        fontSize: 10,
+        fontWeight: '600',
+        color: '#007AFF',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    sourceTextRss: {
+        fontSize: 10,
+        fontWeight: '600',
+        color: '#FF9500',
+        textTransform: 'uppercase',
+        letterSpacing: 0.5,
+    },
+    categoryBadge: {
+        flex: 1,
+        backgroundColor: 'rgba(142, 142, 147, 0.12)',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
+    },
+    categoryText: {
+        fontSize: 11,
+        fontWeight: '500',
+        color: '#8E8E93',
+        textTransform: 'uppercase',
+        letterSpacing: 0.6,
+    },
+    qualityBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(52, 199, 89, 0.15)',
+        paddingHorizontal: 8,
+        paddingVertical: 6,
+        borderRadius: 8,
+        gap: 4,
+    },
+    seedersText: {
+        fontSize: 13,
+        fontWeight: '500',
+        color: '#34C759',
+    },
+    itemDateBadge: {
+        flex: 1,
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(142, 142, 147, 0.12)',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
+        gap: 5,
+    },
+    itemDate: {
+        fontSize: 12,
+        color: '#8E8E93',
+        fontWeight: '500',
+    },
+    sizeBadge: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(142, 142, 147, 0.12)',
+        paddingHorizontal: 10,
+        paddingVertical: 6,
+        borderRadius: 8,
+        gap: 5,
+    },
+    sizeText: {
+        fontSize: 12,
+        color: '#8E8E93',
+        fontWeight: '500',
     },
     resultTitle: {
         fontSize: 16,
@@ -757,33 +1271,6 @@ const styles = StyleSheet.create({
         fontSize: 12,
         color: '#8E8E93',
         fontWeight: '500',
-    },
-    categoryBadge: {
-        backgroundColor: 'rgba(142, 142, 147, 0.12)',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 8,
-    },
-    categoryText: {
-        fontSize: 11,
-        fontWeight: '500',
-        color: '#8E8E93',
-        textTransform: 'uppercase',
-        letterSpacing: 0.6,
-    },
-    qualityBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(52, 199, 89, 0.15)',
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        borderRadius: 8,
-        gap: 4,
-    },
-    seedersText: {
-        fontSize: 13,
-        fontWeight: '500',
-        color: '#34C759',  
     },
     actionButtons: {
         flexDirection: 'row',
