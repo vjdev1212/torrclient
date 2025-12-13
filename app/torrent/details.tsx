@@ -146,8 +146,7 @@ const TorrentDetails = () => {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
-    const encodedPath = encodeURIComponent(file.path);
-    const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}&play&preload`;
+    const streamUrl = `${baseUrl}/stream?link=${hash}&index=${file.id}&play&preload`;
 
     // Navigate to player screen and let it handle player selection
     router.push({
@@ -157,8 +156,7 @@ const TorrentDetails = () => {
   };
 
   const handleMenuAction = async (file: any, actionId: string) => {
-    const encodedPath = encodeURIComponent(file.path);
-    const streamUrl = `${baseUrl}/stream/${encodedPath}?link=${hash}&index=${file.id}`;
+    const streamUrl = `${baseUrl}/stream?link=${hash}&index=${file.id}`;
 
     if (actionId === 'play') {
       const playUrl = `${streamUrl}&play&preload`;
@@ -427,7 +425,7 @@ const TorrentDetails = () => {
           <View style={!isPortrait ? styles.infoSectionLandscape : styles.infoSectionPortrait}>
             {/* Title */}
             <View style={styles.titleSection}>
-              <Text style={styles.title} numberOfLines={3}>{torrentData.title}</Text>
+              <Text style={styles.title}>{torrentData.title}</Text>
             </View>
 
             {/* Action Buttons */}
@@ -488,7 +486,7 @@ const TorrentDetails = () => {
                             <Ionicons name="play-circle" size={24} color="#007AFF" />
                           </View>
                           <View style={styles.fileContent}>
-                            <Text style={styles.fileName} numberOfLines={2}>
+                            <Text style={styles.fileName}>
                               {file.path}
                             </Text>
                             <Text style={styles.fileSize}>
