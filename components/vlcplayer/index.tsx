@@ -645,7 +645,7 @@ const VlcMediaPlayerComponent: React.FC<MediaPlayerProps> = ({
                                             }
                                         }}
                                     >
-                                        <MaterialIcons name="audiotrack" size={24} color="white" />
+                                        <MaterialIcons name="multitrack-audio" size={24} color="white" />
                                     </TouchableOpacity>
                                 </MenuView>
                             )}

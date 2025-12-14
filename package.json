@@ -47,6 +47,7 @@
     "react": "19.1.0",
     "react-dom": "19.1.0",
     "react-native": "0.81.5",
+    "react-native-gesture-handler": "^2.29.1",
     "react-native-immersive-mode": "^2.0.2",
     "react-native-mmkv": "^4.0.1",
     "react-native-reanimated": "~4.1.1",

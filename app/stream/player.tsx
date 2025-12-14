@@ -355,7 +355,7 @@ const MediaPlayerScreen: React.FC = () => {
       return require("../../components/vlcplayer").MediaPlayer;
     }
 
-    return require("../../components/nativeplayer").MediaPlayer;
+    return require("../../components/vlcplayer").MediaPlayer;
   }
 
   const Player = getPlayer();
@@ -375,6 +375,7 @@ const MediaPlayerScreen: React.FC = () => {
     <Player
       videoUrl={videoUrl}
       back={handleBack}
+      title={title}      
       subtitles={subtitles}
       openSubtitlesClient={openSubtitlesClient}
       isLoadingSubtitles={isLoadingSubtitles}

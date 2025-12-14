@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { Text, View } from '@/components/Themed';
 import { useRouter } from 'expo-router';
-import Svg, { Rect, Polygon } from 'react-native-svg';
+import { Ionicons } from '@expo/vector-icons';
 
 interface Torrent {
     hash: string;
@@ -25,40 +25,11 @@ interface TorrentGridProps {
     horizontal?: boolean;
 }
 
-// Film Tape Placeholder Component with iOS styling
-const FilmTapePlaceholder = ({ width, height }: { width: number; height: number }) => (
-    <Svg width={width} height={height} viewBox="0 0 500 750">
-        {/* Background */}
-        <Rect width="500" height="750" fill="#1C1C1E" />
-
-        {/* Movie frame/screen */}
-        <Rect x="100" y="220" width="300" height="220" fill="none" stroke="#48484A" strokeWidth="4" rx="10" />
-
-        {/* Film strip on left */}
-        <Rect x="100" y="220" width="20" height="220" fill="#48484A" />
-        <Rect x="105" y="230" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="105" y="255" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="105" y="280" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="105" y="305" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="105" y="330" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="105" y="355" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="105" y="380" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="105" y="405" width="10" height="15" fill="#1C1C1E" rx="2" />
-
-        {/* Film strip on right */}
-        <Rect x="380" y="220" width="20" height="220" fill="#48484A" />
-        <Rect x="385" y="230" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="385" y="255" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="385" y="280" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="385" y="305" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="385" y="330" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="385" y="355" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="385" y="380" width="10" height="15" fill="#1C1C1E" rx="2" />
-        <Rect x="385" y="405" width="10" height="15" fill="#1C1C1E" rx="2" />
-
-        {/* Play button triangle */}
-        <Polygon points="220,300 220,360 270,330" fill="#48484A" />
-    </Svg>
+// Film Placeholder Component with Ionicons
+const FilmPlaceholder = ({ width, height }: { width: number; height: number }) => (
+    <View style={[styles.placeholderContainer, { width, height }]}>
+        <Ionicons name="film-outline" size={width * 0.5} color="#48484A" />
+    </View>
 );
 
 const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress, horizontal = false }) => {
@@ -138,7 +109,7 @@ const TorrentGrid: React.FC<TorrentGridProps> = ({ list, onTorrentItemPress, hor
                                     onError={() => setImageError(true)}
                                 />
                             ) : (
-                                <FilmTapePlaceholder width={posterWidth} height={posterHeight} />
+                                <FilmPlaceholder width={posterWidth} height={posterHeight} />
                             )}
                         </View>
                         <Text
@@ -229,10 +200,15 @@ const styles = StyleSheet.create({
         opacity: 0.75,
         transform: [{ scale: 0.97 }],
     },
+    placeholderContainer: {
+        backgroundColor: '#1C1C1E',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
     title: {
         marginTop: 6,
         fontSize: 13,
-        fontWeight: '400',
+        fontWeight: '500',
         color: '#FFFFFF',
         lineHeight: 17,
     },

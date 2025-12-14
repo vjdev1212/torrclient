@@ -56,7 +56,7 @@ const HomeScreen = () => {
         hash: item.hash,
         title: item.title || 'Untitled',
         subtitle: item.description || `Size: ${formatSize(item.torrent_size)}`,
-        poster: item.poster || 'https://dummyimage.com/500x750/1A1A1A/FFFFFF.png&text= ',
+        poster: item.poster,
         size: item.torrent_size,
         category: item.category,
         type: getCategoryType(item.category),

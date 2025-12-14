@@ -145,8 +145,16 @@ const LibraryScreen = () => {
   };
 
   const getCategoryDisplayName = (category: string) => {
-    if (category === 'all') return 'All';
-    return category.charAt(0).toUpperCase() + category.slice(1);
+    switch (category) {
+      case 'all':
+        return 'All';
+      case 'tv':
+        return 'TV Shows';
+      case 'movie':
+        return 'Movies';
+      default:
+        return category.charAt(0).toUpperCase() + category.slice(1);
+    }
   };
 
   // Build menu actions for categories

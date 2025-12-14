@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, Image, ImageBackground, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, StatusBar, Text } from '@/components/Themed';
 import * as Haptics from 'expo-haptics';
@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { MenuView } from '@react-native-menu/menu';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const TorrentDetails = () => {
   const { hash } = useLocalSearchParams();
@@ -56,7 +57,7 @@ const TorrentDetails = () => {
 
         const torrentInfo = {
           title: torrentResult.title || 'Untitled',
-          poster: torrentResult.poster || 'https://dummyimage.com/500x750/1A1A1A/FFFFFF.png&text= ',
+          poster: torrentResult.poster,
           category: torrentResult.category || 'unknown',
           size: torrentResult.torrent_size,
           magnet: torrentResult.magnet || '',
@@ -141,29 +142,35 @@ const TorrentDetails = () => {
     /\.(mp4|mkv|webm|avi|mov|flv|wmv|m4v)$/i.test(file.path)
   );
 
+  const extractFileName = (path: string) => {
+    return path.split('/').pop();
+  }
+
   const handleFileLink = async (file: any) => {
     if (isHapticsSupported()) {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
-    const streamUrl = `${baseUrl}/stream?link=${hash}&index=${file.id}&play&preload`;
+    const fileTitle = extractFileName(file.path);
+
+    const streamUrl = `${baseUrl}/stream/${file.path}?link=${hash}&index=${file.id}&play&preload`;
 
     // Navigate to player screen and let it handle player selection
     router.push({
       pathname: '/stream/player',
-      params: { url: streamUrl, title: torrentData.title },
+      params: { url: streamUrl, title: fileTitle },
     });
   };
 
   const handleMenuAction = async (file: any, actionId: string) => {
-    const streamUrl = `${baseUrl}/stream?link=${hash}&index=${file.id}`;
-
+    const streamUrl = `${baseUrl}/stream/${file.path}?link=${hash}&index=${file.id}`;
+    const fileTitle = extractFileName(file.path);
     if (actionId === 'play') {
       const playUrl = `${streamUrl}&play&preload`;
       // Navigate to player screen and let it handle player selection
       router.push({
         pathname: '/stream/player',
-        params: { url: playUrl, title: torrentData.title },
+        params: { url: playUrl, title: fileTitle },
       });
     } else if (actionId === 'preload') {
       try {
@@ -397,12 +404,33 @@ const TorrentDetails = () => {
         {/* Hero Poster Section - Portrait Only */}
         {isPortrait && (
           <View style={styles.heroPosterContainer}>
-            <Image
-              source={{ uri: torrentData.poster }}
-              style={styles.heroPosterImage}
-              resizeMode="cover"
+            {torrentData.poster ? (
+              <ImageBackground
+                source={{ uri: torrentData.poster }}
+                style={styles.heroPosterImage}
+                resizeMode="cover"
+              >
+                <LinearGradient
+                  colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
+                  style={styles.gradient}
+                />
+              </ImageBackground>
+            ) : (
+              <View style={styles.heroPosterFallback}>
+                <Ionicons name="film-outline" size={80} color="#3A3A3C" />
+              </View>
+            )}
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
+              style={styles.heroPosterGradient}
             />
-            <View style={styles.heroPosterGradient} />
+            
+            {/* Title Overlay on Poster */}
+            <View style={styles.heroTitleContainer}>              
+              <Text style={styles.heroTitle} numberOfLines={2}>
+                {torrentData.title}
+              </Text>
+            </View>
           </View>
         )}
 
@@ -412,21 +440,34 @@ const TorrentDetails = () => {
           {!isPortrait && (
             <View style={styles.posterSection}>
               <View style={styles.posterContainer}>
-                <Image
-                  source={{ uri: torrentData.poster }}
-                  style={styles.posterImage}
-                  resizeMode="cover"
-                />
+                {torrentData.poster ? (
+                  <ImageBackground
+                    source={{ uri: torrentData.poster }}
+                    style={styles.posterImage}
+                    resizeMode="cover"
+                  >
+                    <LinearGradient
+                      colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
+                      style={styles.gradient}
+                    />
+                  </ImageBackground>
+                ) : (
+                  <View style={styles.posterFallback}>
+                    <Ionicons name="film-outline" size={60} color="#3A3A3C" />
+                  </View>
+                )}
               </View>
             </View>
           )}
 
           {/* Info Section */}
           <View style={!isPortrait ? styles.infoSectionLandscape : styles.infoSectionPortrait}>
-            {/* Title */}
-            <View style={styles.titleSection}>
-              <Text style={styles.title}>{torrentData.title}</Text>
-            </View>
+            {/* Title - Only show in landscape */}
+            {!isPortrait && (
+              <View style={styles.titleSection}>
+                <Text style={styles.title}>{torrentData.title}</Text>
+              </View>
+            )}
 
             {/* Action Buttons */}
             <View style={styles.actionsContainer}>
@@ -504,7 +545,7 @@ const TorrentDetails = () => {
 
           </View>
         </View>
-        <BottomSpacing space={20} />
+        <BottomSpacing space={50} />
       </ScrollView>
     </View>
   );
@@ -533,9 +574,49 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  heroPosterFallback: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#1C1C1E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   heroPosterGradient: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 60%, #000 100%)',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: 0,
+  },
+  heroTitleContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+    zIndex: 2,
+  },
+  heroCategoryBadge: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  heroCategoryText: {
+    fontWeight: '500',
+    color: '#FFFFFF',
+    fontSize: 11,
+    letterSpacing: 0.6,
+  },
+  heroTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.35,
+    lineHeight: 40,
   },
 
   // Poster Section - Landscape
@@ -556,6 +637,20 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 2 / 3,
   },
+  posterFallback: {
+    width: '100%',
+    aspectRatio: 2 / 3,
+    backgroundColor: '#1C1C1E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  gradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+  },
 
   // Info Section
   infoSectionLandscape: {
@@ -564,7 +659,6 @@ const styles = StyleSheet.create({
   },
   infoSectionPortrait: {
     width: '100%',
-    paddingTop: 16,
   },
 
   // Title
