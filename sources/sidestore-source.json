@@ -18,12 +18,20 @@
       "subtitle": "A client for TorrServer",
       "localizedDescription": "TorrClient is a sleek, modern TorrServer client—your perfect partner for smooth, effortless streaming",
       "iconURL": "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/assets/images/icon.png",
-      "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.5/TorrClient_v1.0.5.ipa",
+      "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.6/TorrClient_v1.0.6.ipa",
       "tintColor": "#535aff",
       "category": "entertainment",
       "screenshots": [        
       ],
       "versions": [
+        {
+          "version": "1.0.6",
+          "date": "2025-12-14",
+          "localizedDescription": "1. Merged RSS and Prowlarr screens into one tab. \n2. UI Improvements and Bug Fixes.",
+          "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.6/TorrClient_v1.0.6.ipa",
+          "size": 27762483,
+          "minOSVersion": "18.0"
+        },
         {
           "version": "1.0.5",
           "date": "2025-12-07",
@@ -39,15 +47,7 @@
           "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.4/TorrClient_v1.0.4.ipa",
           "size": 27762483,
           "minOSVersion": "18.0"
-        },
-        {
-          "version": "1.0.3",
-          "date": "2025-12-04",
-          "localizedDescription": "• Prowlarr Integration\n• UI Improvements.",
-          "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.3/TorrClient_v1.0.3.ipa",
-          "size": 27762483,
-          "minOSVersion": "18.0"
-        }        
+        }              
       ],
       "appPermissions": {
         "entitlements": [],
@@ -57,10 +57,10 @@
   ],
   "news": [
     {
-      "title": "TorrClient v1.0.5 Released",
-      "identifier": "torrclient-v1.0.5-release",
-      "caption": "1. Added support for instant streaming without adding to TorrServer.\n2. Bug fixes and enhancements.",
-      "date": "2025-12-07",
+      "title": "TorrClient v1.0.6 Released",
+      "identifier": "torrclient-v1.0.6-release",
+      "caption": "1. Merged RSS and Prowlarr screens into one tab. \n2. UI Improvements and Bug Fixes.",
+      "date": "2025-12-14",
       "tintColor": "#535aff",
       "imageURL": "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/assets/banners/torrclient-feature-graphic.png",
       "notify": true,
