@@ -28,7 +28,7 @@ interface TorrentGridProps {
 // Film Placeholder Component with Ionicons
 const FilmPlaceholder = ({ width, height }: { width: number; height: number }) => (
     <View style={[styles.placeholderContainer, { width, height }]}>
-        <Ionicons name="film" size={width * 0.5} color="#48484A" />
+        <Ionicons name="film-outline" size={width * 0.5} color="#48484A" />
     </View>
 );
 
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     title: {
         marginTop: 6,
         fontSize: 13,
-        fontWeight: '400',
+        fontWeight: '500',
         color: '#FFFFFF',
         lineHeight: 17,
     },

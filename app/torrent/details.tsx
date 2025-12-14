@@ -545,7 +545,7 @@ const TorrentDetails = () => {
 
           </View>
         </View>
-        <BottomSpacing space={20} />
+        <BottomSpacing space={50} />
       </ScrollView>
     </View>
   );
