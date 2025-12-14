@@ -625,7 +625,7 @@ export const MediaPlayer: React.FC<MediaPlayerProps> = ({
                                             audioMenuRef.current?.show();
                                         }
                                     }}>
-                                        <MaterialIcons name="audiotrack" size={24} color="white" />
+                                        <MaterialIcons name="multitrack-audio" size={24} color="white" />
                                     </TouchableOpacity>
                                 </MenuView>
                             )}
