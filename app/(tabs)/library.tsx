@@ -250,11 +250,12 @@ const LibraryScreen = () => {
         <MenuView
           ref={categoryMenuRef}
           title="Filter by Category"
+          themeVariant="dark"
           onPressAction={({ nativeEvent }) => {
             handleCategorySelect(nativeEvent.event);
           }}
           actions={categoryActions as MenuAction[]}
-          shouldOpenOnLongPress={false}
+          shouldOpenOnLongPress={false}          
         >
           <Pressable style={styles.filterButton}>
             <Ionicons name="funnel-outline" size={18} color="#0A84FF" />
