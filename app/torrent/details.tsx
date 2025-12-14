@@ -404,17 +404,33 @@ const TorrentDetails = () => {
         {/* Hero Poster Section - Portrait Only */}
         {isPortrait && (
           <View style={styles.heroPosterContainer}>
-            <ImageBackground
-              source={{ uri: torrentData.poster }}
-              style={styles.heroPosterImage}
-              resizeMode="cover"
-            >
-              <LinearGradient
-                colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
-                style={styles.gradient}
-              />
-            </ImageBackground>
-            <View style={styles.heroPosterGradient} />
+            {torrentData.poster ? (
+              <ImageBackground
+                source={{ uri: torrentData.poster }}
+                style={styles.heroPosterImage}
+                resizeMode="cover"
+              >
+                <LinearGradient
+                  colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
+                  style={styles.gradient}
+                />
+              </ImageBackground>
+            ) : (
+              <View style={styles.heroPosterFallback}>
+                <Ionicons name="film-outline" size={80} color="#3A3A3C" />
+              </View>
+            )}
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
+              style={styles.heroPosterGradient}
+            />
+            
+            {/* Title Overlay on Poster */}
+            <View style={styles.heroTitleContainer}>              
+              <Text style={styles.heroTitle} numberOfLines={2}>
+                {torrentData.title}
+              </Text>
+            </View>
           </View>
         )}
 
@@ -424,26 +440,34 @@ const TorrentDetails = () => {
           {!isPortrait && (
             <View style={styles.posterSection}>
               <View style={styles.posterContainer}>
-                <ImageBackground
-                  source={{ uri: torrentData.poster }}
-                  style={styles.posterImage}
-                  resizeMode="cover"
-                >
-                  <LinearGradient
-                    colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
-                    style={styles.gradient}
-                  />
-                </ImageBackground>
+                {torrentData.poster ? (
+                  <ImageBackground
+                    source={{ uri: torrentData.poster }}
+                    style={styles.posterImage}
+                    resizeMode="cover"
+                  >
+                    <LinearGradient
+                      colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
+                      style={styles.gradient}
+                    />
+                  </ImageBackground>
+                ) : (
+                  <View style={styles.posterFallback}>
+                    <Ionicons name="film-outline" size={60} color="#3A3A3C" />
+                  </View>
+                )}
               </View>
             </View>
           )}
 
           {/* Info Section */}
           <View style={!isPortrait ? styles.infoSectionLandscape : styles.infoSectionPortrait}>
-            {/* Title */}
-            <View style={styles.titleSection}>
-              <Text style={styles.title}>{torrentData.title}</Text>
-            </View>
+            {/* Title - Only show in landscape */}
+            {!isPortrait && (
+              <View style={styles.titleSection}>
+                <Text style={styles.title}>{torrentData.title}</Text>
+              </View>
+            )}
 
             {/* Action Buttons */}
             <View style={styles.actionsContainer}>
@@ -550,9 +574,49 @@ const styles = StyleSheet.create({
     width: '100%',
     height: '100%',
   },
+  heroPosterFallback: {
+    width: '100%',
+    height: '100%',
+    backgroundColor: '#1C1C1E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   heroPosterGradient: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'linear-gradient(to bottom, transparent 0%, rgba(0,0,0,0.4) 60%, #000 100%)',
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: 0,
+  },
+  heroTitleContainer: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 16,
+    paddingBottom: 40,
+    zIndex: 2,
+  },
+  heroCategoryBadge: {
+    backgroundColor: 'rgba(255,255,255,0.15)',
+    paddingHorizontal: 10,
+    paddingVertical: 5,
+    borderRadius: 6,
+    alignSelf: 'flex-start',
+    marginBottom: 8,
+  },
+  heroCategoryText: {
+    fontWeight: '500',
+    color: '#FFFFFF',
+    fontSize: 11,
+    letterSpacing: 0.6,
+  },
+  heroTitle: {
+    fontSize: 34,
+    fontWeight: '700',
+    color: '#FFFFFF',
+    letterSpacing: 0.35,
+    lineHeight: 40,
   },
 
   // Poster Section - Landscape
@@ -573,6 +637,13 @@ const styles = StyleSheet.create({
     width: '100%',
     aspectRatio: 2 / 3,
   },
+  posterFallback: {
+    width: '100%',
+    aspectRatio: 2 / 3,
+    backgroundColor: '#1C1C1E',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   gradient: {
     position: 'absolute',
     left: 0,
@@ -588,7 +659,6 @@ const styles = StyleSheet.create({
   },
   infoSectionPortrait: {
     width: '100%',
-    paddingTop: 16,
   },
 
   // Title
