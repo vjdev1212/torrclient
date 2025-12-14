@@ -56,7 +56,7 @@ const RSS_FEEDS_KEY = StorageKeys.RSS_FEEDS_KEY || 'TORRCLIENT_RSS_FEEDS_KEY';
 
 const UnifiedSearchScreen = () => {
     const router = useRouter();
-    
+
     // Search state
     const [searchSource, setSearchSource] = useState<SearchSource>('prowlarr');
     const [query, setQuery] = useState('');
@@ -94,7 +94,7 @@ const UnifiedSearchScreen = () => {
     const loadData = async () => {
         setLoadingData(true);
         setError(null);
-        
+
         try {
             // Load Prowlarr data
             const client = new ProwlarrClient();
@@ -195,13 +195,13 @@ const UnifiedSearchScreen = () => {
 
         setSearched(true);
         const searchQuery = query.trim().toLowerCase();
-        
+
         if (!searchQuery) {
             // Show all items if no search query
             setResults(rssItems.map(item => ({ source: 'rss', rssItem: item })));
         } else {
             // Filter items
-            const filtered = rssItems.filter(item => 
+            const filtered = rssItems.filter(item =>
                 item.title.toLowerCase().includes(searchQuery) ||
                 item.description.toLowerCase().includes(searchQuery)
             );
@@ -226,7 +226,7 @@ const UnifiedSearchScreen = () => {
             const xmlText = await response.text();
             const parsedItems = parseRSS(xmlText);
             setRssItems(parsedItems);
-            
+
             // Auto-display items if no search query
             if (!query.trim()) {
                 setResults(parsedItems.map(item => ({ source: 'rss', rssItem: item })));
@@ -244,7 +244,7 @@ const UnifiedSearchScreen = () => {
     const parseRSS = (xmlText: string): RSSItem[] => {
         const items: RSSItem[] = [];
         const itemMatches = xmlText.match(/<item[^>]*>[\s\S]*?<\/item>/gi);
-        
+
         if (!itemMatches) return items;
 
         itemMatches.forEach(itemXml => {
@@ -306,7 +306,7 @@ const UnifiedSearchScreen = () => {
 
     const handleRefresh = async () => {
         if (refreshing) return;
-        
+
         if (isHapticsSupported()) {
             await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
@@ -338,7 +338,7 @@ const UnifiedSearchScreen = () => {
 
     const handleSourceChange = async (source: SearchSource) => {
         if (isHapticsSupported()) await Haptics.selectionAsync();
-        
+
         setSearchSource(source);
         setQuery('');
         setResults([]);
@@ -360,7 +360,7 @@ const UnifiedSearchScreen = () => {
         setQuery('');
         setResults([]);
         setSearched(false);
-        
+
         await fetchRSSFeed(feed);
     };
 
@@ -379,7 +379,7 @@ const UnifiedSearchScreen = () => {
             link = item.enclosure?.url || item.link;
             title = item.title;
         }
-        
+
         if (!link) {
             showAlert('No Link', 'This torrent does not have a valid link.');
             return;
@@ -419,16 +419,16 @@ const UnifiedSearchScreen = () => {
         console.log('Stream Link', streamUrl);
         router.push({
             pathname: '/stream/player',
-            params: { 
+            params: {
                 url: streamUrl,
-                title: title 
+                title: title
             },
         });
     };
 
     const formatDate = (dateString: string): string => {
         if (!dateString) return 'Unknown';
-        
+
         try {
             const date = new Date(dateString);
             const now = new Date();
@@ -440,11 +440,11 @@ const UnifiedSearchScreen = () => {
             if (diffMins < 60) return `${diffMins}m ago`;
             if (diffHours < 24) return `${diffHours}h ago`;
             if (diffDays < 7) return `${diffDays}d ago`;
-            
-            return date.toLocaleDateString('en-US', { 
-                month: 'short', 
+
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
                 day: 'numeric',
-                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined 
+                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
             });
         } catch {
             return dateString;
@@ -454,10 +454,10 @@ const UnifiedSearchScreen = () => {
     const formatSize = (bytes: string | number): string => {
         const size = typeof bytes === 'string' ? parseInt(bytes) : bytes;
         if (isNaN(size)) return '';
-        
+
         const gb = size / (1024 * 1024 * 1024);
         if (gb >= 1) return `${gb.toFixed(2)} GB`;
-        
+
         const mb = size / (1024 * 1024);
         return `${mb.toFixed(2)} MB`;
     };
@@ -607,7 +607,7 @@ const UnifiedSearchScreen = () => {
                     <Text style={styles.errorHint}>
                         Check your configuration in settings
                     </Text>
-                    <TouchableOpacity 
+                    <TouchableOpacity
                         style={styles.retryButton}
                         onPress={handleRetry}
                         activeOpacity={0.7}
@@ -664,27 +664,6 @@ const UnifiedSearchScreen = () => {
                                 <Ionicons name="chevron-down" size={16} color="#8E8E93" />
                             </View>
                         </MenuView>
-
-                        {/* Search Bar */}
-                        <View style={styles.searchBarContainer}>
-                            <Ionicons name="search-outline" size={20} color="#8E8E93" style={styles.searchIcon} />
-                            <TextInput
-                                style={styles.searchInput}
-                                value={query}
-                                onChangeText={setQuery}
-                                placeholder={searchSource === 'prowlarr' ? "Movies, TV Shows, Music" : "Search in feed..."}
-                                autoCapitalize="none"
-                                placeholderTextColor="#8E8E93"
-                                returnKeyType="search"
-                                onSubmitEditing={handleSearch}
-                                submitBehavior="blurAndSubmit"
-                            />
-                            {query.length > 0 && (
-                                <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
-                                    <Ionicons name="close-circle" size={20} color="#8E8E93" />
-                                </TouchableOpacity>
-                            )}
-                        </View>
 
                         {/* Filters - Prowlarr */}
                         {searchSource === 'prowlarr' && (
@@ -747,6 +726,27 @@ const UnifiedSearchScreen = () => {
                             </View>
                         )}
 
+                        {/* Search Bar */}
+                        <View style={styles.searchBarContainer}>
+                            <Ionicons name="search-outline" size={20} color="#8E8E93" style={styles.searchIcon} />
+                            <TextInput
+                                style={styles.searchInput}
+                                value={query}
+                                onChangeText={setQuery}
+                                placeholder={searchSource === 'prowlarr' ? "Movies, TV Shows, Music" : "Search in feed..."}
+                                autoCapitalize="none"
+                                placeholderTextColor="#8E8E93"
+                                returnKeyType="search"
+                                onSubmitEditing={handleSearch}
+                                submitBehavior="blurAndSubmit"
+                            />
+                            {query.length > 0 && (
+                                <TouchableOpacity onPress={handleClear} style={styles.clearButton}>
+                                    <Ionicons name="close-circle" size={20} color="#8E8E93" />
+                                </TouchableOpacity>
+                            )}
+                        </View>
+
                         {/* Loading */}
                         {loading && (
                             <View style={styles.loadingContainer}>
@@ -761,17 +761,17 @@ const UnifiedSearchScreen = () => {
                         {!loading && !searched && (
                             <View style={styles.emptyState}>
                                 <View style={styles.emptyStateIcon}>
-                                    <Ionicons 
-                                        name={searchSource === 'prowlarr' ? 'search-outline' : 'newspaper-outline'} 
-                                        size={48} 
-                                        color="#007AFF" 
+                                    <Ionicons
+                                        name={searchSource === 'prowlarr' ? 'search-outline' : 'newspaper-outline'}
+                                        size={48}
+                                        color="#007AFF"
                                     />
                                 </View>
                                 <Text style={styles.emptyStateTitle}>
                                     {searchSource === 'prowlarr' ? 'Search Torrents' : 'Select RSS Feed'}
                                 </Text>
                                 <Text style={styles.emptyStateSubtext}>
-                                    {searchSource === 'prowlarr' 
+                                    {searchSource === 'prowlarr'
                                         ? 'Enter a movie or TV show name to search'
                                         : rssFeeds.length === 0
                                             ? 'No RSS feeds configured. Add feeds in settings.'

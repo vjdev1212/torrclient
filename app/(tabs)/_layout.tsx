@@ -111,7 +111,7 @@ export default function TabLayout() {
         }}
       />
 
-      <Tabs.Screen
+      {/* <Tabs.Screen
         name="rss"
         listeners={{
           tabPress: async () => {
@@ -125,7 +125,7 @@ export default function TabLayout() {
           tabBarIcon: ({ color }) => <TabBarIcon name="rss" color={color} />,
           tabBarIconStyle: { marginVertical: 5 },
         }}
-      />      
+      />       */}
 
       <Tabs.Screen
         name="settings"

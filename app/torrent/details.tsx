@@ -141,22 +141,28 @@ const TorrentDetails = () => {
     /\.(mp4|mkv|webm|avi|mov|flv|wmv|m4v)$/i.test(file.path)
   );
 
+  const extractFileName = (path: string) => {
+    return path.split('/').pop();
+  }
+
   const handleFileLink = async (file: any) => {
     if (isHapticsSupported()) {
       await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     }
 
-    const streamUrl = `${baseUrl}/stream?link=${hash}&index=${file.id}&play&preload`;
+    const fileTitle = extractFileName(file.path);
+
+    const streamUrl = `${baseUrl}/stream/${file.path}?link=${hash}&index=${file.id}&play&preload`;
 
     // Navigate to player screen and let it handle player selection
     router.push({
       pathname: '/stream/player',
-      params: { url: streamUrl, title: torrentData.title },
+      params: { url: streamUrl, title: fileTitle },
     });
   };
 
   const handleMenuAction = async (file: any, actionId: string) => {
-    const streamUrl = `${baseUrl}/stream?link=${hash}&index=${file.id}`;
+    const streamUrl = `${baseUrl}/stream/${file.path}?link=${hash}&index=${file.id}`;
 
     if (actionId === 'play') {
       const playUrl = `${streamUrl}&play&preload`;
