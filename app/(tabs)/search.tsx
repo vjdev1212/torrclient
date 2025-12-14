@@ -557,14 +557,6 @@ const SearchScreen = () => {
                             onSourceChange={handleSourceChange}
                         />
 
-                        <SearchBar
-                            query={query}
-                            onQueryChange={setQuery}
-                            onClear={handleClear}
-                            onSubmit={handleSearch}
-                            searchSource={searchSource}
-                        />
-
                         {searchSource === 'prowlarr' && (
                             <ProwlarrFilters
                                 indexers={indexers}
@@ -584,6 +576,14 @@ const SearchScreen = () => {
                                 onFeedSelect={handleRssFeedSelect}
                             />
                         )}
+                        
+                        <SearchBar
+                            query={query}
+                            onQueryChange={setQuery}
+                            onClear={handleClear}
+                            onSubmit={handleSearch}
+                            searchSource={searchSource}
+                        />
 
                         {loading && <LoadingState searchSource={searchSource} />}
 

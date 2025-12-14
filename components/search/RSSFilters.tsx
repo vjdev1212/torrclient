@@ -58,7 +58,7 @@ export const RSSFilters: React.FC<RSSFiltersProps> = ({
 
 const styles = StyleSheet.create({
     filtersContainer: {
-        marginBottom: 20,
+        marginBottom: 10,
         backgroundColor: 'transparent',
         gap: 8,
     },

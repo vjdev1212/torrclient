@@ -116,7 +116,7 @@ export const ProwlarrFilters: React.FC<ProwlarrFiltersProps> = ({
 
 const styles = StyleSheet.create({
     filtersContainer: {
-        marginBottom: 20,
+        marginBottom: 10,
         backgroundColor: 'transparent',
         gap: 8,
     },
