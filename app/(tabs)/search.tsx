@@ -69,7 +69,7 @@ const RSS_FEEDS_KEY = StorageKeys.RSS_FEEDS_KEY || 'TORRCLIENT_RSS_FEEDS_KEY';
 
 const SearchScreen = () => {
     const router = useRouter();
-    
+
     // Search state
     const [searchSource, setSearchSource] = useState<SearchSource>('prowlarr');
     const [query, setQuery] = useState('');
@@ -107,7 +107,7 @@ const SearchScreen = () => {
     const loadData = async () => {
         setLoadingData(true);
         setError(null);
-        
+
         try {
             // Load Prowlarr data
             const client = new ProwlarrClient();
@@ -208,11 +208,11 @@ const SearchScreen = () => {
 
         setSearched(true);
         const searchQuery = query.trim().toLowerCase();
-        
+
         if (!searchQuery) {
             setResults(rssItems.map(item => ({ source: 'rss', rssItem: item })));
         } else {
-            const filtered = rssItems.filter(item => 
+            const filtered = rssItems.filter(item =>
                 item.title.toLowerCase().includes(searchQuery) ||
                 item.description.toLowerCase().includes(searchQuery)
             );
@@ -237,7 +237,7 @@ const SearchScreen = () => {
             const xmlText = await response.text();
             const parsedItems = parseRSS(xmlText);
             setRssItems(parsedItems);
-            
+
             if (!query.trim()) {
                 setResults(parsedItems.map(item => ({ source: 'rss', rssItem: item })));
                 setSearched(true);
@@ -254,7 +254,7 @@ const SearchScreen = () => {
     const parseRSS = (xmlText: string): RSSItem[] => {
         const items: RSSItem[] = [];
         const itemMatches = xmlText.match(/<item[^>]*>[\s\S]*?<\/item>/gi);
-        
+
         if (!itemMatches) return items;
 
         itemMatches.forEach(itemXml => {
@@ -316,7 +316,7 @@ const SearchScreen = () => {
 
     const handleRefresh = async () => {
         if (refreshing) return;
-        
+
         if (isHapticsSupported()) {
             await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
         }
@@ -348,7 +348,7 @@ const SearchScreen = () => {
 
     const handleSourceChange = async (source: SearchSource) => {
         if (isHapticsSupported()) await Haptics.selectionAsync();
-        
+
         setSearchSource(source);
         setQuery('');
         setResults([]);
@@ -370,7 +370,7 @@ const SearchScreen = () => {
         setQuery('');
         setResults([]);
         setSearched(false);
-        
+
         await fetchRSSFeed(feed);
     };
 
@@ -389,7 +389,7 @@ const SearchScreen = () => {
             link = item.enclosure?.url || item.link;
             title = item.title;
         }
-        
+
         if (!link) {
             showAlert('No Link', 'This torrent does not have a valid link.');
             return;
@@ -428,16 +428,16 @@ const SearchScreen = () => {
 
         router.push({
             pathname: '/stream/player',
-            params: { 
+            params: {
                 url: streamUrl,
-                title: title 
+                title: title
             },
         });
     };
 
     const formatDate = (dateString: string): string => {
         if (!dateString) return 'Unknown';
-        
+
         try {
             const date = new Date(dateString);
             const now = new Date();
@@ -449,11 +449,11 @@ const SearchScreen = () => {
             if (diffMins < 60) return `${diffMins}m ago`;
             if (diffHours < 24) return `${diffHours}h ago`;
             if (diffDays < 7) return `${diffDays}d ago`;
-            
-            return date.toLocaleDateString('en-US', { 
-                month: 'short', 
+
+            return date.toLocaleDateString('en-US', {
+                month: 'short',
                 day: 'numeric',
-                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined 
+                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
             });
         } catch {
             return dateString;
@@ -463,17 +463,17 @@ const SearchScreen = () => {
     const formatSize = (bytes: string | number): string => {
         const size = typeof bytes === 'string' ? parseInt(bytes) : bytes;
         if (isNaN(size)) return '';
-        
+
         const gb = size / (1024 * 1024 * 1024);
         if (gb >= 1) return `${gb.toFixed(2)} GB`;
-        
+
         const mb = size / (1024 * 1024);
         return `${mb.toFixed(2)} MB`;
     };
 
     const getCategoryDisplayName = (categoryId: number): string => {
-        if (categoryId === 2000) return 'Movies (All)';
-        if (categoryId === 5000) return 'TV (All)';
+        if (categoryId === 2000) return 'Movie';
+        if (categoryId === 5000) return 'TV Show';
 
         for (const category of categories) {
             const subcategory = category.subCategories.find(sub => sub.id === categoryId);
@@ -486,9 +486,9 @@ const SearchScreen = () => {
         return 'Other';
     };
 
-    const getCategoryBadge = (categoryIds: number[]) => {
+    const getCategoryBadge = (categoryIds: any[]) => {
         if (!categoryIds || categoryIds.length === 0) return 'Unknown';
-        return getCategoryDisplayName(categoryIds[0]);
+        return getCategoryDisplayName(categoryIds[0].id);
     };
 
     const handleIndexerSelect = async (indexerId: string) => {

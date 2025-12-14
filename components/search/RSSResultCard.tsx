@@ -32,28 +32,7 @@ export const RSSResultCard: React.FC<RSSResultCardProps> = ({
     formatSize,
 }) => {
     return (
-        <View style={styles.resultCard}>
-            <View style={styles.cardHeader}>
-                <View style={styles.sourceBadge}>
-                    <Ionicons name="newspaper" size={10} color="#FF9500" />
-                    <Text style={styles.sourceText}>RSS</Text>
-                </View>
-                <View style={styles.itemDateBadge}>
-                    <Ionicons name="time-outline" size={12} color="#8E8E93" />
-                    <Text style={styles.itemDate}>
-                        {formatDate(item.pubDate)}
-                    </Text>
-                </View>
-                {item.enclosure && (
-                    <View style={styles.sizeBadge}>
-                        <Ionicons name="cube-outline" size={12} color="#8E8E93" />
-                        <Text style={styles.sizeText}>
-                            {formatSize(item.enclosure.length)}
-                        </Text>
-                    </View>
-                )}
-            </View>
-
+        <View style={styles.resultCard}>            
             <Text style={styles.resultTitle}>{item.title}</Text>
 
             <View style={styles.actionButtons}>
@@ -84,59 +63,7 @@ const styles = StyleSheet.create({
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
-    },
-    cardHeader: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: 12,
-        backgroundColor: 'transparent',
-        gap: 8,
-    },
-    sourceBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(255, 149, 0, 0.15)',
-        paddingHorizontal: 8,
-        paddingVertical: 5,
-        borderRadius: 6,
-        gap: 4,
-    },
-    sourceText: {
-        fontSize: 10,
-        fontWeight: '600',
-        color: '#FF9500',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
-    },
-    itemDateBadge: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(142, 142, 147, 0.12)',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 8,
-        gap: 5,
-    },
-    itemDate: {
-        fontSize: 12,
-        color: '#8E8E93',
-        fontWeight: '500',
-    },
-    sizeBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(142, 142, 147, 0.12)',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 8,
-        gap: 5,
-    },
-    sizeText: {
-        fontSize: 12,
-        color: '#8E8E93',
-        fontWeight: '500',
-    },
+    },    
     resultTitle: {
         fontSize: 16,
         fontWeight: '500',

@@ -26,9 +26,8 @@ export const ProwlarrResultCard: React.FC<ProwlarrResultCardProps> = ({
 
             <View style={styles.metaContainer}>
                 <View style={styles.metaChip}>
-                    <Text style={styles.categoryText}>
-                        {getCategoryBadge(result.categories)}
-                    </Text>
+                    <Ionicons name="arrow-up" size={11} color="#34C759" />
+                    <Text style={styles.seedersText}>{result.seeders || 0}</Text>
                 </View>
                 <View style={styles.metaChip}>
                     <Ionicons name="cube" size={12} color="#8E8E93" />
@@ -43,8 +42,9 @@ export const ProwlarrResultCard: React.FC<ProwlarrResultCardProps> = ({
                     </Text>
                 </View>
                 <View style={styles.metaChip}>
-                    <Ionicons name="arrow-up" size={11} color="#34C759" />
-                    <Text style={styles.seedersText}>{result.seeders || 0}</Text>
+                    <Text style={styles.categoryText}>
+                        {getCategoryBadge(result.categories)}
+                    </Text>
                 </View>
             </View>
 

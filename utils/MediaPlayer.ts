@@ -6,7 +6,7 @@ export enum Players {
     VLC = 'VLC',
     Infuse = 'Infuse',
     VidHub = 'VidHub',
-    Outplayer = 'Outplayer'
+    Outplayer = 'OutPlayer'
 }
 
 export const getPlatformSpecificPlayers = () => {
