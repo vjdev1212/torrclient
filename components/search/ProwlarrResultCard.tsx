@@ -22,28 +22,13 @@ export const ProwlarrResultCard: React.FC<ProwlarrResultCardProps> = ({
 }) => {
     return (
         <View style={styles.resultCard}>
-            <View style={styles.cardHeader}>
-                <View style={styles.sourceBadge}>
-                    <Ionicons name="server" size={10} color="#007AFF" />
-                    <Text style={styles.sourceText}>PROWLARR</Text>
-                </View>
-                <View style={styles.categoryBadge}>
-                    <Text style={styles.categoryText}>
-                        {getCategoryBadge(result.categories)}
-                    </Text>
-                </View>
-                <View style={styles.qualityBadge}>
-                    <Ionicons name="arrow-up" size={11} color="#34C759" />
-                    <Text style={styles.seedersText}>{result.seeders || 0}</Text>
-                </View>
-            </View>
-
             <Text style={styles.resultTitle}>{result.title}</Text>
 
             <View style={styles.metaContainer}>
                 <View style={styles.metaChip}>
-                    <Ionicons name="server" size={12} color="#8E8E93" />
-                    <Text style={styles.metaChipText}>{result.indexer}</Text>
+                    <Text style={styles.categoryText}>
+                        {getCategoryBadge(result.categories)}
+                    </Text>
                 </View>
                 <View style={styles.metaChip}>
                     <Ionicons name="cube" size={12} color="#8E8E93" />
@@ -56,6 +41,10 @@ export const ProwlarrResultCard: React.FC<ProwlarrResultCardProps> = ({
                     <Text style={styles.metaChipText}>
                         {formatAge(result.ageMinutes)}
                     </Text>
+                </View>
+                <View style={styles.metaChip}>
+                    <Ionicons name="arrow-up" size={11} color="#34C759" />
+                    <Text style={styles.seedersText}>{result.seeders || 0}</Text>
                 </View>
             </View>
 
@@ -150,7 +139,7 @@ const styles = StyleSheet.create({
     metaContainer: {
         flexDirection: 'row',
         flexWrap: 'wrap',
-        gap: 8,
+        gap: 6,
         marginBottom: 12,
         backgroundColor: 'transparent',
     },
