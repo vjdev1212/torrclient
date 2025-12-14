@@ -375,6 +375,7 @@ const MediaPlayerScreen: React.FC = () => {
     <Player
       videoUrl={videoUrl}
       back={handleBack}
+      title={title}      
       subtitles={subtitles}
       openSubtitlesClient={openSubtitlesClient}
       isLoadingSubtitles={isLoadingSubtitles}

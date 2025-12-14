@@ -164,13 +164,13 @@ const TorrentDetails = () => {
 
   const handleMenuAction = async (file: any, actionId: string) => {
     const streamUrl = `${baseUrl}/stream/${file.path}?link=${hash}&index=${file.id}`;
-
+    const fileTitle = extractFileName(file.path);
     if (actionId === 'play') {
       const playUrl = `${streamUrl}&play&preload`;
       // Navigate to player screen and let it handle player selection
       router.push({
         pathname: '/stream/player',
-        params: { url: playUrl, title: torrentData.title },
+        params: { url: playUrl, title: fileTitle },
       });
     } else if (actionId === 'preload') {
       try {
