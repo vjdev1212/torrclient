@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
-import { Alert, Image, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { Alert, Image, ImageBackground, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, StatusBar, Text } from '@/components/Themed';
 import * as Haptics from 'expo-haptics';
@@ -9,6 +9,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { MenuView } from '@react-native-menu/menu';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const TorrentDetails = () => {
   const { hash } = useLocalSearchParams();
@@ -56,7 +57,7 @@ const TorrentDetails = () => {
 
         const torrentInfo = {
           title: torrentResult.title || 'Untitled',
-          poster: torrentResult.poster || 'https://dummyimage.com/500x750/1A1A1A/FFFFFF.png&text= ',
+          poster: torrentResult.poster,
           category: torrentResult.category || 'unknown',
           size: torrentResult.torrent_size,
           magnet: torrentResult.magnet || '',
@@ -403,11 +404,16 @@ const TorrentDetails = () => {
         {/* Hero Poster Section - Portrait Only */}
         {isPortrait && (
           <View style={styles.heroPosterContainer}>
-            <Image
+            <ImageBackground
               source={{ uri: torrentData.poster }}
               style={styles.heroPosterImage}
               resizeMode="cover"
-            />
+            >
+              <LinearGradient
+                colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
+                style={styles.gradient}
+              />
+            </ImageBackground>
             <View style={styles.heroPosterGradient} />
           </View>
         )}
@@ -418,11 +424,16 @@ const TorrentDetails = () => {
           {!isPortrait && (
             <View style={styles.posterSection}>
               <View style={styles.posterContainer}>
-                <Image
+                <ImageBackground
                   source={{ uri: torrentData.poster }}
                   style={styles.posterImage}
                   resizeMode="cover"
-                />
+                >
+                  <LinearGradient
+                    colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
+                    style={styles.gradient}
+                  />
+                </ImageBackground>
               </View>
             </View>
           )}
@@ -561,6 +572,13 @@ const styles = StyleSheet.create({
   posterImage: {
     width: '100%',
     aspectRatio: 2 / 3,
+  },
+  gradient: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
   },
 
   // Info Section
