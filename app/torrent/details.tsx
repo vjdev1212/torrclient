@@ -6,7 +6,7 @@ import * as Haptics from 'expo-haptics';
 import { isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { Ionicons } from '@expo/vector-icons';
-import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
+import { extractFileName, formatBytes, getTorrServerAuthHeader, getTorrServerUrl, preloadOnly, streamTorrentFile } from '@/utils/TorrServer';
 import { ImpactFeedbackStyle } from 'expo-haptics';
 import { MenuView } from '@react-native-menu/menu';
 import { LinearGradient } from 'expo-linear-gradient';
@@ -55,8 +55,6 @@ const TorrentDetails = () => {
             console.error('Failed to parse files from data:', err);
           }
         }
-
-        console.log('TorrentResult', torrentResult)
 
         const torrentInfo = {
           title: torrentResult.title || 'Untitled',
@@ -145,101 +143,46 @@ const TorrentDetails = () => {
     /\.(mp4|mkv|webm|avi|mov|flv|wmv|m4v)$/i.test(file.path)
   );
 
-  const extractFileName = (path: string) => {
-    return path.split('/').pop();
-  }
-
   const handleFileLink = async (file: any) => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-
-    const fileTitle = extractFileName(file.path);
-
-    // Mark file as preloading
-    setPreloadingFiles(prev => new Set(prev).add(file.id));
-
-    try {
-      // First preload the file
-      const preloadUrl = `${baseUrl}/stream/${file.path}?link=${hash}&index=${file.id}&preload`;
-      const authHeader = getTorrServerAuthHeader();
-
-      await fetch(preloadUrl, {
-        method: 'GET',
-        headers: { ...(authHeader || {}) },
-      });
-
-      // Wait a brief moment to ensure preload has started
-      await new Promise(resolve => setTimeout(resolve, 500));
-
-      // Then navigate to player
-      const streamUrl = `${baseUrl}/stream/${file.path}?link=${hash}&index=${file.id}&play&preload`;
-
-      router.push({
-        pathname: '/stream/player',
-        params: { url: streamUrl, title: torrentData.title, fileTitle: fileTitle, category: torrentData.category },
-      });
-    } catch (error) {
-      console.error('Preload failed:', error);
-      showAlert('Preload failed', 'Unable to preload file. Try again.');
-    } finally {
-      // Remove loading state after navigation
-      setPreloadingFiles(prev => {
+    await streamTorrentFile({
+      hash: torrentData.hash,
+      fileId: file.id,
+      filePath: file.path,
+      title: torrentData.title,
+      fileTitle: extractFileName(file.path),
+      category: torrentData.category,
+      onPreloadStart: () => setPreloadingFiles(prev => new Set(prev).add(file.id)),
+      onPreloadEnd: () => setPreloadingFiles(prev => {
         const newSet = new Set(prev);
         newSet.delete(file.id);
         return newSet;
-      });
-    }
+      }),
+    });
   };
 
   const handleMenuAction = async (file: any, actionId: string) => {
-    const streamUrl = `${baseUrl}/stream/${file.path}?link=${hash}&index=${file.id}`;
-    const fileTitle = extractFileName(file.path);
     if (actionId === 'play') {
-      // Mark file as preloading
-      setPreloadingFiles(prev => new Set(prev).add(file.id));
-
-      try {
-        // First preload the file
-        const preloadUrl = `${streamUrl}&preload`;
-        const authHeader = getTorrServerAuthHeader();
-
-        await fetch(preloadUrl, {
-          method: 'GET',
-          headers: { ...(authHeader || {}) },
-        });
-
-        // Wait a brief moment to ensure preload has started
-        await new Promise(resolve => setTimeout(resolve, 500));
-
-        // Then navigate to player
-        const playUrl = `${streamUrl}&play&preload`;
-        router.push({
-          pathname: '/stream/player',
-          params: { url: playUrl, title: torrentData.title, fileTitle: fileTitle, category: torrentData.category },
-        });
-      } catch (error) {
-        console.error('Preload failed:', error);
-        showAlert('Preload failed', 'Unable to preload file. Try again.');
-      } finally {
-        // Remove loading state after navigation
-        setPreloadingFiles(prev => {
+      await streamTorrentFile({
+        hash: torrentData.hash,
+        fileId: file.id,
+        filePath: file.path,
+        title: torrentData.title,
+        fileTitle: extractFileName(file.path),
+        category: torrentData.category,
+        onPreloadStart: () => setPreloadingFiles(prev => new Set(prev).add(file.id)),
+        onPreloadEnd: () => setPreloadingFiles(prev => {
           const newSet = new Set(prev);
           newSet.delete(file.id);
           return newSet;
-        });
-      }
+        }),
+      });
     } else if (actionId === 'preload') {
-      try {
-        const preloadUrl = `${streamUrl}&preload`;
-        const authHeader = getTorrServerAuthHeader();
-        await fetch(preloadUrl, {
-          method: 'GET',
-          headers: { ...(authHeader || {}) },
-        });
-      } catch {
-        showAlert('Preload failed', 'Unable to start preload.');
-      }
+      await preloadOnly({
+        hash: torrentData.hash,
+        fileId: file.id,
+        filePath: file.path,
+        title: torrentData.title,
+      });
     }
   };
 
@@ -336,14 +279,6 @@ const TorrentDetails = () => {
       showAlert('Error', 'Failed to delete torrent.');
     }
   };
-
-  const formatBytes = (bytes: number) => {
-    if (!bytes || bytes === 0 || isNaN(bytes)) return '0 B';
-    const units = ['B', 'KB', 'MB', 'GB', 'TB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(1024));
-    const value = bytes / Math.pow(1024, i);
-    return `${value.toFixed(2)} ${units[i]}`;
-  }
 
   const CacheInfo = React.memo(({ cacheData, cacheLoading }: { cacheData: any, cacheLoading: boolean }) => {
     if (cacheLoading) {
@@ -594,7 +529,7 @@ const TorrentDetails = () => {
                             </Text>
                             <Text style={styles.fileSize}>
                               {preloadingFiles.has(file.id)
-                                ? 'Preloading file. Please wait...'
+                                ? 'Loading. Please wait...'
                                 : `${(file.length / (1024 ** 2)).toFixed(2)} MB`
                               }
                             </Text>
@@ -665,20 +600,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingBottom: 40,
     zIndex: 2,
-  },
-  heroCategoryBadge: {
-    backgroundColor: 'rgba(255,255,255,0.15)',
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-    borderRadius: 6,
-    alignSelf: 'flex-start',
-    marginBottom: 8,
-  },
-  heroCategoryText: {
-    fontWeight: '500',
-    color: '#FFFFFF',
-    fontSize: 11,
-    letterSpacing: 0.6,
   },
   heroTitle: {
     fontSize: 34,

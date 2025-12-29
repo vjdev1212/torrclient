@@ -1,7 +1,7 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, ActivityIndicator } from '@/components/Themed';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, View } from '@/components/Themed';
 
 interface RSSItem {
     title: string;
@@ -20,8 +20,9 @@ interface RSSResultCardProps {
     item: RSSItem;
     onStream: () => void;
     onAdd: () => void;
-    formatDate: (date: string) => string;
-    formatSize: (bytes: string) => string;
+    formatDate: (dateString: string) => string;
+    formatSize: (bytes: string | number) => string;
+    isStreaming?: boolean;
 }
 
 export const RSSResultCard: React.FC<RSSResultCardProps> = ({
@@ -30,26 +31,65 @@ export const RSSResultCard: React.FC<RSSResultCardProps> = ({
     onAdd,
     formatDate,
     formatSize,
+    isStreaming = false,
 }) => {
     return (
-        <View style={styles.resultCard}>            
-            <Text style={styles.resultTitle}>{item.title}</Text>
+        <View style={styles.card}>
+            {/* Title */}
+            <Text style={styles.title}>
+                {item.title}
+            </Text>
 
-            <View style={styles.actionButtons}>
+            {/* Description */}
+            {item.description && (
+                <Text style={styles.description}>
+                    {item.description}
+                </Text>
+            )}
+
+            {/* Metadata */}
+            <View style={styles.metadata}>
+                <View style={styles.metaItem}>
+                    <Ionicons name="time-outline" size={14} color="#8E8E93" />
+                    <Text style={styles.metaText}>{formatDate(item.pubDate)}</Text>
+                </View>
+                {item.enclosure && (
+                    <View style={styles.metaItem}>
+                        <Ionicons name="document-outline" size={14} color="#8E8E93" />
+                        <Text style={styles.metaText}>
+                            {formatSize(item.enclosure.length)}
+                        </Text>
+                    </View>
+                )}
+            </View>
+
+            {/* Action Buttons */}
+            <View style={styles.actions}>
                 <TouchableOpacity
-                    style={styles.streamButton}
+                    style={[styles.button, styles.streamButton, isStreaming && styles.buttonDisabled]}
                     onPress={onStream}
-                    activeOpacity={0.7}
+                    activeOpacity={0.6}
+                    disabled={isStreaming}
                 >
-                    <Ionicons name="play-circle" size={18} color="#FFFFFF" />
-                    <Text style={styles.streamButtonText}>Play</Text>
+                    {isStreaming ? (
+                        <>
+                            <ActivityIndicator size="small" color="#FFFFFF" />
+                            <Text style={styles.streamButtonText}>Starting...</Text>
+                        </>
+                    ) : (
+                        <>
+                            <Ionicons name="play" size={18} color="#FFFFFF" />
+                            <Text style={styles.streamButtonText}>Stream</Text>
+                        </>
+                    )}
                 </TouchableOpacity>
+
                 <TouchableOpacity
-                    style={styles.addButton}
+                    style={[styles.button, styles.addButton]}
                     onPress={onAdd}
-                    activeOpacity={0.7}
+                    activeOpacity={0.6}
                 >
-                    <Ionicons name="add-circle" size={18} color="#FFFFFF" />
+                    <Ionicons name="add-circle-outline" size={18} color="#007AFF" />
                     <Text style={styles.addButtonText}>Add</Text>
                 </TouchableOpacity>
             </View>
@@ -58,58 +98,74 @@ export const RSSResultCard: React.FC<RSSResultCardProps> = ({
 };
 
 const styles = StyleSheet.create({
-    resultCard: {
+    card: {
         backgroundColor: '#1C1C1E',
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
-    },    
-    resultTitle: {
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: 'rgba(84, 84, 88, 0.65)',
+    },
+    title: {
         fontSize: 16,
         fontWeight: '500',
-        color: '#fff',
-        marginBottom: 12,
+        color: '#FFFFFF',
+        marginBottom: 8,
         lineHeight: 22,
-        letterSpacing: -0.41,
     },
-    actionButtons: {
+    description: {
+        fontSize: 14,
+        color: '#8E8E93',
+        lineHeight: 20,
+        marginBottom: 12,
+    },
+    metadata: {
+        flexDirection: 'row',
+        gap: 16,
+        marginBottom: 16,
+        flexWrap: 'wrap',
+    },
+    metaItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    metaText: {
+        fontSize: 13,
+        color: '#8E8E93',
+        fontWeight: '500',
+    },
+    actions: {
         flexDirection: 'row',
         gap: 8,
-        backgroundColor: 'transparent',
-        paddingTop: 12,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: 'rgba(142, 142, 147, 0.2)',
     },
-    streamButton: {
+    button: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#007AFF',
-        paddingVertical: 10,
-        borderRadius: 8,
+        paddingVertical: 12,
+        borderRadius: 10,
         gap: 6,
+        minHeight: 44,
+    },
+    streamButton: {
+        backgroundColor: '#007AFF',
+    },
+    buttonDisabled: {
+        opacity: 0.6,
     },
     streamButtonText: {
         fontSize: 15,
         fontWeight: '500',
         color: '#FFFFFF',
-        letterSpacing: -0.24,
     },
     addButton: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#007AFF',
-        paddingVertical: 10,
-        borderRadius: 8,
-        gap: 6,
+        backgroundColor: 'rgba(0, 122, 255, 0.15)',
     },
     addButtonText: {
         fontSize: 15,
         fontWeight: '500',
-        color: '#FFFFFF',
-        letterSpacing: -0.24,
+        color: '#007AFF',
     },
 });

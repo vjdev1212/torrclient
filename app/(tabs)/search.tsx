@@ -1,8 +1,3 @@
-// ============================================================================
-// File: app/(tabs)/search.tsx
-// Main Unified Search Screen
-// ============================================================================
-
 import React, { useState, useEffect } from 'react';
 import {
     StyleSheet,
@@ -19,21 +14,19 @@ import { View } from '@/components/Themed';
 import { isHapticsSupported, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import ProwlarrClient, { ProwlarrSearchResult, ProwlarrIndexer, ProwlarrCategory } from '@/clients/prowlarr';
-import { getTorrServerUrl } from '@/utils/TorrServer';
 import { StorageKeys, storageService } from '@/utils/StorageService';
-
-// Import UI Components
 import { SearchHeader } from '@/components/search/SearchHeader';
 import { SourceSelector } from '@/components/search/SourceSelector';
 import { SearchBar } from '@/components/search/SearchBar';
 import { ProwlarrFilters } from '@/components/search/ProwlarrFilters';
 import { RSSFilters } from '@/components/search/RSSFilters';
-import { ProwlarrResultCard } from '@/components/search/ProwlarrResultCard';
 import { RSSResultCard } from '@/components/search/RSSResultCard';
 import { EmptyState } from '@/components/search/EmptyState';
 import { LoadingState } from '@/components/search/LoadingState';
 import { ErrorState } from '@/components/search/ErrorState';
 import { ResultsHeader } from '@/components/search/ResultsHeader';
+import { streamTorrentFile } from '@/utils/TorrServer';
+import { ProwlarrResultCard } from '@/components/search/ProwlarrResultCard';
 
 // Types
 type SearchSource = 'prowlarr' | 'rss';
@@ -79,6 +72,9 @@ const SearchScreen = () => {
     const [error, setError] = useState<string | null>(null);
     const [results, setResults] = useState<UnifiedSearchResult[]>([]);
     const [searched, setSearched] = useState(false);
+
+    // Streaming state
+    const [streamingItems, setStreamingItems] = useState<Set<string>>(new Set());
 
     // Prowlarr state
     const [indexers, setIndexers] = useState<ProwlarrIndexer[]>([]);
@@ -401,11 +397,20 @@ const SearchScreen = () => {
         });
     };
 
-    const handleStreamNow = async (result: UnifiedSearchResult) => {
-        if (isHapticsSupported()) await Haptics.selectionAsync();
+    const getResultKey = (result: UnifiedSearchResult): string => {
+        if (result.source === 'prowlarr' && result.prowlarrResult) {
+            return result.prowlarrResult.guid || result.prowlarrResult.hash || '';
+        }
+        if (result.source === 'rss' && result.rssItem) {
+            return result.rssItem.guid || result.rssItem.link;
+        }
+        return '';
+    };
 
+    const handleStreamNow = async (result: UnifiedSearchResult) => {
         let torrentLink = '';
         let title = '';
+        const resultKey = getResultKey(result);
 
         if (result.source === 'prowlarr' && result.prowlarrResult) {
             const r = result.prowlarrResult;
@@ -422,16 +427,15 @@ const SearchScreen = () => {
             return;
         }
 
-        const baseUrl = getTorrServerUrl();
-        const encodedLink = encodeURIComponent(torrentLink);
-        const streamUrl = `${baseUrl}/stream?link=${encodedLink}&index=1&play&preload`;
-
-        router.push({
-            pathname: '/stream/player',
-            params: {
-                url: streamUrl,
-                title: title
-            },
+        await streamTorrentFile({
+            link: torrentLink,
+            title: title,
+            onPreloadStart: () => setStreamingItems(prev => new Set(prev).add(resultKey)),
+            onPreloadEnd: () => setStreamingItems(prev => {
+                const newSet = new Set(prev);
+                newSet.delete(resultKey);
+                return newSet;
+            }),
         });
     };
 
@@ -576,7 +580,7 @@ const SearchScreen = () => {
                                 onFeedSelect={handleRssFeedSelect}
                             />
                         )}
-                        
+
                         <SearchBar
                             query={query}
                             onQueryChange={setQuery}
@@ -607,6 +611,9 @@ const SearchScreen = () => {
                                     />
                                 ) : (
                                     results.map((result, index) => {
+                                        const resultKey = getResultKey(result);
+                                        const isStreaming = streamingItems.has(resultKey);
+
                                         if (result.source === 'prowlarr' && result.prowlarrResult) {
                                             return (
                                                 <ProwlarrResultCard
@@ -617,6 +624,7 @@ const SearchScreen = () => {
                                                     getCategoryBadge={getCategoryBadge}
                                                     formatFileSize={ProwlarrClient.formatFileSize}
                                                     formatAge={ProwlarrClient.formatAge}
+                                                    isStreaming={isStreaming}
                                                 />
                                             );
                                         }
@@ -630,6 +638,7 @@ const SearchScreen = () => {
                                                     onAdd={() => handleAddTorrent(result)}
                                                     formatDate={formatDate}
                                                     formatSize={formatSize}
+                                                    isStreaming={isStreaming}
                                                 />
                                             );
                                         }

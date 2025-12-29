@@ -1,15 +1,17 @@
 import React from 'react';
-import { StyleSheet, TouchableOpacity } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Text, ActivityIndicator } from '@/components/Themed';
 import { Ionicons } from '@expo/vector-icons';
-import { Text, View } from '@/components/Themed';
+import { ProwlarrSearchResult } from '@/clients/prowlarr';
 
 interface ProwlarrResultCardProps {
-    result: any;
+    result: ProwlarrSearchResult;
     onStream: () => void;
     onAdd: () => void;
-    getCategoryBadge: (categories: number[]) => string;
-    formatFileSize: (size: number) => string;
-    formatAge: (minutes: number) => string;
+    getCategoryBadge: (categoryIds: any[]) => string;
+    formatFileSize: (bytes: number) => string;
+    formatAge: (ageMinutes: number) => string;
+    isStreaming?: boolean;
 }
 
 export const ProwlarrResultCard: React.FC<ProwlarrResultCardProps> = ({
@@ -19,50 +21,72 @@ export const ProwlarrResultCard: React.FC<ProwlarrResultCardProps> = ({
     getCategoryBadge,
     formatFileSize,
     formatAge,
+    isStreaming = false,
 }) => {
     return (
-        <View style={styles.resultCard}>
-            <Text style={styles.resultTitle}>{result.title}</Text>
-
-            <View style={styles.metaContainer}>
-                <View style={styles.metaChip}>
-                    <Ionicons name="arrow-up" size={11} color="#34C759" />
-                    <Text style={styles.seedersText}>{result.seeders || 0}</Text>
-                </View>
-                <View style={styles.metaChip}>
-                    <Ionicons name="cube" size={12} color="#8E8E93" />
-                    <Text style={styles.metaChipText}>
-                        {formatFileSize(result.size)}
-                    </Text>
-                </View>
-                <View style={styles.metaChip}>
-                    <Ionicons name="time" size={12} color="#8E8E93" />
-                    <Text style={styles.metaChipText}>
-                        {formatAge(result.ageMinutes)}
-                    </Text>
-                </View>
-                <View style={styles.metaChip}>
+        <View style={styles.card}>
+            {/* Header */}
+            <View style={styles.header}>
+                <View style={styles.categoryBadge}>
                     <Text style={styles.categoryText}>
-                        {getCategoryBadge(result.categories)}
+                        {getCategoryBadge(result.categories || [])}
                     </Text>
+                </View>
+                <Text style={styles.indexer}>{result.indexer}</Text>
+            </View>
+
+            {/* Title */}
+            <Text style={styles.title}>
+                {result.title}
+            </Text>
+
+            {/* Stats */}
+            <View style={styles.stats}>
+                <View style={styles.statItem}>
+                    <Ionicons name="arrow-up" size={16} color="#8E8E93" />
+                    <Text style={styles.statValue}>{result.seeders || 0}</Text>
+                </View>
+                <View style={styles.statItem}>
+                    <Ionicons name="arrow-down" size={16} color="#8E8E93" />
+                    <Text style={styles.statValue}>{result.leechers || 0}</Text>
+                </View>
+                <View style={styles.statItem}>
+                    <Ionicons name="document" size={16} color="#8E8E93" />
+                    <Text style={styles.statValue}>{formatFileSize(result.size)}</Text>
+                </View>
+                <View style={styles.statItem}>
+                    <Ionicons name="time" size={16} color="#8E8E93" />
+                    <Text style={styles.statValue}>{formatAge(result.ageMinutes || 0)}</Text>
                 </View>
             </View>
 
-            <View style={styles.actionButtons}>
+            {/* Action Buttons */}
+            <View style={styles.actions}>
                 <TouchableOpacity
-                    style={styles.streamButton}
+                    style={[styles.button, styles.streamButton, isStreaming && styles.buttonDisabled]}
                     onPress={onStream}
-                    activeOpacity={0.7}
+                    activeOpacity={0.6}
+                    disabled={isStreaming}
                 >
-                    <Ionicons name="play-circle" size={18} color="#FFFFFF" />
-                    <Text style={styles.streamButtonText}>Play</Text>
+                    {isStreaming ? (
+                        <>
+                            <ActivityIndicator size="small" color="#FFFFFF" />
+                            <Text style={styles.streamButtonText}>Loading...</Text>
+                        </>
+                    ) : (
+                        <>
+                            <Ionicons name="play" size={18} color="#FFFFFF" />
+                            <Text style={styles.streamButtonText}>Stream</Text>
+                        </>
+                    )}
                 </TouchableOpacity>
+
                 <TouchableOpacity
-                    style={styles.addButton}
+                    style={[styles.button, styles.addButton]}
                     onPress={onAdd}
-                    activeOpacity={0.7}
+                    activeOpacity={0.6}
                 >
-                    <Ionicons name="add-circle" size={18} color="#FFFFFF" />
+                    <Ionicons name="add-circle-outline" size={18} color="#007AFF" />
                     <Text style={styles.addButtonText}>Add</Text>
                 </TouchableOpacity>
             </View>
@@ -71,130 +95,91 @@ export const ProwlarrResultCard: React.FC<ProwlarrResultCardProps> = ({
 };
 
 const styles = StyleSheet.create({
-    resultCard: {
+    card: {
         backgroundColor: '#1C1C1E',
         borderRadius: 12,
         padding: 16,
         marginBottom: 12,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: 'rgba(84, 84, 88, 0.65)',
     },
-    cardHeader: {
+    header: {
         flexDirection: 'row',
+        justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 12,
-        backgroundColor: 'transparent',
-        gap: 8,
-    },
-    sourceBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(0, 122, 255, 0.15)',
-        paddingHorizontal: 8,
-        paddingVertical: 5,
-        borderRadius: 6,
-        gap: 4,
-    },
-    sourceText: {
-        fontSize: 10,
-        fontWeight: '600',
-        color: '#007AFF',
-        textTransform: 'uppercase',
-        letterSpacing: 0.5,
+        marginBottom: 8,
     },
     categoryBadge: {
-        flex: 1,
-        backgroundColor: 'rgba(142, 142, 147, 0.12)',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 8,
+        backgroundColor: 'rgba(0, 122, 255, 0.15)',
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 6,
     },
     categoryText: {
         fontSize: 11,
         fontWeight: '500',
-        color: '#8E8E93',
-        textTransform: 'uppercase',
-        letterSpacing: 0.6,
+        color: '#007AFF',
+        letterSpacing: 0.5,
     },
-    qualityBadge: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(52, 199, 89, 0.15)',
-        paddingHorizontal: 8,
-        paddingVertical: 6,
-        borderRadius: 8,
-        gap: 4,
-    },
-    seedersText: {
-        fontSize: 13,
-        fontWeight: '500',
-        color: '#34C759',
-    },
-    resultTitle: {
-        fontSize: 16,
-        fontWeight: '500',
-        color: '#fff',
-        marginBottom: 12,
-        lineHeight: 22,
-        letterSpacing: -0.41,
-    },
-    metaContainer: {
-        flexDirection: 'row',
-        flexWrap: 'wrap',
-        gap: 6,
-        marginBottom: 12,
-        backgroundColor: 'transparent',
-    },
-    metaChip: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        backgroundColor: 'rgba(142, 142, 147, 0.12)',
-        paddingHorizontal: 10,
-        paddingVertical: 6,
-        borderRadius: 8,
-        gap: 5,
-    },
-    metaChipText: {
+    indexer: {
         fontSize: 12,
         color: '#8E8E93',
         fontWeight: '500',
     },
-    actionButtons: {
+    title: {
+        fontSize: 16,
+        fontWeight: '500',
+        color: '#FFFFFF',
+        marginBottom: 12,
+        lineHeight: 22,
+    },
+    stats: {
+        flexDirection: 'row',
+        gap: 16,
+        marginBottom: 16,
+        flexWrap: 'wrap',
+    },
+    statItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 4,
+    },
+    statValue: {
+        fontSize: 14,
+        color: '#FFFFFF',
+        fontWeight: '500',
+    },
+    actions: {
         flexDirection: 'row',
         gap: 8,
-        backgroundColor: 'transparent',
-        paddingTop: 12,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: 'rgba(142, 142, 147, 0.2)',
     },
-    streamButton: {
+    button: {
         flex: 1,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: '#007AFF',
-        paddingVertical: 10,
-        borderRadius: 8,
+        paddingVertical: 12,
+        borderRadius: 10,
         gap: 6,
+        minHeight: 44,
+    },
+    streamButton: {
+        backgroundColor: '#007AFF',
+    },
+    buttonDisabled: {
+        opacity: 0.6,
     },
     streamButtonText: {
         fontSize: 15,
         fontWeight: '500',
         color: '#FFFFFF',
-        letterSpacing: -0.24,
     },
     addButton: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#007AFF',
-        paddingVertical: 10,
-        borderRadius: 8,
-        gap: 6,
+        backgroundColor: 'rgba(0, 122, 255, 0.15)',
     },
     addButtonText: {
         fontSize: 15,
         fontWeight: '500',
-        color: '#FFFFFF',
-        letterSpacing: -0.24,
+        color: '#007AFF',
     },
 });
