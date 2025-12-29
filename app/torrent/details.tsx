@@ -38,6 +38,18 @@ const buildDirectoryTree = (files: any[]) => {
   return tree;
 };
 
+const getRandomLoadingText = () => {
+  const messages = [
+    'Hang tight…',
+    'Almost there…',
+    'Just a moment…',
+    'Getting things ready…',
+    'Please hold on…',
+  ];
+
+  return messages[Math.floor(Math.random() * messages.length)];
+}
+
 const TorrentDetails = () => {
   const { hash } = useLocalSearchParams();
   const [torrentData, setTorrentData] = useState<any>(null);
@@ -50,6 +62,7 @@ const TorrentDetails = () => {
   const { width, height } = useWindowDimensions();
   const isPortrait = height >= width;
   const ref = useRef<ScrollView | null>(null);
+  const loadingTextRef = useRef(getRandomLoadingText());
 
   useEffect(() => {
     let interval: any;
@@ -173,7 +186,8 @@ const TorrentDetails = () => {
 
   const directoryTree = buildDirectoryTree(videoFiles);
 
-  const toggleFolder = (folderPath: string) => {
+  const toggleFolder = async (folderPath: string) => {
+    await Haptics.impactAsync(ImpactFeedbackStyle.Light);
     setExpandedFolders(prev => {
       const newSet = new Set(prev);
       if (newSet.has(folderPath)) {
@@ -506,7 +520,7 @@ const TorrentDetails = () => {
                 </Text>
                 <Text style={styles.fileSize}>
                   {preloadingFiles.has(file.id)
-                    ? 'Loading...'
+                    ? `${loadingTextRef.current}`
                     : `${(file.length / (1024 ** 2)).toFixed(2)} MB`
                   }
                 </Text>
@@ -895,7 +909,8 @@ const styles = StyleSheet.create({
   },
   fileSize: {
     fontSize: 14,
-    color: '#8E8E93',
+    marginTop: 5,
+    color: '#0A84FF',
   },
 
   // Loading States
