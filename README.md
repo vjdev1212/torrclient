@@ -15,13 +15,15 @@ Or download directly from [GitHub Releases](https://github.com/vjdev1212/torrcli
 ---
 
 ## Features
-1. Modern UI for OTT-like experience.
-2. Multiple instances support.
-3. Prowlarr Integration.
-4. RSS Support.
-5. Instant Streaming without adding to TorrServer.
-6. Automatic Poster with IMDbID.
-7. Native and VLC Player support.
+- Modern UI for an OTT-like experience.
+- Support for multiple instances.
+- Built-In Media Player (both Native and VLC).
+- External media player support.
+- Prowlarr integration for instant search.
+- RSS feeds support.
+- Instant streaming without adding torrents to TorrServer.
+- Automatic poster fetching using IMDb ID.
+- ???
 
 ## Screenshots
 
