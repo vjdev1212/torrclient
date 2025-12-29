@@ -17,7 +17,7 @@ const buildDirectoryTree = (files: any[]) => {
 
   files.forEach((file) => {
     const parts = file.path.split('/');
-    
+
     if (parts.length === 1) {
       // File in root
       tree.files.push(file);
@@ -483,7 +483,7 @@ const TorrentDetails = () => {
             shouldOpenOnLongPress={false}
           >
             <TouchableOpacity
-              style={[styles.fileRow, depth > 0 && { paddingLeft: 56 + depth * 20 }]}
+              style={[styles.fileRow, depth > 0 && { paddingLeft: 20 + depth * 5 }]}
               onPress={() => handleFileLink(file)}
               activeOpacity={0.6}
               disabled={preloadingFiles.has(file.id)}
@@ -496,12 +496,11 @@ const TorrentDetails = () => {
                 )}
               </View>
               <View style={styles.fileContent}>
-                <Text 
+                <Text
                   style={[
                     styles.fileName,
                     preloadingFiles.has(file.id) && styles.fileNameLoading
                   ]}
-                  numberOfLines={1}
                 >
                   {fileName}
                 </Text>
