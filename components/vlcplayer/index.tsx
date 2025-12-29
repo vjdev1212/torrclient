@@ -726,7 +726,7 @@ const VlcMediaPlayerComponent: React.FC<MediaPlayerProps> = ({
                         isBuffering={playerState.isBuffering}
                         onPlayPause={togglePlayPause}
                         onSkipBackward={() => skipTime(-10)}
-                        onSkipForward={() => skipTime(10)}
+                        onSkipForward={() => skipTime(30)}
                     />
 
                     <View style={styles.bottomControls}>

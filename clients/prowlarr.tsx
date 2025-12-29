@@ -135,12 +135,12 @@ class ProwlarrClient {
       throw new Error('Prowlarr client not initialized');
     }
 
-    const baseUrl = this.config.url.endsWith('/') 
-      ? this.config.url.slice(0, -1) 
+    const baseUrl = this.config.url.endsWith('/')
+      ? this.config.url.slice(0, -1)
       : this.config.url;
 
     const url = new URL(`${baseUrl}/api/v1/search`);
-    
+
     // Add query parameter
     if (params.query) {
       url.searchParams.append('query', params.query);
@@ -245,8 +245,8 @@ class ProwlarrClient {
         }
       }
 
-      const baseUrl = this.config?.url.endsWith('/') 
-        ? this.config.url.slice(0, -1) 
+      const baseUrl = this.config?.url.endsWith('/')
+        ? this.config.url.slice(0, -1)
         : this.config?.url;
 
       const url = `${baseUrl}/api/v1/indexer`;
@@ -282,8 +282,8 @@ class ProwlarrClient {
         }
       }
 
-      const baseUrl = this.config?.url.endsWith('/') 
-        ? this.config.url.slice(0, -1) 
+      const baseUrl = this.config?.url.endsWith('/')
+        ? this.config.url.slice(0, -1)
         : this.config?.url;
 
       const url = `${baseUrl}/api/v1/indexer/categories`;
@@ -319,8 +319,8 @@ class ProwlarrClient {
         }
       }
 
-      const baseUrl = this.config?.url.endsWith('/') 
-        ? this.config.url.slice(0, -1) 
+      const baseUrl = this.config?.url.endsWith('/')
+        ? this.config.url.slice(0, -1)
         : this.config?.url;
 
       const url = `${baseUrl}/api/v1/health`;
@@ -349,13 +349,23 @@ class ProwlarrClient {
 
   static formatAge(ageMinutes?: number): string {
     if (!ageMinutes) return 'Unknown';
-    
-    if (ageMinutes < 60) {
-      return `${Math.floor(ageMinutes)}m ago`;
-    } else if (ageMinutes < 1440) {
-      return `${Math.floor(ageMinutes / 60)}h ago`;
+
+    const minutes = ageMinutes;
+    const hours = minutes / 60;
+    const days = hours / 24;
+    const months = days / 30;
+    const years = days / 365;
+
+    if (minutes < 60) {
+      return `${Math.floor(minutes)}m ago`;
+    } else if (hours < 24) {
+      return `${Math.floor(hours)}h ago`;
+    } else if (days < 30) {
+      return `${Math.floor(days)}d ago`;
+    } else if (months < 12) {
+      return `${Math.floor(months)}mo ago`;
     } else {
-      return `${Math.floor(ageMinutes / 1440)}d ago`;
+      return `${Math.floor(years)}y ago`;
     }
   }
 }

@@ -43,11 +43,11 @@ export const ProwlarrResultCard: React.FC<ProwlarrResultCardProps> = ({
             {/* Stats */}
             <View style={styles.stats}>
                 <View style={styles.statItem}>
-                    <Ionicons name="arrow-up" size={16} color="#8E8E93" />
+                    <Ionicons name="arrow-up-circle" size={16} color="rgba(52, 199, 89, 0.75)" />
                     <Text style={styles.statValue}>{result.seeders || 0}</Text>
                 </View>
                 <View style={styles.statItem}>
-                    <Ionicons name="arrow-down" size={16} color="#8E8E93" />
+                    <Ionicons name="arrow-down-circle" size={16} color="rgba(255, 69, 58, 0.75)" />
                     <Text style={styles.statValue}>{result.leechers || 0}</Text>
                 </View>
                 <View style={styles.statItem}>
