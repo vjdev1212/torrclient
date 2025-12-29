@@ -18,6 +18,7 @@ const TorrentDetails = () => {
   const [baseUrl, setBaseUrl] = useState<any>('');
   const [loading, setLoading] = useState(true);
   const [cacheLoading, setCacheLoading] = useState(true);
+  const [preloadingFiles, setPreloadingFiles] = useState<Set<number>>(new Set());
   const { width, height } = useWindowDimensions();
   const isPortrait = height >= width;
   const ref = useRef<ScrollView | null>(null);
@@ -54,6 +55,8 @@ const TorrentDetails = () => {
             console.error('Failed to parse files from data:', err);
           }
         }
+
+        console.log('TorrentResult', torrentResult)
 
         const torrentInfo = {
           title: torrentResult.title || 'Untitled',
@@ -153,25 +156,79 @@ const TorrentDetails = () => {
 
     const fileTitle = extractFileName(file.path);
 
-    const streamUrl = `${baseUrl}/stream/${file.path}?link=${hash}&index=${file.id}&play&preload`;
+    // Mark file as preloading
+    setPreloadingFiles(prev => new Set(prev).add(file.id));
 
-    // Navigate to player screen and let it handle player selection
-    router.push({
-      pathname: '/stream/player',
-      params: { url: streamUrl, title: fileTitle },
-    });
+    try {
+      // First preload the file
+      const preloadUrl = `${baseUrl}/stream/${file.path}?link=${hash}&index=${file.id}&preload`;
+      const authHeader = getTorrServerAuthHeader();
+
+      await fetch(preloadUrl, {
+        method: 'GET',
+        headers: { ...(authHeader || {}) },
+      });
+
+      // Wait a brief moment to ensure preload has started
+      await new Promise(resolve => setTimeout(resolve, 500));
+
+      // Then navigate to player
+      const streamUrl = `${baseUrl}/stream/${file.path}?link=${hash}&index=${file.id}&play&preload`;
+
+      router.push({
+        pathname: '/stream/player',
+        params: { url: streamUrl, title: torrentData.title, fileTitle: fileTitle, category: torrentData.category },
+      });
+    } catch (error) {
+      console.error('Preload failed:', error);
+      showAlert('Preload failed', 'Unable to preload file. Try again.');
+    } finally {
+      // Remove loading state after navigation
+      setPreloadingFiles(prev => {
+        const newSet = new Set(prev);
+        newSet.delete(file.id);
+        return newSet;
+      });
+    }
   };
 
   const handleMenuAction = async (file: any, actionId: string) => {
     const streamUrl = `${baseUrl}/stream/${file.path}?link=${hash}&index=${file.id}`;
     const fileTitle = extractFileName(file.path);
     if (actionId === 'play') {
-      const playUrl = `${streamUrl}&play&preload`;
-      // Navigate to player screen and let it handle player selection
-      router.push({
-        pathname: '/stream/player',
-        params: { url: playUrl, title: fileTitle },
-      });
+      // Mark file as preloading
+      setPreloadingFiles(prev => new Set(prev).add(file.id));
+
+      try {
+        // First preload the file
+        const preloadUrl = `${streamUrl}&preload`;
+        const authHeader = getTorrServerAuthHeader();
+
+        await fetch(preloadUrl, {
+          method: 'GET',
+          headers: { ...(authHeader || {}) },
+        });
+
+        // Wait a brief moment to ensure preload has started
+        await new Promise(resolve => setTimeout(resolve, 500));
+
+        // Then navigate to player
+        const playUrl = `${streamUrl}&play&preload`;
+        router.push({
+          pathname: '/stream/player',
+          params: { url: playUrl, title: torrentData.title, fileTitle: fileTitle, category: torrentData.category },
+        });
+      } catch (error) {
+        console.error('Preload failed:', error);
+        showAlert('Preload failed', 'Unable to preload file. Try again.');
+      } finally {
+        // Remove loading state after navigation
+        setPreloadingFiles(prev => {
+          const newSet = new Set(prev);
+          newSet.delete(file.id);
+          return newSet;
+        });
+      }
     } else if (actionId === 'preload') {
       try {
         const preloadUrl = `${streamUrl}&preload`;
@@ -180,7 +237,6 @@ const TorrentDetails = () => {
           method: 'GET',
           headers: { ...(authHeader || {}) },
         });
-        showAlert('Preload started', 'Torrent file is now preloading.');
       } catch {
         showAlert('Preload failed', 'Unable to start preload.');
       }
@@ -520,19 +576,34 @@ const TorrentDetails = () => {
                           style={styles.fileRow}
                           onPress={() => handleFileLink(file)}
                           activeOpacity={0.6}
+                          disabled={preloadingFiles.has(file.id)}
                         >
                           <View style={styles.fileIconContainer}>
-                            <Ionicons name="play-circle" size={24} color="#007AFF" />
+                            {preloadingFiles.has(file.id) ? (
+                              <ActivityIndicator size="small" color="#007AFF" />
+                            ) : (
+                              <Ionicons name="play-circle" size={24} color="#007AFF" />
+                            )}
                           </View>
                           <View style={styles.fileContent}>
-                            <Text style={styles.fileName}>
+                            <Text style={[
+                              styles.fileName,
+                              preloadingFiles.has(file.id) && styles.fileNameLoading
+                            ]}>
                               {file.path}
                             </Text>
                             <Text style={styles.fileSize}>
-                              {(file.length / (1024 ** 2)).toFixed(2)} MB
+                              {preloadingFiles.has(file.id)
+                                ? 'Preloading file. Please wait...'
+                                : `${(file.length / (1024 ** 2)).toFixed(2)} MB`
+                              }
                             </Text>
                           </View>
-                          <Ionicons name="chevron-forward" size={20} color="#C7C7CC" />
+                          <Ionicons
+                            name="chevron-forward"
+                            size={20}
+                            color={preloadingFiles.has(file.id) ? '#3A3A3C' : '#C7C7CC'}
+                          />
                         </TouchableOpacity>
                       </MenuView>
                     </React.Fragment>
@@ -765,6 +836,9 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     lineHeight: 22,
   },
+  fileNameLoading: {
+    color: '#8E8E93',
+  },
   fileSize: {
     fontSize: 14,
     color: '#8E8E93',
@@ -774,7 +848,7 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'    
+    alignItems: 'center'
   },
   loadingText: {
     marginTop: 16,
