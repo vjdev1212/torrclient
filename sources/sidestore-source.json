@@ -21,7 +21,13 @@
       "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.7/TorrClient_v1.0.7.ipa",
       "tintColor": "#535aff",
       "category": "entertainment",
-      "screenshots": [],
+      "screenshots": [
+        "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/torrclient-screenshots/1-Home.png",
+        "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/torrclient-screenshots/2-Library.png",
+        "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/torrclient-screenshots/3-Search.png",
+        "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/torrclient-screenshots/4-RSS.png",
+        "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/torrclient-screenshots/5-Settings.png"
+      ],
       "versions": [
         {
           "version": "1.0.7",
