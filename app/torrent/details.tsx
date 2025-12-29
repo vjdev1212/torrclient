@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { JSX, useEffect, useRef, useState } from 'react';
 import { Alert, Image, ImageBackground, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, StatusBar, Text } from '@/components/Themed';
@@ -11,6 +11,33 @@ import { ImpactFeedbackStyle } from 'expo-haptics';
 import { MenuView } from '@react-native-menu/menu';
 import { LinearGradient } from 'expo-linear-gradient';
 
+// Helper function to build directory tree
+const buildDirectoryTree = (files: any[]) => {
+  const tree: any = { files: [], folders: {} };
+
+  files.forEach((file) => {
+    const parts = file.path.split('/');
+    
+    if (parts.length === 1) {
+      // File in root
+      tree.files.push(file);
+    } else {
+      // File in folder(s)
+      let current = tree;
+      for (let i = 0; i < parts.length - 1; i++) {
+        const folderName = parts[i];
+        if (!current.folders[folderName]) {
+          current.folders[folderName] = { files: [], folders: {} };
+        }
+        current = current.folders[folderName];
+      }
+      current.files.push(file);
+    }
+  });
+
+  return tree;
+};
+
 const TorrentDetails = () => {
   const { hash } = useLocalSearchParams();
   const [torrentData, setTorrentData] = useState<any>(null);
@@ -19,6 +46,7 @@ const TorrentDetails = () => {
   const [loading, setLoading] = useState(true);
   const [cacheLoading, setCacheLoading] = useState(true);
   const [preloadingFiles, setPreloadingFiles] = useState<Set<number>>(new Set());
+  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const { width, height } = useWindowDimensions();
   const isPortrait = height >= width;
   const ref = useRef<ScrollView | null>(null);
@@ -142,6 +170,20 @@ const TorrentDetails = () => {
   const videoFiles = torrentData.files.filter((file: any) =>
     /\.(mp4|mkv|webm|avi|mov|flv|wmv|m4v)$/i.test(file.path)
   );
+
+  const directoryTree = buildDirectoryTree(videoFiles);
+
+  const toggleFolder = (folderPath: string) => {
+    setExpandedFolders(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(folderPath)) {
+        newSet.delete(folderPath);
+      } else {
+        newSet.add(folderPath);
+      }
+      return newSet;
+    });
+  };
 
   const handleFileLink = async (file: any) => {
     await streamTorrentFile({
@@ -351,7 +393,6 @@ const TorrentDetails = () => {
     );
   });
 
-
   const InfoRow = ({ label, value }: { label: string, value: any }) => (
     <View style={styles.infoRow}>
       <Text style={styles.infoLabel}>{label}</Text>
@@ -380,8 +421,119 @@ const TorrentDetails = () => {
         imageColor: '#ffffff',
       },
     ];
-  }
+  };
 
+  // Recursive component to render directory tree
+  const renderDirectoryTree = (tree: any, parentPath: string = '', depth: number = 0) => {
+    const elements: JSX.Element[] = [];
+
+    // Render folders
+    Object.keys(tree.folders).sort().forEach((folderName, folderIndex) => {
+      const folderPath = parentPath ? `${parentPath}/${folderName}` : folderName;
+      const isExpanded = expandedFolders.has(folderPath);
+      const folderContent = tree.folders[folderName];
+      const fileCount = countFiles(folderContent);
+
+      elements.push(
+        <React.Fragment key={`folder-${folderPath}`}>
+          {(folderIndex > 0 || tree.files.length > 0) && <View style={styles.separator} />}
+          <TouchableOpacity
+            style={[styles.folderRow, depth > 0 && { paddingLeft: 16 + depth * 20 }]}
+            onPress={() => toggleFolder(folderPath)}
+            activeOpacity={0.6}
+          >
+            <Ionicons
+              name={isExpanded ? 'chevron-down' : 'chevron-forward'}
+              size={20}
+              color="#8E8E93"
+            />
+            <Ionicons
+              name="folder"
+              size={28}
+              color="#007AFF"
+            />
+            <View style={styles.folderContent}>
+              <Text style={styles.folderName}>{folderName}</Text>
+            </View>
+            <Text style={styles.fileCount}>{fileCount}</Text>
+          </TouchableOpacity>
+
+          {isExpanded && (
+            <>
+              {renderDirectoryTree(folderContent, folderPath, depth + 1)}
+            </>
+          )}
+        </React.Fragment>
+      );
+    });
+
+    // Render files at this level
+    tree.files.forEach((file: any, fileIndex: number) => {
+      const fileName = file.path.split('/').pop();
+      elements.push(
+        <React.Fragment key={`file-${file.id}`}>
+          {(fileIndex > 0 || Object.keys(tree.folders).length > 0) && <View style={styles.separator} />}
+          <MenuView
+            title="Actions"
+            onPressAction={({ nativeEvent }) => {
+              handleMenuAction(file, nativeEvent.event);
+            }}
+            themeVariant="dark"
+            actions={getFileActions()}
+            shouldOpenOnLongPress={false}
+          >
+            <TouchableOpacity
+              style={[styles.fileRow, depth > 0 && { paddingLeft: 56 + depth * 20 }]}
+              onPress={() => handleFileLink(file)}
+              activeOpacity={0.6}
+              disabled={preloadingFiles.has(file.id)}
+            >
+              <View style={styles.fileIconContainer}>
+                {preloadingFiles.has(file.id) ? (
+                  <ActivityIndicator size="small" color="#007AFF" />
+                ) : (
+                  <Ionicons name="play-circle" size={28} color="#007AFF" />
+                )}
+              </View>
+              <View style={styles.fileContent}>
+                <Text 
+                  style={[
+                    styles.fileName,
+                    preloadingFiles.has(file.id) && styles.fileNameLoading
+                  ]}
+                  numberOfLines={1}
+                >
+                  {fileName}
+                </Text>
+                <Text style={styles.fileSize}>
+                  {preloadingFiles.has(file.id)
+                    ? 'Loading...'
+                    : `${(file.length / (1024 ** 2)).toFixed(2)} MB`
+                  }
+                </Text>
+              </View>
+              <Ionicons
+                name="chevron-forward"
+                size={20}
+                color="#8E8E93"
+              />
+            </TouchableOpacity>
+          </MenuView>
+        </React.Fragment>
+      );
+    });
+
+    return elements;
+  };
+
+  // Helper to count total files in a tree
+  const countFiles = (tree: any): number => {
+    let count = tree.files.length;
+    Object.values(tree.folders).forEach((folder: any) => {
+      count += countFiles(folder);
+    });
+    return count;
+  };
 
   return (
     <View style={styles.container}>
@@ -490,59 +642,12 @@ const TorrentDetails = () => {
               </TouchableOpacity>
             </View>
 
-            {/* Files Section */}
+            {/* Files Section with Directory Tree */}
             {videoFiles.length > 0 && (
               <View style={styles.infoGroup}>
                 <Text style={styles.groupTitle}>FILES ({videoFiles.length})</Text>
                 <View style={styles.infoCard}>
-                  {videoFiles.map((file: any, index: number) => (
-                    <React.Fragment key={index}>
-                      {index > 0 && <View style={styles.separator} />}
-                      <MenuView
-                        title="Actions"
-                        onPressAction={({ nativeEvent }) => {
-                          handleMenuAction(file, nativeEvent.event);
-                        }}
-                        themeVariant="dark"
-                        actions={getFileActions()}
-                        shouldOpenOnLongPress={false}
-                      >
-                        <TouchableOpacity
-                          style={styles.fileRow}
-                          onPress={() => handleFileLink(file)}
-                          activeOpacity={0.6}
-                          disabled={preloadingFiles.has(file.id)}
-                        >
-                          <View style={styles.fileIconContainer}>
-                            {preloadingFiles.has(file.id) ? (
-                              <ActivityIndicator size="small" color="#007AFF" />
-                            ) : (
-                              <Ionicons name="play-circle" size={24} color="#007AFF" />
-                            )}
-                          </View>
-                          <View style={styles.fileContent}>
-                            <Text style={[
-                              styles.fileName,
-                              preloadingFiles.has(file.id) && styles.fileNameLoading
-                            ]}>
-                              {file.path}
-                            </Text>
-                            <Text style={styles.fileSize}>
-                              {preloadingFiles.has(file.id)
-                                ? 'Loading. Please wait...'
-                                : `${(file.length / (1024 ** 2)).toFixed(2)} MB`
-                              }
-                            </Text>
-                          </View>
-                          <Ionicons
-                            name="chevron-forward"
-                            size={20}
-                            color={preloadingFiles.has(file.id) ? '#3A3A3C' : '#C7C7CC'}
-                          />
-                        </TouchableOpacity>
-                      </MenuView>
-                    </React.Fragment>
-                  ))}
+                  {renderDirectoryTree(directoryTree)}
                 </View>
               </View>
             )}
@@ -733,27 +838,56 @@ const styles = StyleSheet.create({
     marginLeft: 16,
   },
 
+  // Folders
+  folderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    minHeight: 44,
+    gap: 12,
+    backgroundColor: '#1C1C1E',
+  },
+  folderContent: {
+    flex: 1,
+    justifyContent: 'center',
+  },
+  folderName: {
+    fontSize: 17,
+    fontWeight: '400',
+    color: '#FFFFFF',
+    lineHeight: 22,
+    letterSpacing: -0.41,
+  },
+  fileCount: {
+    fontSize: 17,
+    color: '#8E8E93',
+    fontWeight: '400',
+    letterSpacing: -0.41,
+  },
+
   // Files
   fileRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 10,
+    paddingVertical: 11,
     paddingHorizontal: 16,
-    minHeight: 60,
+    minHeight: 44,
     gap: 12,
+    backgroundColor: '#1C1C1E',
   },
   fileIconContainer: {
-    width: 40,
-    height: 40,
+    width: 29,
+    height: 29,
     alignItems: 'center',
     justifyContent: 'center',
   },
   fileContent: {
     flex: 1,
-    gap: 2,
+    justifyContent: 'center',
   },
   fileName: {
-    fontSize: 16,
+    fontSize: 17,
     color: '#FFFFFF',
     lineHeight: 22,
   },
