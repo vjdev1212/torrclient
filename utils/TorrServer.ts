@@ -1,5 +1,9 @@
 import { Buffer } from 'buffer';
 import { StorageKeys, storageService } from './StorageService';
+import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { showAlert } from './platform';
+import { isHapticsSupported } from './platform';
 
 interface ServerConfig {
   id: string;
@@ -250,4 +254,157 @@ export const setTorrServerAuth = (enabled: boolean, username: string, password: 
   } catch (error) {
     console.error('Error saving TorrServer auth settings:', error);
   }
+};
+export interface StreamingOptions {
+  hash?: string;
+  link?: string;
+  fileId?: number;
+  filePath?: string;
+  title: string;
+  fileTitle?: string;
+  category?: string;
+  onPreloadStart?: () => void;
+  onPreloadEnd?: () => void;
+}
+
+/**
+ * Preload a torrent file before streaming
+ * @param options - Streaming options
+ * @returns Promise<boolean> - Success status
+ */
+export const preloadTorrentFile = async (options: StreamingOptions): Promise<boolean> => {
+  const { hash, link, fileId, filePath, onPreloadStart, onPreloadEnd } = options;
+  
+  try {
+    if (onPreloadStart) {
+      onPreloadStart();
+    }
+
+    const baseUrl = getTorrServerUrl();
+    const authHeader = getTorrServerAuthHeader();
+    
+    let preloadUrl: string;
+    
+    if (filePath && hash) {
+      // For torrent details screen with file path
+      preloadUrl = `${baseUrl}/stream/${filePath}?link=${hash}&index=${fileId}&preload`;
+    } else if (link) {
+      // For search screen with magnet/torrent link
+      const encodedLink = encodeURIComponent(link);
+      preloadUrl = `${baseUrl}/stream?link=${encodedLink}&index=${fileId || 1}&preload`;
+    } else {
+      throw new Error('Invalid streaming options: must provide either filePath+hash or link');
+    }
+
+    const response = await fetch(preloadUrl, {
+      method: 'GET',
+      headers: { ...(authHeader || {}) },
+    });
+
+    if (!response.ok) {
+      throw new Error(`Preload failed with status: ${response.status}`);
+    }
+
+    // Wait briefly to ensure preload has started
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    return true;
+  } catch (error) {
+    console.error('Preload failed:', error);
+    throw error;
+  } finally {
+    if (onPreloadEnd) {
+      onPreloadEnd();
+    }
+  }
+};
+
+/**
+ * Stream a torrent file with preloading
+ * @param options - Streaming options
+ */
+export const streamTorrentFile = async (options: StreamingOptions): Promise<void> => {
+  const { hash, link, fileId, filePath, title, fileTitle, category } = options;
+
+  try {
+    // Trigger haptic feedback
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    // Preload the file first
+    await preloadTorrentFile(options);
+
+    // Build stream URL
+    const baseUrl = getTorrServerUrl();
+    let streamUrl: string;
+
+    if (filePath && hash) {
+      // For torrent details screen
+      streamUrl = `${baseUrl}/stream/${filePath}?link=${hash}&index=${fileId}&play&preload`;
+    } else if (link) {
+      // For search screen
+      const encodedLink = encodeURIComponent(link);
+      streamUrl = `${baseUrl}/stream?link=${encodedLink}&index=${fileId || 1}&play&preload`;
+    } else {
+      throw new Error('Invalid streaming options');
+    }
+
+    // Navigate to player
+    router.push({
+      pathname: '/stream/player',
+      params: {
+        url: streamUrl,
+        title: title,
+        fileTitle: fileTitle || title,
+        category: category,
+      },
+    });
+  } catch (error) {
+    console.error('Stream failed:', error);
+    showAlert('Playback Error', 'Unable to start playback. Please try again.');
+  }
+};
+
+/**
+ * Preload only (without playing)
+ * @param options - Streaming options
+ */
+export const preloadOnly = async (options: StreamingOptions): Promise<void> => {
+  try {
+    if (isHapticsSupported()) {
+      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    }
+
+    await preloadTorrentFile(options);
+    showAlert('Success', 'File preload started successfully.');
+  } catch (error) {
+    console.error('Preload failed:', error);
+    showAlert('Preload Failed', 'Unable to start preload. Please try again.');
+  }
+};
+
+/**
+ * Extract file name from path
+ * @param path - File path
+ * @returns File name
+ */
+export const extractFileName = (path: string): string => {
+  return path.split('/').pop() || path;
+};
+
+/**
+ * Format bytes to human-readable format
+ * @param bytes - Number of bytes
+ * @returns Formatted string
+ */
+export const formatBytes = (bytes: number | string): string => {
+  const size = typeof bytes === 'string' ? parseInt(bytes) : bytes;
+  if (!size || size === 0 || isNaN(size)) return '0 B';
+  
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  const i = Math.floor(Math.log(size) / Math.log(1024));
+  const value = size / Math.pow(1024, i);
+  
+  return `${value.toFixed(2)} ${units[i]}`;
 };

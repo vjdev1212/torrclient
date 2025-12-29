@@ -8,12 +8,6 @@ import { getLanguageName } from "@/utils/Helpers";
 import * as ScreenOrientation from 'expo-screen-orientation';
 
 
-interface BackEvent {
-  message: string;
-  code?: string;
-  progress: number;
-  player: "native" | "vlc",
-}
 interface UpdateProgressEvent {
   progress: number
 }
@@ -34,7 +28,7 @@ const MAX_HISTORY_ITEMS = 30;
 
 const MediaPlayerScreen: React.FC = () => {
   const router = useRouter();
-  const { url, title, progress: watchHistoryProgress } = useLocalSearchParams();
+  const { url, title, fileTitle, category, progress: watchHistoryProgress } = useLocalSearchParams();
 
   const [subtitles, setSubtitles] = useState<Subtitle[]>([]);
   const [isLoadingSubtitles, setIsLoadingSubtitles] = useState(true);
@@ -86,7 +80,7 @@ const MediaPlayerScreen: React.FC = () => {
   const routeToExternalPlayer = (playerType: string, streamUrl: string) => {
     console.log('Routing to external player:', playerType, streamUrl);
     const normalizedPlayer = playerType.toLowerCase().trim();
-    
+
     switch (normalizedPlayer) {
       case 'infuse':
         Linking.openURL(`infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`);
@@ -120,12 +114,12 @@ const MediaPlayerScreen: React.FC = () => {
     const handlePlayerAndOrientation = async () => {
       const savedPlayer = storageService.getItem(StorageKeys.DEFAULT_MEDIA_PLAYER_KEY);
       console.log('Player selection effect - Saved Player:', savedPlayer);
-      
+
       const useInternalPlayer = isInternalPlayer(savedPlayer as string);
       console.log('Will use internal player:', useInternalPlayer);
-      
+
       setShouldManageOrientation(useInternalPlayer);
-      
+
       if (useInternalPlayer) {
         await setupOrientation();
       }
@@ -142,7 +136,7 @@ const MediaPlayerScreen: React.FC = () => {
 
   useEffect(() => {
     console.log('URL Effect - URL:', url);
-    
+
     if (!url) {
       initializeClient();
       return;
@@ -151,10 +145,10 @@ const MediaPlayerScreen: React.FC = () => {
     // Get default media player preference
     const savedPlayer = storageService.getItem(StorageKeys.DEFAULT_MEDIA_PLAYER_KEY);
     console.log('URL Effect - Saved Player:', savedPlayer);
-    
+
     if (savedPlayer) {
       setDefaultMediaPlayer(savedPlayer);
-      
+
       // Check if we should route to external player
       if (!isInternalPlayer(savedPlayer)) {
         console.log('Routing to external player:', savedPlayer);
@@ -165,7 +159,7 @@ const MediaPlayerScreen: React.FC = () => {
         }
       }
     }
-    
+
     console.log('Using internal player, setting video URL');
     setVideoUrl(url as string);
     setIsLoadingStream(false);
@@ -235,7 +229,6 @@ const MediaPlayerScreen: React.FC = () => {
 
     try {
       setIsLoadingSubtitles(true);
-
       const response = await openSubtitlesClient.searchByFileName(
         title as string,
         ['en'],
@@ -375,7 +368,7 @@ const MediaPlayerScreen: React.FC = () => {
     <Player
       videoUrl={videoUrl}
       back={handleBack}
-      title={title}      
+      title={fileTitle}
       subtitles={subtitles}
       openSubtitlesClient={openSubtitlesClient}
       isLoadingSubtitles={isLoadingSubtitles}

@@ -260,11 +260,10 @@ const MediaPlayerConfigScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000000',
+        marginTop: 30
     },
     centeredContainer: {
         flex: 1,
-        backgroundColor: '#000000',
         justifyContent: 'center',
         alignItems: 'center',
     },
@@ -281,7 +280,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 8,
         paddingBottom: 16,
-        backgroundColor: '#000000',
     },
     headerTitle: {
         fontSize: 34,
@@ -296,7 +294,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 22,
         paddingBottom: 10,
-        backgroundColor: '#000000',
     },
     sectionHeader: {
         fontSize: 13,

@@ -135,7 +135,7 @@ const RSSFeedsScreen = () => {
             return;
         }
         router.push({
-            pathname: '/(tabs)/rss',
+            pathname: '/(tabs)/search',
             params: { feedId: feed.id }
         });
     };
@@ -335,13 +335,12 @@ const RSSFeedsScreen = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#000000',
+        marginTop: 30
     },
     header: {
         paddingHorizontal: 20,
         paddingTop: 8,
         paddingBottom: 16,
-        backgroundColor: '#000000',
     },
     headerTitle: {
         fontSize: 34,
@@ -356,7 +355,6 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
         paddingTop: 22,
         paddingBottom: 6,
-        backgroundColor: '#000000',
     },
     sectionHeader: {
         fontSize: 13,
@@ -465,7 +463,6 @@ const styles = StyleSheet.create({
     },
     sectionSeparator: {
         height: 20,
-        backgroundColor: '#000000',
     },
     deleteButton: {
         paddingVertical: 11,

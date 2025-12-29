@@ -157,7 +157,8 @@ export default function PosterCarousel({
                     >
                         {/* iOS-style gradient overlay */}
                         <LinearGradient
-                            colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
+                            colors={['transparent', 'transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
+                            locations={[0, 0.5, 0.8, 1]}
                             style={styles.gradient}
                         />
 
@@ -310,8 +311,7 @@ const styles = StyleSheet.create({
     },
     loadingContainer: {
         justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#000',
+        alignItems: 'center'
     },
     loadingText: {
         color: '#8E8E93',
