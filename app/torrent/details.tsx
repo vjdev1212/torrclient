@@ -411,7 +411,7 @@ const TorrentDetails = () => {
                 resizeMode="cover"
               >
                 <LinearGradient
-                  colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
+                  colors={['transparent', 'rgba(0,0,0,0.1)', 'rgba(0,0,0,0.9)']}
                   style={styles.gradient}
                 />
               </ImageBackground>
@@ -421,12 +421,12 @@ const TorrentDetails = () => {
               </View>
             )}
             <LinearGradient
-              colors={['transparent', 'rgba(0,0,0,0.5)', 'rgba(0,0,0,0.9)']}
+              colors={['transparent', 'rgba(0,0,0,0.1)', 'rgba(0,0,0,0.2)']}
               style={styles.heroPosterGradient}
             />
-            
+
             {/* Title Overlay on Poster */}
-            <View style={styles.heroTitleContainer}>              
+            <View style={styles.heroTitleContainer}>
               <Text style={styles.heroTitle} numberOfLines={2}>
                 {torrentData.title}
               </Text>
@@ -499,8 +499,6 @@ const TorrentDetails = () => {
               </TouchableOpacity>
             </View>
 
-            <CacheInfo cacheData={cacheData} cacheLoading={cacheLoading} />
-
             {/* Files Section */}
             {videoFiles.length > 0 && (
               <View style={styles.infoGroup}>
@@ -542,7 +540,7 @@ const TorrentDetails = () => {
                 </View>
               </View>
             )}
-
+            <CacheInfo cacheData={cacheData} cacheLoading={cacheLoading} />
           </View>
         </View>
         <BottomSpacing space={50} />
