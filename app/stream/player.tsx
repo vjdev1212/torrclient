@@ -348,7 +348,7 @@ const MediaPlayerScreen: React.FC = () => {
       return require("../../components/vlcplayer").MediaPlayer;
     }
 
-    return require("../../components/vlcplayer").MediaPlayer;
+    return require("../../components/nativeplayer").MediaPlayer;
   }
 
   const Player = getPlayer();
