@@ -22,8 +22,9 @@ Or download directly from [GitHub Releases](https://github.com/vjdev1212/torrcli
 - Prowlarr integration for instant search.
 - RSS feeds support.
 - Instant streaming without adding torrents to TorrServer.
+- DeepLink support for handling Magnet Links from browsers on iOS.
 - Automatic poster fetching using IMDb ID.
-- ???
+- What else?
 
 ## Screenshots
 
