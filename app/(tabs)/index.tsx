@@ -218,8 +218,7 @@ export default HomeScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#000',
+    flex: 1
   },
   centeredLoadingContainer: {
     flex: 1,

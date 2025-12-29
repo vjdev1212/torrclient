@@ -311,8 +311,7 @@ const styles = StyleSheet.create({
     },
     loadingContainer: {
         justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#000',
+        alignItems: 'center'
     },
     loadingText: {
         color: '#8E8E93',
