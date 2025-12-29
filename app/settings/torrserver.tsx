@@ -381,7 +381,8 @@ const styles = StyleSheet.create({
     flex: 1,
     width: '100%',
     margin: 'auto',
-    maxWidth: 780
+    maxWidth: 780,
+    marginTop: 30
   },
   header: {
     paddingHorizontal: 20,
