@@ -9,9 +9,8 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import * as Haptics from 'expo-haptics';
 import { View } from '@/components/Themed';
-import { isHapticsSupported, showAlert } from '@/utils/platform';
+import { showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import ProwlarrClient, { ProwlarrSearchResult, ProwlarrIndexer, ProwlarrCategory } from '@/clients/prowlarr';
 import { StorageKeys, storageService } from '@/utils/StorageService';
@@ -161,7 +160,6 @@ const SearchScreen = () => {
     const handleProwlarrSearch = async () => {
         if (!query.trim()) return;
 
-        if (isHapticsSupported()) await Haptics.selectionAsync();
         setLoading(true);
         setSearched(true);
         setResults([]);
@@ -313,10 +311,6 @@ const SearchScreen = () => {
     const handleRefresh = async () => {
         if (refreshing) return;
 
-        if (isHapticsSupported()) {
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        }
-
         if (searchSource === 'rss' && selectedRssFeed) {
             setRefreshing(true);
             await fetchRSSFeed(selectedRssFeed);
@@ -332,19 +326,13 @@ const SearchScreen = () => {
         setQuery('');
         setResults([]);
         setSearched(false);
-        if (isHapticsSupported()) Haptics.selectionAsync();
     };
 
     const handleRetry = async () => {
-        if (isHapticsSupported()) {
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        }
         loadData();
     };
 
     const handleSourceChange = async (source: SearchSource) => {
-        if (isHapticsSupported()) await Haptics.selectionAsync();
-
         setSearchSource(source);
         setQuery('');
         setResults([]);
@@ -360,8 +348,6 @@ const SearchScreen = () => {
         const feed = rssFeeds.find(f => f.id === feedId);
         if (!feed) return;
 
-        if (isHapticsSupported()) await Haptics.selectionAsync();
-
         setSelectedRssFeed(feed);
         setQuery('');
         setResults([]);
@@ -371,8 +357,6 @@ const SearchScreen = () => {
     };
 
     const handleAddTorrent = async (result: UnifiedSearchResult) => {
-        if (isHapticsSupported()) await Haptics.selectionAsync();
-
         let link = '';
         let title = '';
 
@@ -497,7 +481,6 @@ const SearchScreen = () => {
         } else {
             setSelectedIndexer(parseInt(indexerId));
         }
-        if (isHapticsSupported()) await Haptics.selectionAsync();
     };
 
     const handleCategorySelect = async (categoryId: string) => {
@@ -509,7 +492,6 @@ const SearchScreen = () => {
             setSelectedCategory(catId);
             setSelectedCategoryName(getCategoryDisplayName(catId));
         }
-        if (isHapticsSupported()) await Haptics.selectionAsync();
     };
 
     // Initial loading

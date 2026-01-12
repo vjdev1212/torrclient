@@ -3,8 +3,6 @@ import { StyleSheet, Pressable, ScrollView } from 'react-native';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import { StatusBar, Text, View } from '@/components/Themed';
 import { useRouter } from 'expo-router';
-import * as Haptics from 'expo-haptics';
-import { isHapticsSupported } from '@/utils/platform';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 
@@ -56,9 +54,6 @@ const SettingsScreen = () => {
   };
 
   const onSettingsItemPress = async (item: any) => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
     router.push({ pathname: item.route });
   };
 

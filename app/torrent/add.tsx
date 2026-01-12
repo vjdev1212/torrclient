@@ -9,8 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
-import * as Haptics from 'expo-haptics';
-import { isHapticsSupported, showAlert } from '@/utils/platform';
+import { showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Text, View } from '@/components/Themed';
@@ -76,7 +75,6 @@ const AddTorrentScreen = () => {
       return;
     }
 
-    if (isHapticsSupported()) await Haptics.selectionAsync();
     setSubmitting(true);
 
     try {
@@ -215,7 +213,6 @@ const AddTorrentScreen = () => {
                         ]}
                         onPress={() => {
                           setCategory(c.key as any);
-                          if (isHapticsSupported()) Haptics.selectionAsync();
                         }}
                         activeOpacity={0.7}
                       >

@@ -1,9 +1,7 @@
 import { Buffer } from 'buffer';
 import { StorageKeys, storageService } from './StorageService';
 import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 import { showAlert } from './platform';
-import { isHapticsSupported } from './platform';
 
 interface ServerConfig {
   id: string;
@@ -328,11 +326,6 @@ export const streamTorrentFile = async (options: StreamingOptions): Promise<void
   const { hash, link, fileId, filePath, title, fileTitle, category, preload = false } = options;
 
   try {
-    // Trigger haptic feedback
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-
     // Preload the file first if enabled
     if (preload) {
       await preloadTorrentFile(options);
@@ -377,10 +370,6 @@ export const streamTorrentFile = async (options: StreamingOptions): Promise<void
  */
 export const preloadOnly = async (options: StreamingOptions): Promise<void> => {
   try {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-
     await preloadTorrentFile(options);
     showAlert('Success', 'File preload started successfully.');
   } catch (error) {

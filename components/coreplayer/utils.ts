@@ -1,13 +1,4 @@
-import * as Haptics from 'expo-haptics';
 
-
-export const playHaptic = async () => {
-    try {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-    } catch (error) {
-        console.log('Haptics not supported');
-    }
-}
 
 export const formatTime = (seconds: number) => {
     if (isNaN(seconds) || seconds < 0) return "0:00";

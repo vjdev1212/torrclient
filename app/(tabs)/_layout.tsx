@@ -1,9 +1,7 @@
 import React, { useMemo } from 'react';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 import { Tabs } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 import { Platform, StyleSheet, View } from 'react-native';
-import { isHapticsSupported } from '@/utils/platform';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 
@@ -67,9 +65,6 @@ export default function TabLayout() {
         name="index"
         listeners={{
           tabPress: async () => {
-            if (isHapticsSupported()) {
-              await Haptics.selectionAsync();
-            }
           },
         }}
         options={{
@@ -82,10 +77,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="library"
         listeners={{
-          tabPress: async () => {
-            if (isHapticsSupported()) {
-              await Haptics.selectionAsync();
-            }
+          tabPress: async () => {            
           },
         }}
         options={{
@@ -98,10 +90,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="search"
         listeners={{
-          tabPress: async () => {
-            if (isHapticsSupported()) {
-              await Haptics.selectionAsync();
-            }
+          tabPress: async () => {            
           },
         }}
         options={{
@@ -130,10 +119,7 @@ export default function TabLayout() {
       <Tabs.Screen
         name="settings"
         listeners={{
-          tabPress: async () => {
-            if (isHapticsSupported()) {
-              await Haptics.selectionAsync();
-            }
+          tabPress: async () => {            
           },
         }}
         options={{
