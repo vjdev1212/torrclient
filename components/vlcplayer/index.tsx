@@ -7,7 +7,6 @@ import ImmersiveMode from "react-native-immersive-mode";
 import { View, Text } from "../Themed";
 import { styles } from "../coreplayer/styles";
 import {
-    ArtworkBackground,
     WaitingLobby,
     buildAudioActions,
     buildSettingsActions,
@@ -742,13 +741,6 @@ const VlcMediaPlayerComponent: React.FC<MediaPlayerProps> = ({
                     playerState.setIsBuffering(true);
                     playerState.setHasStartedPlaying(false);
                 }}
-            />
-
-            <ArtworkBackground
-                artwork={artwork}
-                isBuffering={playerState.isBuffering || isChangingStream}
-                hasStartedPlaying={playerState.hasStartedPlaying && !isChangingStream}
-                error={!!playerState.error}
             />
 
             <WaitingLobby

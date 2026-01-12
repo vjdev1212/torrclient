@@ -504,33 +504,6 @@ export const WaitingLobby: React.FC<{
     );
 };
 
-// Artwork Background Component
-export const ArtworkBackground: React.FC<{
-    artwork?: string;
-    isBuffering: boolean;
-    hasStartedPlaying?: boolean;
-    error?: boolean;
-}> = ({ artwork, isBuffering, hasStartedPlaying = true, error }) => {
-    if (!artwork || hasStartedPlaying || error) return null;
-
-    return (
-        <View style={styles.artworkContainer}>
-            <Image
-                source={{ uri: artwork }}
-                style={styles.artworkImage}
-                resizeMode="cover"
-            />
-            <View style={styles.artworkOverlay} />
-            {isBuffering && (
-                <View style={styles.artworkLoadingOverlay}>
-                    <ActivityIndicator size="large" color="#0A84FF" />
-                    <Text style={styles.bufferingText}>Loading...</Text>
-                </View>
-            )}
-        </View>
-    );
-};
-
 // Subtitle Display Component with positioning support
 export const SubtitleDisplay: React.FC<{
     subtitle: string;
