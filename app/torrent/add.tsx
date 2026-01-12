@@ -196,7 +196,7 @@ const AddTorrentScreen = () => {
                     style={styles.input}
                     value={title}
                     onChangeText={setTitle}
-                    placeholder="Enter title"
+                    placeholder="The Lion King (1994)"
                     placeholderTextColor="#888"
                     submitBehavior="blurAndSubmit"
                   />

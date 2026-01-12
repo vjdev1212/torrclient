@@ -430,12 +430,8 @@ const SearchScreen = () => {
         await streamTorrentFile({
             link: torrentLink,
             title: title,
-            onPreloadStart: () => setStreamingItems(prev => new Set(prev).add(resultKey)),
-            onPreloadEnd: () => setStreamingItems(prev => {
-                const newSet = new Set(prev);
-                newSet.delete(resultKey);
-                return newSet;
-            }),
+            fileTitle: title,
+            preload: false
         });
     };
 

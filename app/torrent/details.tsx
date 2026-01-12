@@ -225,6 +225,16 @@ const TorrentDetails = () => {
         title: torrentData.title,
         fileTitle: extractFileName(file.path),
         category: torrentData.category,
+        preload: false
+      });
+    } else if (actionId === 'preload-play') {
+      await streamTorrentFile({
+        hash: torrentData.hash,
+        fileId: file.id,
+        filePath: file.path,
+        title: torrentData.title,
+        fileTitle: extractFileName(file.path),
+        category: torrentData.category,
         onPreloadStart: () => setPreloadingFiles(prev => new Set(prev).add(file.id)),
         onPreloadEnd: () => setPreloadingFiles(prev => {
           const newSet = new Set(prev);

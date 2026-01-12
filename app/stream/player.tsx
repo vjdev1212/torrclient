@@ -229,8 +229,9 @@ const MediaPlayerScreen: React.FC = () => {
 
     try {
       setIsLoadingSubtitles(true);
+      const subtitleQuery = category === 'movie' ? title : fileTitle
       const response = await openSubtitlesClient.searchByFileName(
-        fileTitle as string || title as string,
+        subtitleQuery as string,
         ['en'],
         {
           format: 'srt',
