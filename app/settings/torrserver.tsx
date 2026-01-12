@@ -6,10 +6,8 @@ import {
   Pressable,
   Switch,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar, Text, View } from '@/components/Themed';
-import { confirmAction, isHapticsSupported, showAlert } from '@/utils/platform';
-import * as Haptics from 'expo-haptics';
+import { confirmAction, showAlert } from '@/utils/platform';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StorageKeys, storageService } from '@/utils/StorageService';
@@ -67,10 +65,6 @@ const TorrServerScreen = () => {
   const saveServerConfigs = async () => {
     setSaving(true);
     try {
-      if (isHapticsSupported()) {
-        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-      }
-
       // Validate all servers
       for (const server of servers) {
         if (!server.url.startsWith('http')) {
@@ -98,9 +92,6 @@ const TorrServerScreen = () => {
   };
 
   const addServer = () => {
-    if (isHapticsSupported()) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
     const newServer: ServerConfig = {
       id: Date.now().toString(),
       name: ``,
@@ -142,9 +133,6 @@ const TorrServerScreen = () => {
   };
 
   const toggleExpanded = (id: string) => {
-    if (isHapticsSupported()) {
-      Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
     setExpandedServerId(expandedServerId === id ? '' : id);
   };
 
@@ -165,9 +153,6 @@ const TorrServerScreen = () => {
           <View style={styles.serverHeaderLeft}>
             <Pressable
               onPress={() => {
-                if (isHapticsSupported()) {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                }
                 setActiveServerId(server.id);
               }}
               style={styles.radioButton}

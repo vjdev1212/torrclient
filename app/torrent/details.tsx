@@ -2,12 +2,10 @@ import React, { JSX, useEffect, useRef, useState } from 'react';
 import { Alert, Image, ImageBackground, Linking, Platform, ScrollView, StyleSheet, TouchableOpacity, useWindowDimensions, View } from 'react-native';
 import { router, useLocalSearchParams } from 'expo-router';
 import { ActivityIndicator, StatusBar, Text } from '@/components/Themed';
-import * as Haptics from 'expo-haptics';
-import { isHapticsSupported, showAlert } from '@/utils/platform';
+import {  showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { Ionicons } from '@expo/vector-icons';
 import { extractFileName, formatBytes, getTorrServerAuthHeader, getTorrServerUrl, preloadOnly, streamTorrentFile } from '@/utils/TorrServer';
-import { ImpactFeedbackStyle } from 'expo-haptics';
 import { MenuView } from '@react-native-menu/menu';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -187,7 +185,6 @@ const TorrentDetails = () => {
   const directoryTree = buildDirectoryTree(videoFiles);
 
   const toggleFolder = async (folderPath: string) => {
-    await Haptics.impactAsync(ImpactFeedbackStyle.Light);
     setExpandedFolders(prev => {
       const newSet = new Set(prev);
       if (newSet.has(folderPath)) {
@@ -218,6 +215,16 @@ const TorrentDetails = () => {
 
   const handleMenuAction = async (file: any, actionId: string) => {
     if (actionId === 'play') {
+      await streamTorrentFile({
+        hash: torrentData.hash,
+        fileId: file.id,
+        filePath: file.path,
+        title: torrentData.title,
+        fileTitle: extractFileName(file.path),
+        category: torrentData.category,
+        preload: false
+      });
+    } else if (actionId === 'preload-play') {
       await streamTorrentFile({
         hash: torrentData.hash,
         fileId: file.id,
@@ -264,10 +271,6 @@ const TorrentDetails = () => {
   };
 
   const handleEdit = async () => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(ImpactFeedbackStyle.Light);
-    }
-
     router.push({
       pathname: '/torrent/add',
       params: {
@@ -283,9 +286,6 @@ const TorrentDetails = () => {
 
   const handleDrop = async () => {
     try {
-      if (isHapticsSupported()) {
-        await Haptics.impactAsync(ImpactFeedbackStyle.Light);
-      }
       const confirmed = await confirmAction(
         'Confirm Drop',
         'Are you sure you want to drop this torrent?',
@@ -310,9 +310,6 @@ const TorrentDetails = () => {
 
   const handleWipe = async () => {
     try {
-      if (isHapticsSupported()) {
-        await Haptics.impactAsync(ImpactFeedbackStyle.Light);
-      }
       const confirmed = await confirmAction(
         'Confirm Delete',
         'Are you sure you want to permanently delete this torrent?',

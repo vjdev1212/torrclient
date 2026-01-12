@@ -2,8 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { StyleSheet, ScrollView, Pressable, Alert, Platform } from 'react-native';
 import { Text, View, StatusBar } from '@/components/Themed';
 import { MaterialIcons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { confirmAction, getOriginalPlatform, isHapticsSupported, showAlert } from '@/utils/platform';
+import { confirmAction, getOriginalPlatform, showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import { Players } from '@/utils/MediaPlayer';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -108,9 +107,6 @@ const MediaPlayerConfigScreen = () => {
     };
 
     const handlePlayerSelect = async (playerName: string) => {
-        if (isHapticsSupported()) {
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-        }
         setSelectedPlayer(playerName);
     };
 
@@ -124,10 +120,6 @@ const MediaPlayerConfigScreen = () => {
 
         try {
             storageService.setItem(DEFAULT_MEDIA_PLAYER_KEY, selectedPlayer);
-
-            if (isHapticsSupported()) {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }
 
             showAlert('Success', 'Default media player saved successfully');
         } catch (error) {
@@ -154,11 +146,7 @@ const MediaPlayerConfigScreen = () => {
             if (platformPlayers.length > 0) {
                 setSelectedPlayer(platformPlayers[0].name);
             }
-
-            if (isHapticsSupported()) {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }
-
+            
             showAlert('Success', 'Player configuration reset to default');
         } catch (error) {
             console.error('Error resetting player config:', error);

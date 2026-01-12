@@ -1,28 +1,36 @@
 import React, { useState, useRef, useCallback, useEffect } from 'react';
-import { View, Text, TouchableOpacity, Animated, ActivityIndicator, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Animated, ActivityIndicator, Image, Platform, StatusBar } from 'react-native';
+import * as ScreenOrientation from 'expo-screen-orientation';
 import { Ionicons, MaterialIcons } from '@expo/vector-icons';
 import Slider from '@react-native-assets/slider';
 import { showAlert } from '@/utils/platform';
 import { parseSubtitleFile } from './subtitle';
 import { styles } from './styles';
 import { formatTime } from './utils';
+import { MediaPlayerProps } from './models';
+import { MenuAction } from '@react-native-menu/menu';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
+import { ResizeMode } from 'react-native-video';
 
 // ==================== CONSTANTS ====================
 export const CONSTANTS = {
     CONTROLS_AUTO_HIDE_DELAY: 3000,
     CONTENT_FIT_LABEL_DELAY: 1000,
     SUBTITLE_UPDATE_INTERVAL: 50,
-    PLAYBACK_SPEEDS: [0.75, 0.8, 0.85, 0.9, 0.95, 1.0, 1.05, 1.1, 1.15, 1.20, 1.25],
-    CONTENT_FIT_OPTIONS: ['contain', 'cover', 'fill'] as const
+    PLAYBACK_SPEEDS: [0.25, 0.50, 0.75, 0.8, 0.85, 0.9, 0.95, 1.0, 1.1, 1.15, 1.20, 1.25, 1.50, 1.75, 2.0],
+    CONTENT_FIT_OPTIONS: ['contain', 'cover', 'fill'] as const,
+    RN_VIDEO_CONTENT_FIT_OPTIONS: [ResizeMode.CONTAIN, ResizeMode.COVER, ResizeMode.STRETCH]
 };
+
+export type SubtitlePosition = number;
 
 // ==================== TYPES ====================
 
 export interface SubtitleSource {
     fileId?: string;
     url?: string;
+    language?: string;
     label: string;
 }
 
@@ -89,6 +97,21 @@ export const usePlayerSettings = () => {
         playbackSpeed, setPlaybackSpeed,
         selectedSubtitle, setSelectedSubtitle,
         selectedAudioTrack, setSelectedAudioTrack
+    };
+};
+
+// Enhanced player settings hook with subtitle positioning and delay
+export const useEnhancedPlayerSettings = () => {
+    const baseSettings = usePlayerSettings();
+    const [subtitleDelay, setSubtitleDelay] = useState(0);
+    const [subtitlePosition, setSubtitlePosition] = useState<number>(0);
+
+    return {
+        ...baseSettings,
+        subtitleDelay,
+        setSubtitleDelay,
+        subtitlePosition,
+        setSubtitlePosition
     };
 };
 
@@ -208,6 +231,22 @@ export const findActiveSubtitle = (
     return active?.text || '';
 };
 
+// Enhanced subtitle finding with delay support
+export const findActiveSubtitleWithDelay = (
+    currentTime: number,
+    parsedSubtitles: any[],
+    delay: number = 0
+): string => {
+    if (parsedSubtitles.length === 0) return '';
+
+    const adjustedTime = currentTime + (delay / 1000);
+    const active = parsedSubtitles.find(
+        sub => adjustedTime >= sub.start && adjustedTime <= sub.end
+    );
+
+    return active?.text || '';
+};
+
 // Controls visibility management
 export const hideControls = (
     setShowControls: (show: boolean) => void,
@@ -243,23 +282,36 @@ export const performSeek = (
 };
 
 // Menu action builders
-export const buildSpeedActions = (currentSpeed: number) => {
-    return CONSTANTS.PLAYBACK_SPEEDS.map(speed => ({
+export const buildSettingsActions = (currentSpeed: number): MenuAction[] => {
+    const speedActions = CONSTANTS.PLAYBACK_SPEEDS.map(speed => ({
         id: `speed-${speed}`,
         title: `${speed}x`,
         state: currentSpeed === speed ? ('on' as const) : undefined,
         titleColor: currentSpeed === speed ? '#007AFF' : '#FFFFFF',
     }));
+
+    return [
+        {
+            id: 'settings-playback-speed',
+            title: 'Playback Speed',
+            image: Platform.select({
+                ios: 'speedometer',
+                default: undefined,
+            }),
+            imageColor: '#ffffff',
+            subactions: speedActions,
+        }
+    ];
 };
 
-export const buildSubtitleActions = (
+export const buildSubtitleTrackActions = (
     subtitles: SubtitleSource[],
     selectedIndex: number,
     useCustomSubtitles: boolean,
     availableSubtitleTracks?: any[]
-) => {
+): MenuAction[] => {
     const offAction = {
-        id: 'subtitle-off',
+        id: 'subtitle-track-off',
         title: 'Off',
         state: selectedIndex === -1 ? ('on' as const) : undefined,
         titleColor: selectedIndex === -1 ? '#007AFF' : '#FFFFFF',
@@ -269,9 +321,9 @@ export const buildSubtitleActions = (
         return [
             offAction,
             ...subtitles.map((sub, i) => ({
-                id: `subtitle-${i}`,
+                id: `subtitle-track-${i}`,
                 title: sub.label,
-                subtitle: sub.fileId ? 'OpenSubtitles' : undefined,
+                subtitle: sub.language ? `OpenSubtitles - ${sub.language.toUpperCase()}` : undefined,
                 state: selectedIndex === i ? ('on' as const) : undefined,
                 titleColor: selectedIndex === i ? '#007AFF' : '#FFFFFF',
             }))
@@ -281,7 +333,7 @@ export const buildSubtitleActions = (
     return [
         offAction,
         ...(availableSubtitleTracks || []).map((sub, i) => ({
-            id: `subtitle-${i}`,
+            id: `subtitle-track-${i}`,
             title: sub.label,
             state: selectedIndex === i ? ('on' as const) : undefined,
             titleColor: selectedIndex === i ? '#007AFF' : '#FFFFFF',
@@ -289,15 +341,126 @@ export const buildSubtitleActions = (
     ];
 };
 
+export const buildSubtitlePositionActions = (
+    currentPosition: SubtitlePosition
+): MenuAction[] => {
+    const positions = [0, 1, 2, 3, 4, 5];
+    return positions.map(pos => ({
+        id: `position-${pos}`,
+        title: pos === 0 ? 'Default' : `+${pos}`,
+        state: currentPosition === pos ? ('on' as const) : undefined,
+        titleColor: currentPosition === pos ? '#007AFF' : '#FFFFFF',
+    }));
+};
+
+export const buildSubtitleDelayActions = (currentDelay: number): MenuAction[] => {
+    const delays = [-5000, -4000, -3000, -2000, -1500, -1000, -750, -500, -250, -100, 0, 100, 250, 500, 750, 1000, 1500, 2000, 3000, 4000, 5000];
+
+    return delays.map(delayMs => {
+        const delaySec = delayMs / 1000;
+        const isDefault = delayMs === 0;
+        const prefix = delayMs > 0 ? '+' : '';
+
+        return {
+            id: `delay_${delayMs}`, // Use underscore instead of dash to avoid double-dash issue
+            title: isDefault ? 'Default' : `${prefix}${delaySec.toFixed(Math.abs(delaySec) < 1 ? 2 : 1)}s`,
+            state: currentDelay === delayMs ? ('on' as const) : undefined,
+            titleColor: currentDelay === delayMs ? '#007AFF' : '#FFFFFF',
+        };
+    });
+};
+
+export const buildSubtitleActions = (
+    subtitles: SubtitleSource[],
+    selectedIndex: number,
+    useCustomSubtitles: boolean,
+    availableTextTracks: any[],
+    subtitlePosition: SubtitlePosition,
+    subtitleDelay: number,
+    selectedTextTrackId: number = -1
+): MenuAction[] => {
+    // Build custom subtitle actions (OpenSubtitles)
+    const customSubtitleActions: MenuAction[] = useCustomSubtitles
+        ? subtitles.map((sub, i) => ({
+            id: `subtitle-track-${i}`,
+            title: sub.label,
+            subtitle: sub.language ? `OpenSubtitles - ${sub.language.toUpperCase()}` : 'OpenSubtitles',
+            state: selectedIndex === i && selectedTextTrackId === -1 ? ('on' as const) : undefined,
+            titleColor: selectedIndex === i && selectedTextTrackId === -1 ? '#007AFF' : '#FFFFFF',
+        }))
+        : [];
+
+    // Build embedded text track actions using track.id instead of index
+    const vlcTextTrackActions: MenuAction[] = availableTextTracks
+        .map((track) => ({
+            id: `vlc-text-track-${track.id}`,
+            title: track.label || track.name || `Track ${track.id}`,
+            subtitle: 'Embedded',
+            state: selectedTextTrackId === track.id ? ('on' as const) : undefined,
+            titleColor: selectedTextTrackId === track.id ? '#007AFF' : '#FFFFFF',
+        }));
+
+    // Off action
+    const offAction: MenuAction = {
+        id: 'subtitle-track-off',
+        title: 'Off',
+        state: selectedIndex === -1 && selectedTextTrackId === -1 ? ('on' as const) : undefined,
+        titleColor: selectedIndex === -1 && selectedTextTrackId === -1 ? '#007AFF' : '#FFFFFF',
+    };
+
+    // Combine all track actions
+    const trackActions: MenuAction[] = [
+        offAction,
+        ...vlcTextTrackActions,
+        ...customSubtitleActions
+    ];
+
+    const positionActions = buildSubtitlePositionActions(subtitlePosition);
+    const delayActions = buildSubtitleDelayActions(subtitleDelay);
+
+    return [
+        {
+            id: 'subtitle-tracks',
+            title: 'Tracks',
+            image: Platform.select({
+                ios: 'text.bubble',
+                default: undefined,
+            }),
+            imageColor: '#ffffff',
+            subactions: trackActions,
+        },
+        {
+            id: 'subtitle-position',
+            title: 'Position',
+            image: Platform.select({
+                ios: 'arrow.up.and.down',
+                default: undefined,
+            }),
+            imageColor: '#ffffff',
+            subactions: positionActions,
+        },
+        {
+            id: 'subtitle-delay',
+            title: 'Delay',
+            image: Platform.select({
+                ios: 'clock',
+                default: undefined,
+            }),
+            imageColor: '#ffffff',
+            subactions: delayActions,
+        }
+    ];
+};
+
 export const buildAudioActions = (
     audioTracks: any[],
-    selectedIndex: number
+    selectedTrackId: number
 ) => {
-    return audioTracks.map((track, i) => ({
-        id: `audio-${i}`,
-        title: track.label || track.name,
-        state: selectedIndex === i ? ('on' as const) : undefined,
-        titleColor: selectedIndex === i ? '#007AFF' : '#FFFFFF',
+    return audioTracks.map((track) => ({
+        id: `audio-${track.id}`,
+        title: track.label || track.name || `Track ${track.id}`,
+        state: selectedTrackId === track.id ? ('on' as const) : undefined,
+        titleColor: selectedTrackId === track.id ? '#007AFF' : '#FFFFFF',
     }));
 };
 
@@ -341,42 +504,27 @@ export const WaitingLobby: React.FC<{
     );
 };
 
-// Artwork Background Component
-export const ArtworkBackground: React.FC<{
-    artwork?: string;
-    isBuffering: boolean;
-    hasStartedPlaying?: boolean;
-    error?: boolean;
-}> = ({ artwork, isBuffering, hasStartedPlaying = true, error }) => {
-    if (!artwork || hasStartedPlaying || error) return null;
-
-    return (
-        <View style={styles.artworkContainer}>
-            <Image
-                source={{ uri: artwork }}
-                style={styles.artworkImage}
-                resizeMode="cover"
-            />
-            <View style={styles.artworkOverlay} />
-            {isBuffering && (
-                <View style={styles.artworkLoadingOverlay}>
-                    <ActivityIndicator size="large" color="#0A84FF" />
-                    <Text style={styles.bufferingText}>Loading...</Text>
-                </View>
-            )}
-        </View>
-    );
-};
-
-// Subtitle Display Component
+// Subtitle Display Component with positioning support
 export const SubtitleDisplay: React.FC<{
     subtitle: string;
+    position?: SubtitlePosition;
     error?: boolean;
-}> = ({ subtitle, error }) => {
+}> = ({ subtitle, position = 0, error }) => {
     if (!subtitle || error) return null;
 
+    const getPositionStyle = (): any => {
+        const baseBottom = 25;
+        const offsetPerLevel = 5;
+        const calculatedBottom = baseBottom + (position * offsetPerLevel);
+
+        return {
+            top: undefined,
+            bottom: calculatedBottom,
+        };
+    };
+
     return (
-        <View style={styles.subtitleContainer} pointerEvents="none">
+        <View style={[styles.subtitleContainer, getPositionStyle()]} pointerEvents="none">
             <View style={styles.subtitleBackground}>
                 <BlurView intensity={60} tint="light" style={styles.blurView}>
                     <LinearGradient
@@ -451,7 +599,6 @@ export const CenterControls: React.FC<{
     );
 };
 
-
 // Progress Bar Component
 export const ProgressBar: React.FC<{
     currentTime: number;
@@ -490,20 +637,14 @@ export const ProgressBar: React.FC<{
                         onValueChange={onValueChange}
                         onSlidingStart={onSlidingStart}
                         onSlidingComplete={onSlidingComplete}
-                        minimumTrackTintColor="#0A84FF"
+                        minimumTrackTintColor="rgba(83, 90, 255, 0.9)"
                         maximumTrackTintColor="rgba(255, 255, 255, 0.3)"
                         thumbTintColor="#fff"
                         thumbSize={20}
-                        trackHeight={6}
+                        trackHeight={5}
                         enabled={isReady}
                     />
                 </View>
-
-                {showSpeed && playbackSpeed !== 1.0 && (
-                    <View>
-                        <Text style={styles.speedText}>{playbackSpeed}x</Text>
-                    </View>
-                )}
             </View>
         );
     };
@@ -605,19 +746,9 @@ export const ErrorDisplay: React.FC<{
 
     return (
         <View style={styles.errorContainer}>
-            <TouchableOpacity style={styles.errorBackButton} onPress={onBack}>
-                <Ionicons name="chevron-back" size={28} color="white" />
-            </TouchableOpacity>
-
             <MaterialIcons name="error-outline" size={64} color="#ff6b6b" />
             <Text style={styles.errorTitle}>Playback Error</Text>
             <Text style={styles.errorText}>{error}</Text>
-
-            {onRetry && (
-                <TouchableOpacity style={styles.retryButton} onPress={onRetry}>
-                    <Text style={styles.retryButtonText}>Retry</Text>
-                </TouchableOpacity>
-            )}
         </View>
     );
 };

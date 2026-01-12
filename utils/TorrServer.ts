@@ -1,9 +1,7 @@
 import { Buffer } from 'buffer';
 import { StorageKeys, storageService } from './StorageService';
 import { router } from 'expo-router';
-import * as Haptics from 'expo-haptics';
 import { showAlert } from './platform';
-import { isHapticsSupported } from './platform';
 
 interface ServerConfig {
   id: string;
@@ -263,6 +261,7 @@ export interface StreamingOptions {
   title: string;
   fileTitle?: string;
   category?: string;
+  preload?: boolean;
   onPreloadStart?: () => void;
   onPreloadEnd?: () => void;
 }
@@ -320,20 +319,17 @@ export const preloadTorrentFile = async (options: StreamingOptions): Promise<boo
 };
 
 /**
- * Stream a torrent file with preloading
+ * Stream a torrent file with optional preloading
  * @param options - Streaming options
  */
 export const streamTorrentFile = async (options: StreamingOptions): Promise<void> => {
-  const { hash, link, fileId, filePath, title, fileTitle, category } = options;
+  const { hash, link, fileId, filePath, title, fileTitle, category, preload = false } = options;
 
   try {
-    // Trigger haptic feedback
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    // Preload the file first if enabled
+    if (preload) {
+      await preloadTorrentFile(options);
     }
-
-    // Preload the file first
-    await preloadTorrentFile(options);
 
     // Build stream URL
     const baseUrl = getTorrServerUrl();
@@ -341,11 +337,13 @@ export const streamTorrentFile = async (options: StreamingOptions): Promise<void
 
     if (filePath && hash) {
       // For torrent details screen
-      streamUrl = `${baseUrl}/stream/${filePath}?link=${hash}&index=${fileId}&play&preload`;
+      const preloadParam = preload ? '&preload' : '';
+      streamUrl = `${baseUrl}/stream/${filePath}?link=${hash}&index=${fileId}&play${preloadParam}`;
     } else if (link) {
       // For search screen
       const encodedLink = encodeURIComponent(link);
-      streamUrl = `${baseUrl}/stream?link=${encodedLink}&index=${fileId || 1}&play&preload`;
+      const preloadParam = preload ? '&preload' : '';
+      streamUrl = `${baseUrl}/stream?link=${encodedLink}&index=${fileId || 1}&play${preloadParam}`;
     } else {
       throw new Error('Invalid streaming options');
     }
@@ -372,10 +370,6 @@ export const streamTorrentFile = async (options: StreamingOptions): Promise<void
  */
 export const preloadOnly = async (options: StreamingOptions): Promise<void> => {
   try {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-
     await preloadTorrentFile(options);
     showAlert('Success', 'File preload started successfully.');
   } catch (error) {

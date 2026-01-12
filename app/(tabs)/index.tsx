@@ -4,8 +4,6 @@ import TorrentGrid from '@/components/TorrentGrid';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { StyleSheet, ScrollView } from 'react-native';
-import * as Haptics from 'expo-haptics';
-import { isHapticsSupported } from '@/utils/platform';
 import PosterCarousel from '@/components/PosterCarousel';
 import BottomSpacing from '@/components/BottomSpacing';
 
@@ -109,10 +107,6 @@ const HomeScreen = () => {
   };
 
   const handleCarouselItemPress = async (item: any) => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-
     router.push({
       pathname: '/torrent/details',
       params: { hash: item.hash },
@@ -120,10 +114,6 @@ const HomeScreen = () => {
   };
 
   const handleTorrentItemPress = async (item: any) => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
-
     router.push({
       pathname: '/torrent/details',
       params: { hash: item.hash },

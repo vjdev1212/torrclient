@@ -2,8 +2,6 @@ import { Text, ActivityIndicator, TextInput, View, StatusBar } from '@/component
 import { useState, useEffect, useRef } from 'react';
 import { StyleSheet, Pressable, ScrollView, Platform } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import * as Haptics from 'expo-haptics';
-import { isHapticsSupported } from '@/utils/platform';
 import TorrentGrid from '@/components/TorrentGrid';
 import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -71,9 +69,6 @@ const LibraryScreen = () => {
   }, []);
 
   const handleRefresh = async () => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
     setRefreshing(true);
     await fetchTorrents();
     setRefreshing(false);
@@ -105,24 +100,14 @@ const LibraryScreen = () => {
   }, [query, allTorrents, selectedCategory]);
 
   const clearSearch = async () => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-    }
     setQuery('');
   };
 
   const handleRetry = async () => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
     fetchTorrents();
   };
 
   const handleTorrentItemPress = async (item: any) => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Soft);
-    }
-
     router.push({
       pathname: '/torrent/details',
       params: { hash: item.hash },
@@ -130,17 +115,11 @@ const LibraryScreen = () => {
   };
 
   const handleAddTorrent = async () => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    }
     // Navigate to add torrent screen
     router.push('/torrent/add');
   };
 
   const handleCategorySelect = async (categoryId: string) => {
-    if (isHapticsSupported()) {
-      await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }
     setSelectedCategory(categoryId);
   };
 

@@ -7,8 +7,7 @@ import {
     Switch,
 } from 'react-native';
 import { StatusBar, Text, View } from '@/components/Themed';
-import { confirmAction, isHapticsSupported, showAlert } from '@/utils/platform';
-import * as Haptics from 'expo-haptics';
+import { confirmAction, showAlert } from '@/utils/platform';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { StorageKeys, storageService } from '@/utils/StorageService';
@@ -61,10 +60,6 @@ const RSSFeedsScreen = () => {
     const saveRSSFeeds = async () => {
         setSaving(true);
         try {
-            if (isHapticsSupported()) {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-            }
-
             for (const feed of feeds) {
                 if (!feed.url) {
                     showAlert('Missing URL', `Feed "${feed.name || 'Unnamed'}" requires a URL.`);
