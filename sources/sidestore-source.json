@@ -31,7 +31,7 @@
       "versions": [
         {
           "version": "1.1.0",
-          "date": "2026-01-12",
+          "date": "2026-01-13",
           "localizedDescription": "1. Replaced expo-video with rnvideo. \n2. UI Improvements and Bug Fixes.",
           "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.1.0/TorrClient_v1.1.0.ipa",
           "size": 27762483,
@@ -73,7 +73,7 @@
       "title": "TorrClient v1.1.0 Released",
       "identifier": "torrclient-v1.1.0-release",
       "caption": "1. Replaced expo-video with rnvideo. \n2. UI Improvements and Bug Fixes.",
-      "date": "2026-01-12",
+      "date": "2026-01-13",
       "tintColor": "#535aff",
       "imageURL": "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/assets/banners/torrclient-feature-graphic.png",
       "notify": true,
