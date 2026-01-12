@@ -18,7 +18,7 @@
       "subtitle": "A client for TorrServer",
       "localizedDescription": "TorrClient is a sleek, modern TorrServer client—your perfect partner for smooth, effortless streaming",
       "iconURL": "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/assets/images/icon.png",
-      "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.7/TorrClient_v1.0.7.ipa",
+      "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.1.0/TorrClient_v1.1.0.ipa",
       "tintColor": "#535aff",
       "category": "entertainment",
       "screenshots": [
@@ -29,6 +29,14 @@
         "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/torrclient-screenshots/5-Settings.png"
       ],
       "versions": [
+        {
+          "version": "1.1.0",
+          "date": "2026-01-12",
+          "localizedDescription": "1. Replaced expo-video with rnvideo. \n2. UI Improvements and Bug Fixes.",
+          "downloadURL": "https://github.com/vjdev1212/torrclient/releases/download/v1.0.7/TorrClient_v1.0.7.ipa",
+          "size": 27762483,
+          "minOSVersion": "18.0"
+        },
         {
           "version": "1.0.7",
           "date": "2025-12-29",
@@ -62,10 +70,10 @@
   ],
   "news": [
     {
-      "title": "TorrClient v1.0.7 Released",
-      "identifier": "torrclient-v1.0.7-release",
-      "caption": "1. Preload before playing the files. \n2. UI Improvements and Bug Fixes.",
-      "date": "2025-12-29",
+      "title": "TorrClient v1.1.0 Released",
+      "identifier": "torrclient-v1.1.0-release",
+      "caption": "1. Replaced expo-video with rnvideo. \n2. UI Improvements and Bug Fixes.",
+      "date": "2026-01-12",
       "tintColor": "#535aff",
       "imageURL": "https://raw.githubusercontent.com/vjdev1212/torrclient/refs/heads/main/assets/banners/torrclient-feature-graphic.png",
       "notify": true,
