@@ -14,8 +14,8 @@ import BottomSpacing from '@/components/BottomSpacing';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { Text, View } from '@/components/Themed';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { BlurView } from 'expo-blur';
-import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
+import { TMDBSearchModal } from '@/components/TmdbSearchModal';
 
 const categories = [
   { key: 'movie', label: 'Movie' },
@@ -35,6 +35,7 @@ const AddTorrentScreen = () => {
   const [category, setCategory] = useState<'movie' | 'tv' | 'music' | 'other'>('movie');
   const [submitting, setSubmitting] = useState(false);
   const [previewUrl, setPreviewUrl] = useState(poster ? String(poster) : '');
+  const [showTMDBModal, setShowTMDBModal] = useState(false);
 
   const extractImdbId = (text: string): string | null => {
     // Match IMDB ID patterns (tt followed by 7-8 digits)
@@ -133,6 +134,25 @@ const AddTorrentScreen = () => {
     }
   };
 
+  const handleOpenTMDBSearch = () => {
+    if (!title.trim()) {
+      showAlert('Title Required', 'Please enter a title before searching for posters.');
+      return;
+    }
+
+    if (category !== 'movie' && category !== 'tv') {
+      showAlert('Not Available', 'TMDB search is only available for Movies and TV Shows.');
+      return;
+    }
+
+    setShowTMDBModal(true);
+  };
+
+  const handleTMDBSelect = (imdbId: string, posterUrl: string) => {
+    setPosterInput(imdbId);
+    setPreviewUrl(posterUrl);
+  };
+
   useEffect(() => {
     // Initialize preview on mount if poster param exists (update mode)
     if (poster) {
@@ -229,27 +249,42 @@ const AddTorrentScreen = () => {
                   </View>
                 </View>
 
-                {/* Poster Input (IMDB ID or URL) */}
+                {/* Poster Input with TMDB Search */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>
                     Poster <Text style={styles.optional}>(IMDB ID or URL)</Text>
                   </Text>
-                  <TextInput
-                    style={styles.input}
-                    value={posterInput}
-                    onChangeText={setPosterInput}
-                    onBlur={() => {
-                      const finalUrl = getFinalPosterUrl();
-                      console.log('Poster onBlur, loading URL:', finalUrl);
-                      if (finalUrl) {
-                        setPreviewUrl(finalUrl);
-                      }
-                    }}
-                    placeholder="tt0133093 or https://example.com/poster.jpg"
-                    autoCapitalize="none"
-                    placeholderTextColor="#888"
-                    submitBehavior="blurAndSubmit"
-                  />
+                  
+                  <View style={styles.posterInputContainer}>
+                    <TextInput
+                      style={[styles.input, styles.posterInput]}
+                      value={posterInput}
+                      onChangeText={setPosterInput}
+                      onBlur={() => {
+                        const finalUrl = getFinalPosterUrl();
+                        console.log('Poster onBlur, loading URL:', finalUrl);
+                        if (finalUrl) {
+                          setPreviewUrl(finalUrl);
+                        }
+                      }}
+                      placeholder="tt0133093 or https://example.com/poster.jpg"
+                      autoCapitalize="none"
+                      placeholderTextColor="#888"
+                      submitBehavior="blurAndSubmit"
+                    />
+                    
+                    {(category === 'movie' || category === 'tv') && (
+                      <TouchableOpacity
+                        style={styles.tmdbButton}
+                        onPress={handleOpenTMDBSearch}
+                        activeOpacity={0.7}
+                      >
+                        <Ionicons name="search" size={20} color="#fff" />
+                        <Text style={styles.tmdbButtonText}>Search TMDB</Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+
                   {posterInput && (
                     <Text style={styles.helperText}>
                       {extractImdbId(posterInput)
@@ -289,6 +324,15 @@ const AddTorrentScreen = () => {
           </ScrollView>
         </KeyboardAvoidingView>
       </SafeAreaView>
+
+      {/* TMDB Search Modal */}
+      <TMDBSearchModal
+        visible={showTMDBModal}
+        onClose={() => setShowTMDBModal(false)}
+        onSelect={handleTMDBSelect}
+        mediaType={category as 'movie' | 'tv'}
+        initialQuery={title}
+      />
     </View>
   );
 };
@@ -368,6 +412,28 @@ const styles = StyleSheet.create({
   inputDisabled: {
     opacity: 0.5,
     backgroundColor: 'rgba(28, 28, 30, 0.5)',
+  },
+  posterInputContainer: {
+    gap: 10,
+    backgroundColor: 'transparent',
+  },
+  posterInput: {
+    marginBottom: 0,
+  },
+  tmdbButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#0A84FF',
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderRadius: 10,
+    gap: 8,
+  },
+  tmdbButtonText: {
+    color: '#fff',
+    fontSize: 15,
+    fontWeight: '600',
   },
   helperText: {
     fontSize: 13,
