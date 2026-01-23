@@ -37,27 +37,11 @@ const AddTorrentScreen = () => {
   const [previewUrl, setPreviewUrl] = useState(poster ? String(poster) : '');
   const [showTMDBModal, setShowTMDBModal] = useState(false);
 
-  const extractImdbId = (text: string): string | null => {
-    // Match IMDB ID patterns (tt followed by 7-8 digits)
-    const imdbMatch = text.match(/tt\d{7,8}/i);
-    return imdbMatch ? imdbMatch[0] : null;
-  };
-
   const getFinalPosterUrl = (inputValue?: string): string => {
     const posterValue = inputValue || posterInput;
     if (!posterValue) return '';
 
-    const imdbId = extractImdbId(posterValue);
-
-    if (imdbId && posterValue.trim() === imdbId) {
-      return `https://images.metahub.space/poster/medium/${imdbId}/img`;
-    }
-
-    if (imdbId && posterValue.includes('metahub.space')) {
-      return `https://images.metahub.space/poster/medium/${imdbId}/img`;
-    }
-    console.log('Using custom poster URL:', posterValue);
-
+    console.log('Using poster URL:', posterValue);
     return posterValue;
   };
 
@@ -149,7 +133,7 @@ const AddTorrentScreen = () => {
   };
 
   const handleTMDBSelect = (imdbId: string, posterUrl: string) => {
-    setPosterInput(imdbId);
+    setPosterInput(posterUrl);
     setPreviewUrl(posterUrl);
   };
 
@@ -252,44 +236,40 @@ const AddTorrentScreen = () => {
                 {/* Poster Input with TMDB Search */}
                 <View style={styles.inputGroup}>
                   <Text style={styles.label}>
-                    Poster <Text style={styles.optional}>(IMDB ID or URL)</Text>
+                    Poster <Text style={styles.optional}>(from TMDB)</Text>
                   </Text>
                   
                   <View style={styles.posterInputContainer}>
-                    <TextInput
-                      style={[styles.input, styles.posterInput]}
-                      value={posterInput}
-                      onChangeText={setPosterInput}
-                      onBlur={() => {
-                        const finalUrl = getFinalPosterUrl();
-                        console.log('Poster onBlur, loading URL:', finalUrl);
-                        if (finalUrl) {
-                          setPreviewUrl(finalUrl);
-                        }
-                      }}
-                      placeholder="tt0133093 or https://example.com/poster.jpg"
-                      autoCapitalize="none"
-                      placeholderTextColor="#888"
-                      submitBehavior="blurAndSubmit"
-                    />
-                    
-                    {(category === 'movie' || category === 'tv') && (
+                    {(category === 'movie' || category === 'tv') ? (
                       <TouchableOpacity
                         style={styles.tmdbButton}
                         onPress={handleOpenTMDBSearch}
                         activeOpacity={0.7}
                       >
                         <Ionicons name="search" size={20} color="#fff" />
-                        <Text style={styles.tmdbButtonText}>Search TMDB</Text>
+                        <Text style={styles.tmdbButtonText}>
+                          {posterInput ? 'Change Poster' : 'Search TMDB'}
+                        </Text>
                       </TouchableOpacity>
+                    ) : (
+                      <TextInput
+                        style={styles.input}
+                        value={posterInput}
+                        onChangeText={(text) => {
+                          setPosterInput(text);
+                          setPreviewUrl(text);
+                        }}
+                        placeholder="https://example.com/poster.jpg"
+                        autoCapitalize="none"
+                        placeholderTextColor="#888"
+                        submitBehavior="blurAndSubmit"
+                      />
                     )}
                   </View>
 
-                  {posterInput && (
+                  {posterInput && (category === 'movie' || category === 'tv') && (
                     <Text style={styles.helperText}>
-                      {extractImdbId(posterInput)
-                        ? `Using IMDB ID: ${extractImdbId(posterInput)}`
-                        : 'Using custom URL'}
+                      Poster from TMDB
                     </Text>
                   )}
                 </View>

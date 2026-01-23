@@ -62,7 +62,7 @@ export const TMDBSearchModal: React.FC<TMDBSearchModalProps> = ({
     try {
       const imdbId = await tmdbClient.getIMDBId(item.id, mediaType);
       if (imdbId) {
-        const posterUrl = tmdbClient.getPosterUrl(item.poster_path, 'w500');
+        const posterUrl = tmdbClient.getPosterUrl(item.poster_path, 'w780');
         onSelect(imdbId, posterUrl);
         onClose();
       }
@@ -230,7 +230,7 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(28, 28, 30, 0.85)',
     borderRadius: 10,
     paddingHorizontal: 12,
-    borderWidth: 1,
+    borderWidth: StyleSheet.hairlineWidth,
     borderColor: 'rgba(255, 255, 255, 0.1)',
   },
   searchIcon: {
