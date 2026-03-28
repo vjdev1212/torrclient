@@ -12,16 +12,13 @@ import { ActionSheetProvider } from '@expo/react-native-action-sheet';
 import * as Linking from 'expo-linking';
 
 export {
-  // Catch any errors thrown by the Layout component.
   ErrorBoundary,
 } from 'expo-router';
 
 export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
   initialRouteName: '(tabs)',
 };
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
@@ -30,51 +27,30 @@ export default function RootLayout() {
     ...FontAwesome.font,
   });
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+  useEffect(() => { if (error) throw error; }, [error]);
+  useEffect(() => { if (loaded) SplashScreen.hideAsync(); }, [loaded]);
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
-    }
-  }, [loaded]);
-
-  if (!loaded) {
-    return null;
-  }
+  if (!loaded) return null;
 
   return <RootLayoutNav />;
 }
 
 function RootLayoutNav() {
-
   useEffect(() => {
     const getInitialURL = async () => {
       const url = await Linking.getInitialURL();
-      if (url) {
-        handleMagnetLink(url);
-      }
+      if (url) handleMagnetLink(url);
     };
 
     getInitialURL();
 
-    const subscription = Linking.addEventListener('url', ({ url }) => {
-      handleMagnetLink(url);
-    });
-
+    const subscription = Linking.addEventListener('url', ({ url }) => handleMagnetLink(url));
     return () => subscription.remove();
   }, []);
 
   const handleMagnetLink = (url: string) => {
-    if (url && url.startsWith('magnet:')) {
-      console.log('Magnet link received:', url);
-
-      router.push({
-        pathname: '/torrent/add',
-        params: { magnet: url },
-      });
+    if (url?.startsWith('magnet:')) {
+      router.push({ pathname: '/torrent/add', params: { magnet: url } });
     }
   };
 
@@ -85,26 +61,33 @@ function RootLayoutNav() {
       background: '#0a0a0a',
       card: 'rgba(18, 18, 18, 0.9)',
       border: 'rgba(255, 255, 255, 0.1)',
-    }
+    },
   };
 
-  const theme = GlassDarkTheme;
-
-  // Custom header background component
   const HeaderBackground = () => (
     <BlurView intensity={20} style={styles.headerBlur}>
       <View style={styles.headerGlass} />
     </BlurView>
   );
 
-  // Custom header background component for invisible header
   const InvisibleHeaderBackground = () => (
     <View style={{ flex: 1, backgroundColor: 'transparent' }} />
   );
 
+  // Shared transparent header options used by all sub-screens
+  const transparentScreen = {
+    headerShown: true,
+    headerTransparent: true,
+    headerBackground: InvisibleHeaderBackground,
+    headerTitle: '',
+    headerTintColor: '#ffffff',
+    headerBackTitle: '',
+    headerShadowVisible: false,
+    headerStyle: { backgroundColor: 'transparent' },
+  } as const;
+
   return (
     <View style={styles.container}>
-      {/* Global Background Gradient */}
       <LinearGradient
         colors={['#000000', '#333333', '#666666']}
         start={{ x: 0, y: 0 }}
@@ -113,7 +96,7 @@ function RootLayoutNav() {
       />
 
       <ActionSheetProvider>
-        <ThemeProvider value={theme}>
+        <ThemeProvider value={GlassDarkTheme}>
           <Stack
             screenOptions={{
               headerStyle: styles.glassHeader,
@@ -132,120 +115,27 @@ function RootLayoutNav() {
                 headerTintColor: '#ffffff',
                 headerBackTitle: '',
                 title: 'Home',
-                contentStyle: { backgroundColor: 'transparent' } // Only tabs can be transparent
+                contentStyle: { backgroundColor: 'transparent' },
               }}
             />
             <Stack.Screen
               name="modal"
               options={{
                 presentation: 'modal',
-                contentStyle: styles.modalContent
+                contentStyle: styles.modalContent,
               }}
             />
-            <Stack.Screen
-              name="torrent/add"
-              options={{
-                headerShown: true,
-                headerTransparent: true,
-                headerBackground: InvisibleHeaderBackground,
-                headerTitle: '',
-                headerTintColor: '#ffffff',
-                headerBackTitle: '',
-                headerShadowVisible: false,
-                headerStyle: {
-                  backgroundColor: 'transparent',
-                }
-              }}
-            />
-            <Stack.Screen
-              name="torrent/details"
-              options={{
-                headerShown: true,
-                headerTransparent: true,
-                headerBackground: InvisibleHeaderBackground,
-                headerTitle: '',
-                headerTintColor: '#ffffff',
-                headerBackTitle: '',
-                headerShadowVisible: false,
-                headerStyle: {
-                  backgroundColor: 'transparent',
-                }
-              }}
-            />
+            <Stack.Screen name="torrent/add"         options={transparentScreen} />
+            <Stack.Screen name="torrent/details"     options={transparentScreen} />
+            <Stack.Screen name="settings/torrserver" options={transparentScreen} />
+            <Stack.Screen name="settings/mediaplayer" options={transparentScreen} />
+            <Stack.Screen name="settings/prowlarr"   options={transparentScreen} />
+            <Stack.Screen name="settings/rss"        options={transparentScreen} />
             <Stack.Screen
               name="stream/player"
               options={{
-                headerShown: true,
-                headerTransparent: true,
-                headerBackground: InvisibleHeaderBackground,
-                headerTitle: '',
-                headerTintColor: '#ffffff',
-                headerBackTitle: '',
-                headerShadowVisible: false,
+                ...transparentScreen,
                 headerBackVisible: false,
-                headerStyle: {
-                  backgroundColor: 'transparent',
-                }
-              }}
-            />
-            <Stack.Screen
-              name="settings/torrserver"
-              options={{
-                headerShown: true,
-                headerTransparent: true,
-                headerBackground: InvisibleHeaderBackground,
-                headerTitle: '',
-                headerTintColor: '#ffffff',
-                headerBackTitle: '',
-                headerShadowVisible: false,
-                headerStyle: {
-                  backgroundColor: 'transparent',
-                }
-              }}
-            />
-            <Stack.Screen
-              name="settings/mediaplayer"
-              options={{
-                headerShown: true,
-                headerTransparent: true,
-                headerBackground: InvisibleHeaderBackground,
-                headerTitle: '',
-                headerTintColor: '#ffffff',
-                headerBackTitle: '',
-                headerShadowVisible: false,
-                headerStyle: {
-                  backgroundColor: 'transparent',
-                }
-              }}
-            />
-            <Stack.Screen
-              name="settings/prowlarr"
-              options={{
-                headerShown: true,
-                headerTransparent: true,
-                headerBackground: InvisibleHeaderBackground,
-                headerTitle: '',
-                headerTintColor: '#ffffff',
-                headerBackTitle: '',
-                headerShadowVisible: false,
-                headerStyle: {
-                  backgroundColor: 'transparent',
-                }
-              }}
-            />
-            <Stack.Screen
-              name="settings/rss"
-              options={{
-                headerShown: true,
-                headerTransparent: true,
-                headerBackground: InvisibleHeaderBackground,
-                headerTitle: '',
-                headerTintColor: '#ffffff',
-                headerBackTitle: '',
-                headerShadowVisible: false,
-                headerStyle: {
-                  backgroundColor: 'transparent',
-                }
               }}
             />
           </Stack>
@@ -262,8 +152,7 @@ const styles = StyleSheet.create({
   backgroundGradient: {
     ...StyleSheet.absoluteFillObject,
   },
-  screenContent: {
-  },
+  screenContent: {},
   modalContent: {
     backgroundColor: 'rgba(0, 0, 0, 0.95)',
   },
@@ -286,7 +175,6 @@ const styles = StyleSheet.create({
   },
 });
 
-// Enhanced global glass styles for use in other components
 export const globalGlassStyles = StyleSheet.create({
   glassContainer: {
     backgroundColor: 'rgba(255, 255, 255, 0.1)',

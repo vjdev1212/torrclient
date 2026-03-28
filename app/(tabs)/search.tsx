@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { View } from '@/components/Themed';
+import { StatusBar, View } from '@/components/Themed';
 import { showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import ProwlarrClient, { ProwlarrSearchResult, ProwlarrIndexer, ProwlarrCategory } from '@/clients/prowlarr';
@@ -25,6 +25,7 @@ import { LoadingState } from '@/components/search/LoadingState';
 import { ResultsHeader } from '@/components/search/ResultsHeader';
 import { streamTorrentFile } from '@/utils/TorrServer';
 import { ProwlarrResultCard } from '@/components/search/ProwlarrResultCard';
+import BlurGradientBackground from '@/components/BlurGradientBackground';
 
 // Types
 type SearchSource = 'prowlarr' | 'rss';
@@ -476,6 +477,8 @@ const SearchScreen = () => {
 
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
+            <StatusBar />
+            <BlurGradientBackground />
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardAvoid}

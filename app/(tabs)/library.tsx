@@ -7,6 +7,7 @@ import { getTorrServerAuthHeader, getTorrServerUrl } from '@/utils/TorrServer';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { MenuView, MenuComponentRef, MenuAction } from '@react-native-menu/menu';
+import BlurGradientBackground from '@/components/BlurGradientBackground';
 
 const LibraryScreen = () => {
   const router = useRouter();
@@ -148,6 +149,7 @@ const LibraryScreen = () => {
     return (
       <SafeAreaView style={styles.container} edges={['top']}>
         <StatusBar />
+        <BlurGradientBackground />
         <View style={styles.centeredContainer}>
           <ActivityIndicator size="large" color="#0A84FF" />
           <Text style={styles.centeredText}>Loading your library...</Text>

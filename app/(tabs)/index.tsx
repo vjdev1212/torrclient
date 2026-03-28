@@ -6,6 +6,7 @@ import { useFocusEffect, useRouter } from 'expo-router';
 import { StyleSheet, ScrollView } from 'react-native';
 import PosterCarousel from '@/components/PosterCarousel';
 import BottomSpacing from '@/components/BottomSpacing';
+import BlurGradientBackground from '@/components/BlurGradientBackground';
 
 const HomeScreen = () => {
   const router = useRouter();
@@ -125,6 +126,7 @@ const HomeScreen = () => {
     return (
       <View style={styles.container}>
         <StatusBar />
+        <BlurGradientBackground />
         <View style={styles.centeredLoadingContainer}>
           <ActivityIndicator size="large" color="#007AFF" />
           <Text style={styles.loadingText}>Loading your library...</Text>

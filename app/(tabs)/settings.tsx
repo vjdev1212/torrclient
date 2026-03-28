@@ -5,6 +5,7 @@ import { StatusBar, Text, View } from '@/components/Themed';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
+import BlurGradientBackground from '@/components/BlurGradientBackground';
 
 const SettingsScreen = () => {
   const router = useRouter();
@@ -60,7 +61,7 @@ const SettingsScreen = () => {
   return (
     <SafeAreaView style={styles.container} edges={['top']}>
       <StatusBar />
-
+      <BlurGradientBackground />
       {/* Header Section */}
       <View style={styles.header}>
         <Text style={styles.headerTitle}>Settings</Text>
