@@ -125,11 +125,6 @@ const ProwlarrScreen = () => {
     };
 
     const deleteInstance = async (id: string) => {
-        if (instances.length === 1) {
-            showAlert('Cannot Delete', 'You must have at least one Prowlarr instance configured.');
-            return;
-        }
-
         const confirmed = await confirmAction(
             'Delete Instance',
             'Are you sure you want to delete this Prowlarr instance?',
@@ -141,10 +136,10 @@ const ProwlarrScreen = () => {
         setInstances(newInstances);
 
         if (activeInstanceId === id) {
-            setActiveInstanceId(newInstances[0].id);
+            setActiveInstanceId(newInstances[0]?.id || '');
         }
         if (expandedInstanceId === id) {
-            setExpandedInstanceId(newInstances[0].id);
+            setExpandedInstanceId(newInstances[0]?.id || '');
         }
     };
 
@@ -155,17 +150,14 @@ const ProwlarrScreen = () => {
     const addCustomHeader = (instanceId: string) => {
         const instance = instances.find(i => i.id === instanceId);
         if (!instance) return;
-
-        const newHeader: CustomHeader = { key: '', value: '' };
         updateInstance(instanceId, {
-            customHeaders: [...instance.customHeaders, newHeader]
+            customHeaders: [...instance.customHeaders, { key: '', value: '' }]
         });
     };
 
     const updateCustomHeader = (instanceId: string, headerIndex: number, updates: Partial<CustomHeader>) => {
         const instance = instances.find(i => i.id === instanceId);
         if (!instance) return;
-
         const updatedHeaders = [...instance.customHeaders];
         updatedHeaders[headerIndex] = { ...updatedHeaders[headerIndex], ...updates };
         updateInstance(instanceId, { customHeaders: updatedHeaders });
@@ -174,9 +166,9 @@ const ProwlarrScreen = () => {
     const deleteCustomHeader = (instanceId: string, headerIndex: number) => {
         const instance = instances.find(i => i.id === instanceId);
         if (!instance) return;
-
-        const updatedHeaders = instance.customHeaders.filter((_, idx) => idx !== headerIndex);
-        updateInstance(instanceId, { customHeaders: updatedHeaders });
+        updateInstance(instanceId, {
+            customHeaders: instance.customHeaders.filter((_, idx) => idx !== headerIndex)
+        });
     };
 
     const toggleExpanded = (id: string) => {
@@ -189,13 +181,9 @@ const ProwlarrScreen = () => {
 
         return (
             <View key={instance.id} style={styles.instanceCard}>
-                {/* Instance Header */}
                 <Pressable
                     onPress={() => toggleExpanded(instance.id)}
-                    style={({ pressed }) => [
-                        styles.instanceHeader,
-                        pressed && styles.cellPressed
-                    ]}
+                    style={({ pressed }) => [styles.instanceHeader, pressed && styles.cellPressed]}
                 >
                     <View style={styles.instanceHeaderContent}>
                         <Pressable
@@ -225,10 +213,8 @@ const ProwlarrScreen = () => {
                     </View>
                 </Pressable>
 
-                {/* Expanded Instance Config */}
                 {isExpanded && (
                     <View style={styles.instanceDetails}>
-                        {/* Instance Name */}
                         <View style={styles.formRow}>
                             <Text style={styles.formLabel}>Name</Text>
                             <TextInput
@@ -243,7 +229,6 @@ const ProwlarrScreen = () => {
 
                         <View style={styles.rowSeparator} />
 
-                        {/* Instance URL */}
                         <View style={styles.formRow}>
                             <Text style={styles.formLabel}>URL</Text>
                             <TextInput
@@ -260,7 +245,6 @@ const ProwlarrScreen = () => {
 
                         <View style={styles.rowSeparator} />
 
-                        {/* API Key */}
                         <View style={styles.formRow}>
                             <Text style={styles.formLabel}>API Key</Text>
                             <PasswordInput
@@ -272,7 +256,6 @@ const ProwlarrScreen = () => {
 
                         <View style={styles.sectionSeparator} />
 
-                        {/* Basic Authentication Toggle */}
                         <View style={styles.formRow}>
                             <Text style={styles.formLabel}>Basic Auth</Text>
                             <Switch
@@ -283,11 +266,9 @@ const ProwlarrScreen = () => {
                             />
                         </View>
 
-                        {/* Auth Credentials */}
                         {instance.authEnabled && (
                             <>
                                 <View style={styles.rowSeparator} />
-
                                 <View style={styles.formRow}>
                                     <Text style={styles.formLabel}>Username</Text>
                                     <TextInput
@@ -300,9 +281,7 @@ const ProwlarrScreen = () => {
                                         textAlign="right"
                                     />
                                 </View>
-
                                 <View style={styles.rowSeparator} />
-
                                 <View style={styles.formRow}>
                                     <Text style={styles.formLabel}>Password</Text>
                                     <PasswordInput
@@ -316,13 +295,9 @@ const ProwlarrScreen = () => {
 
                         <View style={styles.sectionSeparator} />
 
-                        {/* Custom Headers Section */}
                         <View style={styles.headersSectionTitle}>
                             <Text style={styles.sectionFooter}>CUSTOM HEADERS</Text>
-                            <Pressable
-                                onPress={() => addCustomHeader(instance.id)}
-                                hitSlop={8}
-                            >
+                            <Pressable onPress={() => addCustomHeader(instance.id)} hitSlop={8}>
                                 <Text style={styles.addHeaderLink}>Add</Text>
                             </Pressable>
                         </View>
@@ -370,21 +345,13 @@ const ProwlarrScreen = () => {
                             </View>
                         )}
 
-                        {/* Delete Button */}
-                        {instances.length > 1 && (
-                            <>
-                                <View style={styles.sectionSeparator} />
-                                <Pressable
-                                    onPress={() => deleteInstance(instance.id)}
-                                    style={({ pressed }) => [
-                                        styles.deleteButton,
-                                        pressed && styles.cellPressed
-                                    ]}
-                                >
-                                    <Text style={styles.deleteButtonText}>Delete Instance</Text>
-                                </Pressable>
-                            </>
-                        )}
+                        <View style={styles.sectionSeparator} />
+                        <Pressable
+                            onPress={() => deleteInstance(instance.id)}
+                            style={({ pressed }) => [styles.deleteButton, pressed && styles.cellPressed]}
+                        >
+                            <Text style={styles.deleteButtonText}>Delete Instance</Text>
+                        </Pressable>
                     </View>
                 )}
             </View>
@@ -394,44 +361,26 @@ const ProwlarrScreen = () => {
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar />
-
-            {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>Prowlarr</Text>
             </View>
-
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.content}
-            >
-                {/* Section Header */}
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
                 <View style={styles.sectionHeaderContainer}>
                     <Text style={styles.sectionHeader}>INSTANCES</Text>
                 </View>
-
-                {/* Instances Section */}
                 <View style={styles.section}>
                     {instances.map(renderInstance)}
                 </View>
-
-                {/* Add Instance Button */}
                 <Pressable
                     onPress={addInstance}
-                    style={({ pressed }) => [
-                        styles.addInstanceButton,
-                        pressed && styles.cellPressed
-                    ]}
+                    style={({ pressed }) => [styles.addInstanceButton, pressed && styles.cellPressed]}
                 >
                     <Ionicons name="add-circle" size={22} color="#007AFF" />
                     <Text style={styles.addInstanceText}>Add Instance</Text>
                 </Pressable>
-
-                {/* Footer Text */}
                 <Text style={styles.footerText}>
                     Select an active instance by tapping the radio button. Custom headers can be added for advanced configuration.
                 </Text>
-
-                {/* Save Button */}
                 <Pressable
                     onPress={saveProwlarrConfigs}
                     disabled={saving}
@@ -441,9 +390,7 @@ const ProwlarrScreen = () => {
                         saving && styles.saveButtonDisabled
                     ]}
                 >
-                    <Text style={styles.saveButtonText}>
-                        {saving ? 'Saving...' : 'Save'}
-                    </Text>
+                    <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save'}</Text>
                 </Pressable>
             </ScrollView>
         </SafeAreaView>
@@ -452,7 +399,6 @@ const ProwlarrScreen = () => {
 
 const PasswordInput = ({ value, onChangeText, placeholder = "Required" }: { value: string; onChangeText: (text: string) => void; placeholder?: string }) => {
     const [showPassword, setShowPassword] = useState(false);
-
     return (
         <View style={styles.passwordContainer}>
             <TextInput
@@ -465,274 +411,63 @@ const PasswordInput = ({ value, onChangeText, placeholder = "Required" }: { valu
                 placeholderTextColor="#8E8E93"
                 textAlign="right"
             />
-            <Pressable
-                onPress={() => setShowPassword(!showPassword)}
-                style={styles.eyeIcon}
-                hitSlop={8}
-            >
-                <Ionicons
-                    name={showPassword ? "eye-off-outline" : "eye-outline"}
-                    size={18}
-                    color="#8E8E93"
-                />
+            <Pressable onPress={() => setShowPassword(!showPassword)} style={styles.eyeIcon} hitSlop={8}>
+                <Ionicons name={showPassword ? "eye-off-outline" : "eye-outline"} size={18} color="#8E8E93" />
             </Pressable>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        marginTop: 30
-    },
-    header: {
-        paddingHorizontal: 20,
-        paddingTop: 8,
-        paddingBottom: 16,
-    },
-    headerTitle: {
-        fontSize: 34,
-        fontWeight: '700',
-        color: '#FFFFFF',
-        letterSpacing: 0.37,
-    },
-    content: {
-        paddingBottom: 40,
-    },
-    sectionHeaderContainer: {
-        paddingHorizontal: 20,
-        paddingTop: 22,
-        paddingBottom: 6,
-    },
-    sectionHeader: {
-        fontSize: 13,
-        fontWeight: '400',
-        color: '#8E8E93',
-    },
-    section: {
-        marginBottom: 35,
-    },
-    instanceCard: {
-        backgroundColor: '#1C1C1E',
-        marginHorizontal: 20,
-        marginBottom: 20,
-        borderRadius: 10,
-        overflow: 'hidden',
-    },
-    instanceHeader: {
-        paddingVertical: 11,
-        paddingHorizontal: 16,
-    },
-    instanceHeaderContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    cellPressed: {
-        backgroundColor: '#2C2C2E',
-    },
-    radioButton: {
-        padding: 4,
-    },
-    radioOuter: {
-        width: 22,
-        height: 22,
-        borderRadius: 11,
-        borderWidth: 1.5,
-        borderColor: '#48484A',
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#1C1C1E',
-    },
-    radioOuterActive: {
-        borderColor: '#0A84FF',
-        backgroundColor: '#0A84FF',
-    },
-    radioInner: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: '#FFFFFF',
-    },
-    instanceInfo: {
-        flex: 1,
-    },
-    instanceName: {
-        fontSize: 16,
-        fontWeight: '400',
-        color: '#FFFFFF',
-        letterSpacing: -0.41,
-    },
-    instanceUrl: {
-        fontSize: 15,
-        color: '#8E8E93',
-        marginTop: 1,
-        letterSpacing: -0.24,
-    },
-    instanceDetails: {
-        backgroundColor: '#1C1C1E',
-    },
-    formRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 11,
-        paddingHorizontal: 16,
-        minHeight: 44,
-    },
-    formLabel: {
-        fontSize: 16,
-        color: '#FFFFFF',
-        letterSpacing: -0.41,
-        marginRight: 16,
-    },
-    formInput: {
-        flex: 1,
-        fontSize: 16,
-        color: '#FFFFFF',
-        letterSpacing: -0.41,
-        paddingVertical: 0,
-    },
-    passwordContainer: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-    },
-    passwordInput: {
-        flex: 1,
-        fontSize: 16,
-        color: '#FFFFFF',
-        letterSpacing: -0.41,
-        paddingVertical: 0,
-        paddingRight: 8,
-    },
-    eyeIcon: {
-        padding: 4,
-    },
-    rowSeparator: {
-        height: 0.5,
-        backgroundColor: '#38383A',
-        marginLeft: 16,
-    },
-    sectionSeparator: {
-        height: 20,
-    },
-    headersSectionTitle: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        paddingHorizontal: 16,
-        paddingVertical: 8,
-    },
-    sectionFooter: {
-        fontSize: 13,
-        fontWeight: '400',
-        color: '#8E8E93',  
-    },
-    addHeaderLink: {
-        fontSize: 16,
-        color: '#0A84FF',
-        letterSpacing: -0.41,
-    },
-    emptyHeaders: {
-        paddingVertical: 28,
-        alignItems: 'center',
-        backgroundColor: '#1C1C1E',
-    },
-    emptyHeadersText: {
-        fontSize: 16,
-        color: '#8E8E93',
-        letterSpacing: -0.41,
-    },
-    headersList: {
-        backgroundColor: '#1C1C1E',
-    },
-    headerItem: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        paddingVertical: 11,
-        paddingHorizontal: 16,
-        gap: 12,
-    },
-    headerInputs: {
-        flex: 1,
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    headerKeyInput: {
-        flex: 1,
-    },
-    headerColon: {
-        paddingHorizontal: 4,
-    },
-    headerColonText: {
-        fontSize: 16,
-        color: '#8E8E93',
-    },
-    headerValueInput: {
-        flex: 1.5,
-    },
-    deleteHeaderButton: {
-        padding: 4,
-    },
-    deleteButton: {
-        paddingVertical: 11,
-        paddingHorizontal: 16,
-        alignItems: 'center',
-        backgroundColor: '#1C1C1E',
-    },
-    deleteButtonText: {
-        fontSize: 16,
-        fontWeight: '400',
-        color: '#FF453A',
-        letterSpacing: -0.41,
-    },
-    addInstanceButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#1C1C1E',
-        marginHorizontal: 20,
-        paddingVertical: 11,
-        borderRadius: 10,
-        gap: 8,
-        marginBottom: 8,
-    },
-    addInstanceText: {
-        fontSize: 16,
-        fontWeight: '400',
-        color: '#0A84FF',
-        letterSpacing: -0.41,
-    },
-    footerText: {
-        fontSize: 13,
-        color: '#8E8E93',
-        lineHeight: 18,
-        paddingHorizontal: 36,
-        paddingTop: 8,
-        paddingBottom: 24,
-        textAlign: 'left',
-    },
-    saveButton: {
-        backgroundColor: '#0A84FF',
-        marginHorizontal: 20,
-        paddingVertical: 14,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    saveButtonPressed: {
-        backgroundColor: '#0066CC',
-    },
-    saveButtonDisabled: {
-        opacity: 0.5,
-    },
-    saveButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '500',
-        letterSpacing: -0.41,
-    },
+    container: { flex: 1, marginTop: 30 },
+    header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
+    headerTitle: { fontSize: 34, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.37 },
+    content: { paddingBottom: 40 },
+    sectionHeaderContainer: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 6 },
+    sectionHeader: { fontSize: 13, fontWeight: '400', color: '#8E8E93' },
+    section: { marginBottom: 35 },
+    instanceCard: { backgroundColor: '#1C1C1E', marginHorizontal: 20, marginBottom: 20, borderRadius: 10, overflow: 'hidden' },
+    instanceHeader: { paddingVertical: 11, paddingHorizontal: 16 },
+    instanceHeaderContent: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    cellPressed: { backgroundColor: '#2C2C2E' },
+    radioButton: { padding: 4 },
+    radioOuter: { width: 22, height: 22, borderRadius: 11, borderWidth: 1.5, borderColor: '#48484A', justifyContent: 'center', alignItems: 'center', backgroundColor: '#1C1C1E' },
+    radioOuterActive: { borderColor: '#0A84FF', backgroundColor: '#0A84FF' },
+    radioInner: { width: 8, height: 8, borderRadius: 4, backgroundColor: '#FFFFFF' },
+    instanceInfo: { flex: 1 },
+    instanceName: { fontSize: 16, fontWeight: '400', color: '#FFFFFF', letterSpacing: -0.41 },
+    instanceUrl: { fontSize: 15, color: '#8E8E93', marginTop: 1, letterSpacing: -0.24 },
+    instanceDetails: { backgroundColor: '#1C1C1E' },
+    formRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 11, paddingHorizontal: 16, minHeight: 44 },
+    formLabel: { fontSize: 16, color: '#FFFFFF', letterSpacing: -0.41, marginRight: 16 },
+    formInput: { flex: 1, fontSize: 16, color: '#FFFFFF', letterSpacing: -0.41, paddingVertical: 0 },
+    passwordContainer: { flex: 1, flexDirection: 'row', alignItems: 'center' },
+    passwordInput: { flex: 1, fontSize: 16, color: '#FFFFFF', letterSpacing: -0.41, paddingVertical: 0, paddingRight: 8 },
+    eyeIcon: { padding: 4 },
+    rowSeparator: { height: 0.5, backgroundColor: '#38383A', marginLeft: 16 },
+    sectionSeparator: { height: 20 },
+    headersSectionTitle: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingHorizontal: 16, paddingVertical: 8 },
+    sectionFooter: { fontSize: 13, fontWeight: '400', color: '#8E8E93' },
+    addHeaderLink: { fontSize: 16, color: '#0A84FF', letterSpacing: -0.41 },
+    emptyHeaders: { paddingVertical: 28, alignItems: 'center', backgroundColor: '#1C1C1E' },
+    emptyHeadersText: { fontSize: 16, color: '#8E8E93', letterSpacing: -0.41 },
+    headersList: { backgroundColor: '#1C1C1E' },
+    headerItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 11, paddingHorizontal: 16, gap: 12 },
+    headerInputs: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 },
+    headerKeyInput: { flex: 1 },
+    headerColon: { paddingHorizontal: 4 },
+    headerColonText: { fontSize: 16, color: '#8E8E93' },
+    headerValueInput: { flex: 1.5 },
+    deleteHeaderButton: { padding: 4 },
+    deleteButton: { paddingVertical: 11, paddingHorizontal: 16, alignItems: 'center', backgroundColor: '#1C1C1E' },
+    deleteButtonText: { fontSize: 16, fontWeight: '400', color: '#FF453A', letterSpacing: -0.41 },
+    addInstanceButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1C1C1E', marginHorizontal: 20, paddingVertical: 11, borderRadius: 10, gap: 8, marginBottom: 8 },
+    addInstanceText: { fontSize: 16, fontWeight: '400', color: '#0A84FF', letterSpacing: -0.41 },
+    footerText: { fontSize: 13, color: '#8E8E93', lineHeight: 18, paddingHorizontal: 36, paddingTop: 8, paddingBottom: 24, textAlign: 'left' },
+    saveButton: { backgroundColor: '#0A84FF', marginHorizontal: 20, paddingVertical: 14, borderRadius: 10, alignItems: 'center' },
+    saveButtonPressed: { backgroundColor: '#0066CC' },
+    saveButtonDisabled: { opacity: 0.5 },
+    saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '500', letterSpacing: -0.41 },
 });
 
 export default ProwlarrScreen;

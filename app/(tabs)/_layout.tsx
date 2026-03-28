@@ -1,133 +1,31 @@
-import React, { useMemo } from 'react';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { Tabs } from 'expo-router';
-import { Platform, StyleSheet, View } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
-import { BlurView } from 'expo-blur';
-
-function TabBarIcon(props: {
-  name: React.ComponentProps<typeof FontAwesome>['name'];
-  color: string;
-}) {
-  return <FontAwesome size={24} {...props} />;
-}
+import React from 'react';
+import { NativeTabs } from 'expo-router/unstable-native-tabs';
 
 export default function TabLayout() {
-
-  // Memoize background to avoid re-render crashes
-  const tabBarBackground = useMemo(() => (
-    <View
-      pointerEvents="none"
-      style={[StyleSheet.absoluteFill, { overflow: 'hidden' }]}
-    >
-      <BlurView
-        intensity={50}
-        tint="dark"
-        style={StyleSheet.absoluteFill}
-      />
-      <LinearGradient
-        colors={['rgba(0,0,0,0.2)', 'rgba(0,0,0,0.6)']}
-        start={{ x: 0, y: 0 }}
-        end={{ x: 0, y: 1 }}
-        style={StyleSheet.absoluteFill}
-      />
-    </View>
-  ), []);
-
-  const webFontFamily = Platform.OS === 'web'
-    ? 'Inter, -apple-system, BlinkMacSystemFont, sans-serif'
-    : undefined;
-
   return (
-    <Tabs
-      initialRouteName="index"
-      screenOptions={{
-        tabBarActiveTintColor: '#0A84FF',
-        headerShown: false,
-        tabBarHideOnKeyboard: Platform.OS === 'ios',
-        tabBarLabelStyle: {
-          fontFamily: webFontFamily,
-        },
-        headerTitleStyle: {
-          fontFamily: webFontFamily,
-        },
-        tabBarStyle: {
-          position: 'absolute',
-          height: Platform.OS === 'web' ? 70 : undefined,
-          backgroundColor: 'transparent',
-          borderTopWidth: 0,
-          elevation: 0,
-        },
-        tabBarBackground: () => tabBarBackground,
-      }}
+    <NativeTabs
+      minimizeBehavior="onScrollDown"
+      tintColor="#0A84FF"
     >
-      <Tabs.Screen
-        name="index"
-        listeners={{
-          tabPress: async () => {
-          },
-        }}
-        options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
-          tabBarIconStyle: { marginVertical: 5 },
-        }}
-      />
+      <NativeTabs.Trigger name="index">
+        <NativeTabs.Trigger.Label>Home</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="house" drawable="ic_home" />
+      </NativeTabs.Trigger>
 
-      <Tabs.Screen
-        name="library"
-        listeners={{
-          tabPress: async () => {            
-          },
-        }}
-        options={{
-          title: 'Library',
-          tabBarIcon: ({ color }) => <TabBarIcon name="folder-open-o" color={color} />,
-          tabBarIconStyle: { marginVertical: 5 },
-        }}
-      />
+      <NativeTabs.Trigger name="library">
+        <NativeTabs.Trigger.Label>Library</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="square.stack" drawable="ic_library_books" />
+      </NativeTabs.Trigger>
 
-      <Tabs.Screen
-        name="search"
-        listeners={{
-          tabPress: async () => {            
-          },
-        }}
-        options={{
-          title: 'Search',
-          tabBarIcon: ({ color }) => <TabBarIcon name="search" color={color} />,
-          tabBarIconStyle: { marginVertical: 5 },
-        }}
-      />
+      <NativeTabs.Trigger name="search">
+        <NativeTabs.Trigger.Label>Search</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="magnifyingglass" drawable="ic_search" />
+      </NativeTabs.Trigger>
 
-      {/* <Tabs.Screen
-        name="rss"
-        listeners={{
-          tabPress: async () => {
-            if (isHapticsSupported()) {
-              await Haptics.selectionAsync();
-            }
-          },
-        }}
-        options={{
-          title: 'RSS',
-          tabBarIcon: ({ color }) => <TabBarIcon name="rss" color={color} />,
-          tabBarIconStyle: { marginVertical: 5 },
-        }}
-      />       */}
-
-      <Tabs.Screen
-        name="settings"
-        listeners={{
-          tabPress: async () => {            
-          },
-        }}
-        options={{
-          title: 'Settings',
-          tabBarIcon: ({ color }) => <TabBarIcon name="gear" color={color} />,
-          tabBarIconStyle: { marginVertical: 5 },
-        }}
-      />
-    </Tabs>
+      <NativeTabs.Trigger name="settings">
+        <NativeTabs.Trigger.Label>Settings</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon sf="gearshape" drawable="ic_settings" />
+      </NativeTabs.Trigger>
+    </NativeTabs>
   );
 }

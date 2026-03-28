@@ -4,9 +4,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Platform, ActivityIndicator, View, Text, StyleSheet, StatusBar, Linking } from "react-native";
 import OpenSubtitlesClient, { SubtitleResult } from "@/clients/opensubtitles";
-import { getLanguageName } from "@/utils/Helpers";
 import * as ScreenOrientation from 'expo-screen-orientation';
-
 
 interface UpdateProgressEvent {
   progress: number
@@ -38,172 +36,125 @@ const MediaPlayerScreen: React.FC = () => {
   const [videoUrl, setVideoUrl] = useState<string>('');
   const [isLoadingStream, setIsLoadingStream] = useState<boolean>(true);
   const [defaultMediaPlayer, setDefaultMediaPlayer] = useState<string>('default');
-  const [shouldManageOrientation, setShouldManageOrientation] = useState<boolean>(false);
 
-  // Player fallback state
-  const [currentPlayerType, setCurrentPlayerType] = useState<"native" | "vlc">("native");
-  const [hasTriedNative, setHasTriedNative] = useState(false);
+  // iOS prefers ksplayer; Android/web start with native
+  const [currentPlayerType, setCurrentPlayerType] = useState<"native" | "ksplayer">(
+    Platform.OS === "ios" ? "ksplayer" : "native"
+  );
+  const [hasTriedPrimary, setHasTriedPrimary] = useState(false);
 
-  // Check if player is internal/default
   const isInternalPlayer = (playerType: string | null): boolean => {
     if (!playerType) return true;
     const normalizedPlayer = playerType.toLowerCase().trim();
     return normalizedPlayer === 'default' || normalizedPlayer === 'ask';
   };
 
-  // Orientation setup/cleanup
-  const setupOrientation = async () => {
-    if (Platform.OS !== 'web') {
-      try {
-        console.log('Setting up orientation - locking to landscape');
-        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
-        StatusBar.setHidden(true);
-      } catch (error) {
-        console.warn("Failed to set orientation:", error);
-      }
-    }
-  };
-
-  const cleanupOrientation = async () => {
-    if (Platform.OS !== 'web') {
-      try {
-        console.log('Cleaning up orientation - restoring default');
-        await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.DEFAULT);
-        StatusBar.setHidden(false);
-      } catch (error) {
-        console.warn("Failed to cleanup orientation:", error);
-      }
-    }
-  };
-
-  // Route to external player if needed
-  const routeToExternalPlayer = (playerType: string, streamUrl: string) => {
-    console.log('Routing to external player:', playerType, streamUrl);
-    const normalizedPlayer = playerType.toLowerCase().trim();
-
-    switch (normalizedPlayer) {
-      case 'infuse':
-        Linking.openURL(`infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`);
-        router.back();
-        break;
-      case 'vidhub':
-        Linking.openURL(`open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}`);
-        router.back();
-        break;
-      case 'vlc':
-        Linking.openURL(`vlc://${streamUrl}`);
-        router.back();
-        break;
-      case 'external':
-        Linking.openURL(streamUrl);
-        router.back();
-        break;
-      case 'newwindow':
-        Linking.openURL(streamUrl);
-        router.back();
-        break;
-      default:
-        // Use internal player (native or vlc)
-        return false;
-    }
-    return true;
-  };
-
-  // Handle orientation based on player selection
+  // Orientation setup — mirrors doc 8: unlock first, small delay, then lock landscape
   useEffect(() => {
-    const handlePlayerAndOrientation = async () => {
-      const savedPlayer = storageService.getItem(StorageKeys.DEFAULT_MEDIA_PLAYER_KEY);
-      console.log('Player selection effect - Saved Player:', savedPlayer);
+    let cancelled = false;
 
-      const useInternalPlayer = isInternalPlayer(savedPlayer as string);
-      console.log('Will use internal player:', useInternalPlayer);
-
-      setShouldManageOrientation(useInternalPlayer);
-
-      if (useInternalPlayer) {
-        await setupOrientation();
+    const init = async () => {
+      if (Platform.OS !== 'web') {
+        try {
+          await ScreenOrientation.unlockAsync();
+          await new Promise(r => setTimeout(r, 100));
+          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE);
+          StatusBar.setHidden(true, 'slide');
+        } catch (e) {
+          console.warn('Orientation lock failed:', e);
+        }
       }
+
+      if (cancelled) return;
+
+      if (!url) {
+        initializeClient();
+        return;
+      }
+
+      const savedPlayer = storageService.getItem(StorageKeys.DEFAULT_MEDIA_PLAYER_KEY);
+      if (savedPlayer) {
+        setDefaultMediaPlayer(savedPlayer);
+        if (!isInternalPlayer(savedPlayer)) {
+          const routedExternally = routeToExternalPlayer(savedPlayer, url as string);
+          if (routedExternally) return;
+        }
+      }
+
+      console.log('Using internal player, setting video URL');
+      setVideoUrl(url as string);
+      setIsLoadingStream(false);
+      initializeClient();
     };
 
-    handlePlayerAndOrientation();
+    init();
 
     return () => {
-      if (shouldManageOrientation) {
-        cleanupOrientation();
-      }
+      cancelled = true;
+      (async () => {
+        try {
+          await ScreenOrientation.unlockAsync();
+          await ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+          StatusBar.setHidden(false, 'slide');
+        } catch { }
+      })();
     };
   }, []);
 
   useEffect(() => {
-    console.log('URL Effect - URL:', url);
-
-    if (!url) {
-      initializeClient();
-      return;
-    }
-
-    // Get default media player preference
-    const savedPlayer = storageService.getItem(StorageKeys.DEFAULT_MEDIA_PLAYER_KEY);
-    console.log('URL Effect - Saved Player:', savedPlayer);
-
-    if (savedPlayer) {
-      setDefaultMediaPlayer(savedPlayer);
-
-      // Check if we should route to external player
-      if (!isInternalPlayer(savedPlayer)) {
-        console.log('Routing to external player:', savedPlayer);
-        const routedExternally = routeToExternalPlayer(savedPlayer, url as string);
-        if (routedExternally) {
-          // External player opened, don't continue loading
-          return;
-        }
-      }
-    }
-
-    console.log('Using internal player, setting video URL');
-    setVideoUrl(url as string);
-    setIsLoadingStream(false);
-    initializeClient();
-  }, [url]);
-
-  useEffect(() => {
-    if (openSubtitlesClient) {
-      fetchSubtitles();
-    }
+    if (openSubtitlesClient) fetchSubtitles();
   }, [openSubtitlesClient]);
 
+  // When fallback player is set, clear error and allow render
   useEffect(() => {
-    if (currentPlayerType === "vlc" && hasTriedNative) {
-      console.log('Switching to VLC player');
+    if (hasTriedPrimary) {
+      console.log(`Switched to ${currentPlayerType} player, video URL:`, videoUrl);
       setIsLoadingStream(false);
     }
-  }, [currentPlayerType, hasTriedNative]);
+  }, [currentPlayerType, hasTriedPrimary]);
+
+  const routeToExternalPlayer = (playerType: string, streamUrl: string): boolean => {
+    const normalizedPlayer = playerType.toLowerCase().trim();
+    switch (normalizedPlayer) {
+      case 'infuse':
+        Linking.openURL(`infuse://x-callback-url/play?url=${encodeURIComponent(streamUrl)}`);
+        router.back();
+        return true;
+      case 'vidhub':
+        Linking.openURL(`open-vidhub://x-callback-url/open?url=${encodeURIComponent(streamUrl)}`);
+        router.back();
+        return true;
+      case 'vlc':
+        Linking.openURL(`vlc://${streamUrl}`);
+        router.back();
+        return true;
+      case 'external':
+      case 'newwindow':
+        Linking.openURL(streamUrl);
+        router.back();
+        return true;
+      default:
+        return false;
+    }
+  };
 
   const handlePlaybackError = (event: PlaybackErrorEvent) => {
     console.log('Playback error:', event);
 
-    // Only attempt VLC fallback for format errors on non-web platforms
-    if (
-      currentPlayerType === "native" &&
-      !hasTriedNative &&
-      Platform.OS !== "web"
-    ) {
-      console.log('Native player failed, falling back to VLC');
+    if (Platform.OS === 'web') {
+      console.log('Final playback error (web):', event.error);
+      return;
+    }
 
-      setHasTriedNative(true);
-      setCurrentPlayerType("vlc");
-      setTimeout(() => {
-        // Trigger re-load with current video URL
-        // The player will re-render as VLC due to currentPlayerType change
-        console.log('VLC player ready, video URL:', videoUrl);
-      }, 100);
-
+    if (!hasTriedPrimary) {
+      // First failure: switch to the other player
+      const fallback = currentPlayerType === "ksplayer" ? "native" : "ksplayer";
+      console.log(`${currentPlayerType} failed, falling back to ${fallback}`);
+      setHasTriedPrimary(true);
+      setCurrentPlayerType(fallback);
     } else {
-      // Show error - either VLC also failed or no fallback available
-      const errorMessage = currentPlayerType === "vlc"
-        ? 'VLC player was unable to play this format. The video codec may not be supported.'
-        : (event.error || 'Playback failed');
-
+      // Both players failed
+      const errorMessage = event.error || 'Playback failed. The video codec may not be supported.';
       console.log('Final playback error:', errorMessage);
       setIsLoadingStream(false);
     }
@@ -229,7 +180,7 @@ const MediaPlayerScreen: React.FC = () => {
 
     try {
       setIsLoadingSubtitles(true);
-      const subtitleQuery = category === 'movie' ? title : fileTitle
+      const subtitleQuery = category === 'movie' ? title : fileTitle;
       const response = await openSubtitlesClient.searchByFileName(
         subtitleQuery as string,
         ['en'],
@@ -238,25 +189,22 @@ const MediaPlayerScreen: React.FC = () => {
           ai_translated: 'include',
           machine_translated: 'include',
           trusted_sources: 'include',
-          hearing_impaired: 'include'
+          hearing_impaired: 'include',
         }
       );
 
       if (response.success) {
         if (response.data.length === 0) {
           setSubtitles([]);
-          setIsLoadingSubtitles(false);
           return;
         }
-        const sortedData = response.data.sort((a, b) => b.download_count - a.download_count);
-
+        const sortedData = response.data.sort((a: SubtitleResult, b: SubtitleResult) => b.download_count - a.download_count);
         const transformedSubtitles: Subtitle[] = sortedData.map((subtitle: SubtitleResult) => ({
           fileId: subtitle.file_id,
           language: subtitle.language,
           url: subtitle.url,
-          label: `${subtitle.name}`
+          label: subtitle.name,
         }));
-
         setSubtitles(transformedSubtitles);
       } else {
         console.error('Failed to fetch subtitles:', response.error);
@@ -272,16 +220,12 @@ const MediaPlayerScreen: React.FC = () => {
 
   const saveToWatchHistory = (progress: number) => {
     const minProgressAsWatched = 95;
-
     try {
       const existingHistoryJson = storageService.getItem(WATCH_HISTORY_KEY);
       let history: WatchHistoryItem[] = existingHistoryJson ? JSON.parse(existingHistoryJson) : [];
 
       if (progress >= minProgressAsWatched) {
-        history = history.filter(item =>
-          !(item.title === title &&
-            item.videoUrl === videoUrl)
-        );
+        history = history.filter(item => !(item.title === title && item.videoUrl === videoUrl));
         storageService.setItem(WATCH_HISTORY_KEY, JSON.stringify(history));
         return;
       }
@@ -289,32 +233,20 @@ const MediaPlayerScreen: React.FC = () => {
       const historyItem: WatchHistoryItem = {
         title: title as string,
         videoUrl: videoUrl as string,
-        progress: progress,
-        timestamp: Date.now()
+        progress,
+        timestamp: Date.now(),
       };
 
-      const existingIndex = history.findIndex(item =>
-        item.title === title &&
-        item.videoUrl === videoUrl
-      );
-
+      const existingIndex = history.findIndex(item => item.title === title && item.videoUrl === videoUrl);
       if (existingIndex !== -1) {
-        history[existingIndex] = {
-          ...history[existingIndex],
-          videoUrl: videoUrl as string,
-          progress: progress,
-          timestamp: Date.now()
-        };
-
+        history[existingIndex] = { ...history[existingIndex], videoUrl: videoUrl as string, progress, timestamp: Date.now() };
         const [updatedItem] = history.splice(existingIndex, 1);
         history.unshift(updatedItem);
       } else {
         history.unshift(historyItem);
       }
 
-      if (history.length > MAX_HISTORY_ITEMS) {
-        history = history.slice(0, MAX_HISTORY_ITEMS);
-      }
+      if (history.length > MAX_HISTORY_ITEMS) history = history.slice(0, MAX_HISTORY_ITEMS);
 
       storageService.setItem(WATCH_HISTORY_KEY, JSON.stringify(history));
     } catch (error) {
@@ -323,32 +255,20 @@ const MediaPlayerScreen: React.FC = () => {
   };
 
   const handleBack = async (): Promise<void> => {
-    // Cleanup orientation before going back
-    if (shouldManageOrientation) {
-      await cleanupOrientation();
-    }
     router.back();
   };
 
   const handleUpdateProgress = async (event: UpdateProgressEvent): Promise<void> => {
-    if (event.progress <= 1)
-      return;
-
+    if (event.progress <= 1) return;
     const progressPercentage = Math.floor(event.progress);
     setProgress(progressPercentage);
-
     saveToWatchHistory(progressPercentage);
   };
 
   function getPlayer() {
-    if (Platform.OS === "web") {
-      return require("../../components/nativeplayer").MediaPlayer;
+    if (Platform.OS === "ios" && currentPlayerType === "ksplayer") {
+      return require("../../components/ksplayer").MediaPlayer;
     }
-
-    if (currentPlayerType === "vlc") {
-      return require("../../components/vlcplayer").MediaPlayer;
-    }
-
     return require("../../components/nativeplayer").MediaPlayer;
   }
 
@@ -383,7 +303,7 @@ const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   loadingOverlay: {
     justifyContent: 'center',
@@ -393,7 +313,7 @@ const styles = StyleSheet.create({
     color: '#fff',
     marginTop: 20,
     fontSize: 16,
-    fontWeight: 500,
+    fontWeight: '500',
   },
 });
 

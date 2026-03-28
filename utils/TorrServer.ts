@@ -1,4 +1,3 @@
-import { Buffer } from 'buffer';
 import { StorageKeys, storageService } from './StorageService';
 import { router } from 'expo-router';
 import { showAlert } from './platform';
@@ -90,7 +89,6 @@ export const getTorrServerAuthHeader = (): { Authorization: string } | null => {
 
     const credentials = `${activeServer.username}:${activeServer.password}`;
     const encoded = Buffer.from(credentials).toString('base64');
-
     return {
       Authorization: `Basic ${encoded}`,
     };

@@ -9,7 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
-import { View } from '@/components/Themed';
+import { StatusBar, View } from '@/components/Themed';
 import { showAlert } from '@/utils/platform';
 import BottomSpacing from '@/components/BottomSpacing';
 import ProwlarrClient, { ProwlarrSearchResult, ProwlarrIndexer, ProwlarrCategory } from '@/clients/prowlarr';
@@ -22,10 +22,10 @@ import { RSSFilters } from '@/components/search/RSSFilters';
 import { RSSResultCard } from '@/components/search/RSSResultCard';
 import { EmptyState } from '@/components/search/EmptyState';
 import { LoadingState } from '@/components/search/LoadingState';
-import { ErrorState } from '@/components/search/ErrorState';
 import { ResultsHeader } from '@/components/search/ResultsHeader';
 import { streamTorrentFile } from '@/utils/TorrServer';
 import { ProwlarrResultCard } from '@/components/search/ProwlarrResultCard';
+import BlurGradientBackground from '@/components/BlurGradientBackground';
 
 // Types
 type SearchSource = 'prowlarr' | 'rss';
@@ -62,13 +62,16 @@ const RSS_FEEDS_KEY = StorageKeys.RSS_FEEDS_KEY || 'TORRCLIENT_RSS_FEEDS_KEY';
 const SearchScreen = () => {
     const router = useRouter();
 
-    // Search state
+    // Configured sources
+    const [isProwlarrConfigured, setIsProwlarrConfigured] = useState(false);
+    const [isRssConfigured, setIsRssConfigured] = useState(false);
+
+    // Search state — default source will be set after we know what's configured
     const [searchSource, setSearchSource] = useState<SearchSource>('prowlarr');
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
     const [loadingData, setLoadingData] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
-    const [error, setError] = useState<string | null>(null);
     const [results, setResults] = useState<UnifiedSearchResult[]>([]);
     const [searched, setSearched] = useState(false);
 
@@ -93,47 +96,49 @@ const SearchScreen = () => {
 
     useFocusEffect(
         React.useCallback(() => {
-            if (searchSource === 'rss') {
-                loadRssFeeds();
-            }
-        }, [searchSource])
+            // Refresh RSS feeds and Prowlarr indexers when returning to screen
+            // (user may have just configured something in Settings)
+            loadRssFeeds();
+            loadProwlarrIndexers();
+        }, [])
     );
 
     const loadData = async () => {
         setLoadingData(true);
-        setError(null);
+        // Run both in parallel, neither blocks the other
+        await Promise.all([loadRssFeeds(), loadProwlarrIndexers()]);
+        setLoadingData(false);
+    };
 
+    const loadProwlarrIndexers = async () => {
         try {
-            // Load Prowlarr data
             const client = new ProwlarrClient();
-            await client.initialize();
-
-            const fetchedIndexers = await client.getIndexers();
-            if (!fetchedIndexers || !Array.isArray(fetchedIndexers)) {
-                throw new Error('Invalid indexers data received from Prowlarr');
+            const initialized = await client.initialize();
+            if (!initialized) {
+                setIsProwlarrConfigured(false);
+                // If prowlarr is not configured and rss is, switch to rss
+                setSearchSource(prev => prev === 'prowlarr' ? 'rss' : prev);
+                return;
             }
 
-            const enabledIndexers = fetchedIndexers.filter(i => i.enable);
-            if (enabledIndexers.length === 0) {
-                throw new Error('No enabled indexers found in Prowlarr');
+            const [fetchedIndexers, fetchedCategories] = await Promise.all([
+                client.getIndexers(),
+                client.getCategories(),
+            ]);
+
+            if (fetchedIndexers && Array.isArray(fetchedIndexers)) {
+                setIndexers(fetchedIndexers.filter(i => i.enable));
+            }
+            if (fetchedCategories && Array.isArray(fetchedCategories)) {
+                setCategories(fetchedCategories.filter(c => c.id === 2000 || c.id === 5000));
             }
 
-            setIndexers(enabledIndexers);
-
-            const fetchedCategories = await client.getCategories();
-            const moviesTVCategories = fetchedCategories.filter(
-                category => category.id === 2000 || category.id === 5000
-            );
-            setCategories(moviesTVCategories);
-
-            // Load RSS feeds
-            await loadRssFeeds();
-
-            setLoadingData(false);
-        } catch (error) {
-            console.error('Failed to load data:', error);
-            setError(error instanceof Error ? error.message : 'Failed to load data');
-            setLoadingData(false);
+            setIsProwlarrConfigured(true);
+        } catch (err) {
+            // Prowlarr unreachable — not an error worth surfacing at load time
+            console.warn('Could not load Prowlarr indexers:', err instanceof Error ? err.message : err);
+            setIsProwlarrConfigured(false);
+            setSearchSource(prev => prev === 'prowlarr' ? 'rss' : prev);
         }
     };
 
@@ -142,12 +147,29 @@ const SearchScreen = () => {
             const feedsJson = storageService.getItem(RSS_FEEDS_KEY);
             if (feedsJson) {
                 const loadedFeeds: RSSFeedConfig[] = JSON.parse(feedsJson);
+                const enabledFeeds = loadedFeeds.filter(f => f.enabled !== false);
                 setRssFeeds(loadedFeeds);
+                const hasFeeds = enabledFeeds.length > 0;
+                setIsRssConfigured(hasFeeds);
+                // If rss is not configured and we're currently on rss, switch to prowlarr
+                if (!hasFeeds) {
+                    setSearchSource(prev => prev === 'rss' ? 'prowlarr' : prev);
+                }
+            } else {
+                setIsRssConfigured(false);
+                setSearchSource(prev => prev === 'rss' ? 'prowlarr' : prev);
             }
         } catch (error) {
             console.error('Failed to load RSS feeds:', error);
+            setIsRssConfigured(false);
         }
     };
+
+    // Derive the list of available sources to pass to SourceSelector
+    const availableSources: SearchSource[] = [
+        ...(isProwlarrConfigured ? (['prowlarr'] as SearchSource[]) : []),
+        ...(isRssConfigured ? (['rss'] as SearchSource[]) : []),
+    ];
 
     const handleSearch = async () => {
         if (searchSource === 'prowlarr') {
@@ -166,8 +188,6 @@ const SearchScreen = () => {
 
         try {
             const client = new ProwlarrClient();
-            await client.initialize();
-
             const searchResults = await client.search({
                 query: query.trim(),
                 indexerIds: selectedIndexer !== null ? [selectedIndexer] : undefined,
@@ -187,8 +207,8 @@ const SearchScreen = () => {
 
             setResults(sorted.map(r => ({ source: 'prowlarr', prowlarrResult: r })));
         } catch (error) {
-            console.error('Search error:', error);
-            showAlert('Search Error', 'Failed to search torrents. Please check your Prowlarr configuration.');
+            const message = error instanceof Error ? error.message : 'Unknown error';
+            showAlert('Search Error', message);
         } finally {
             setLoading(false);
         }
@@ -216,20 +236,16 @@ const SearchScreen = () => {
 
     const fetchRSSFeed = async (feedConfig: RSSFeedConfig) => {
         setLoading(true);
-        setError(null);
 
         try {
-            const headers: HeadersInit = {
-                'Accept': 'application/rss+xml, application/xml, text/xml',
-            };
-
-            const response = await fetch(feedConfig.url, { headers });
+            const response = await fetch(feedConfig.url, {
+                headers: { 'Accept': 'application/rss+xml, application/xml, text/xml' },
+            });
             if (!response.ok) {
                 throw new Error(`HTTP ${response.status}: ${response.statusText}`);
             }
 
-            const xmlText = await response.text();
-            const parsedItems = parseRSS(xmlText);
+            const parsedItems = parseRSS(await response.text());
             setRssItems(parsedItems);
 
             if (!query.trim()) {
@@ -237,9 +253,7 @@ const SearchScreen = () => {
                 setSearched(true);
             }
         } catch (error) {
-            console.error('Failed to fetch RSS feed:', error);
-            setError(error instanceof Error ? error.message : 'Failed to fetch feed');
-            showAlert('RSS Error', 'Failed to fetch RSS feed.');
+            showAlert('RSS Error', error instanceof Error ? error.message : 'Failed to fetch feed');
         } finally {
             setLoading(false);
         }
@@ -248,7 +262,6 @@ const SearchScreen = () => {
     const parseRSS = (xmlText: string): RSSItem[] => {
         const items: RSSItem[] = [];
         const itemMatches = xmlText.match(/<item[^>]*>[\s\S]*?<\/item>/gi);
-
         if (!itemMatches) return items;
 
         itemMatches.forEach(itemXml => {
@@ -261,11 +274,12 @@ const SearchScreen = () => {
             const enclosureMatch = itemXml.match(/<enclosure[^>]*>/i);
             let enclosure;
             if (enclosureMatch) {
-                const enclosureTag = enclosureMatch[0];
-                const url = extractAttribute(enclosureTag, 'url');
-                const type = extractAttribute(enclosureTag, 'type');
-                const length = extractAttribute(enclosureTag, 'length');
-                enclosure = { url, type, length };
+                const tag = enclosureMatch[0];
+                enclosure = {
+                    url: extractAttribute(tag, 'url'),
+                    type: extractAttribute(tag, 'type'),
+                    length: extractAttribute(tag, 'length'),
+                };
             }
 
             if (title) {
@@ -284,14 +298,12 @@ const SearchScreen = () => {
     };
 
     const extractTag = (xml: string, tagName: string): string => {
-        const regex = new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i');
-        const match = xml.match(regex);
+        const match = xml.match(new RegExp(`<${tagName}[^>]*>([\\s\\S]*?)<\\/${tagName}>`, 'i'));
         return match ? match[1].trim() : '';
     };
 
     const extractAttribute = (tag: string, attrName: string): string => {
-        const regex = new RegExp(`${attrName}=["']([^"']+)["']`, 'i');
-        const match = tag.match(regex);
+        const match = tag.match(new RegExp(`${attrName}=["']([^"']+)["']`, 'i'));
         return match ? match[1] : '';
     };
 
@@ -310,16 +322,13 @@ const SearchScreen = () => {
 
     const handleRefresh = async () => {
         if (refreshing) return;
-
+        setRefreshing(true);
         if (searchSource === 'rss' && selectedRssFeed) {
-            setRefreshing(true);
             await fetchRSSFeed(selectedRssFeed);
-            setRefreshing(false);
         } else if (searchSource === 'prowlarr' && searched) {
-            setRefreshing(true);
             await handleProwlarrSearch();
-            setRefreshing(false);
         }
+        setRefreshing(false);
     };
 
     const handleClear = () => {
@@ -328,31 +337,21 @@ const SearchScreen = () => {
         setSearched(false);
     };
 
-    const handleRetry = async () => {
-        loadData();
-    };
-
     const handleSourceChange = async (source: SearchSource) => {
         setSearchSource(source);
         setQuery('');
         setResults([]);
         setSearched(false);
-        setError(null);
-
-        if (source === 'rss') {
-            await loadRssFeeds();
-        }
+        if (source === 'rss') await loadRssFeeds();
     };
 
     const handleRssFeedSelect = async (feedId: string) => {
         const feed = rssFeeds.find(f => f.id === feedId);
         if (!feed) return;
-
         setSelectedRssFeed(feed);
         setQuery('');
         setResults([]);
         setSearched(false);
-
         await fetchRSSFeed(feed);
     };
 
@@ -365,9 +364,8 @@ const SearchScreen = () => {
             link = r.magnetUrl || r.hash || r.infoHash || r.downloadUrl || r.guid || '';
             title = r.title;
         } else if (result.source === 'rss' && result.rssItem) {
-            const item = result.rssItem;
-            link = item.enclosure?.url || item.link;
-            title = item.title;
+            link = result.rssItem.enclosure?.url || result.rssItem.link;
+            title = result.rssItem.title;
         }
 
         if (!link) {
@@ -375,10 +373,7 @@ const SearchScreen = () => {
             return;
         }
 
-        router.push({
-            pathname: '/torrent/add',
-            params: { magnet: link, titleParam: title },
-        });
+        router.push({ pathname: '/torrent/add', params: { magnet: link, titleParam: title } });
     };
 
     const getResultKey = (result: UnifiedSearchResult): string => {
@@ -394,16 +389,14 @@ const SearchScreen = () => {
     const handleStreamNow = async (result: UnifiedSearchResult) => {
         let torrentLink = '';
         let title = '';
-        const resultKey = getResultKey(result);
 
         if (result.source === 'prowlarr' && result.prowlarrResult) {
             const r = result.prowlarrResult;
             torrentLink = r.hash || r.infoHash || r.magnetUrl || r.downloadUrl || r.guid || '';
             title = r.title;
         } else if (result.source === 'rss' && result.rssItem) {
-            const item = result.rssItem;
-            torrentLink = item.enclosure?.url || item.link;
-            title = item.title;
+            torrentLink = result.rssItem.enclosure?.url || result.rssItem.link;
+            title = result.rssItem.title;
         }
 
         if (!torrentLink) {
@@ -411,17 +404,11 @@ const SearchScreen = () => {
             return;
         }
 
-        await streamTorrentFile({
-            link: torrentLink,
-            title: title,
-            fileTitle: title,
-            preload: false
-        });
+        await streamTorrentFile({ link: torrentLink, title, fileTitle: title, preload: false });
     };
 
     const formatDate = (dateString: string): string => {
         if (!dateString) return 'Unknown';
-
         try {
             const date = new Date(dateString);
             const now = new Date();
@@ -429,15 +416,13 @@ const SearchScreen = () => {
             const diffMins = Math.floor(diffMs / 60000);
             const diffHours = Math.floor(diffMs / 3600000);
             const diffDays = Math.floor(diffMs / 86400000);
-
             if (diffMins < 60) return `${diffMins}m ago`;
             if (diffHours < 24) return `${diffHours}h ago`;
             if (diffDays < 7) return `${diffDays}d ago`;
-
             return date.toLocaleDateString('en-US', {
                 month: 'short',
                 day: 'numeric',
-                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+                year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined,
             });
         } catch {
             return dateString;
@@ -447,43 +432,31 @@ const SearchScreen = () => {
     const formatSize = (bytes: string | number): string => {
         const size = typeof bytes === 'string' ? parseInt(bytes) : bytes;
         if (isNaN(size)) return '';
-
         const gb = size / (1024 * 1024 * 1024);
         if (gb >= 1) return `${gb.toFixed(2)} GB`;
-
-        const mb = size / (1024 * 1024);
-        return `${mb.toFixed(2)} MB`;
+        return `${(size / (1024 * 1024)).toFixed(2)} MB`;
     };
 
     const getCategoryDisplayName = (categoryId: number): string => {
         if (categoryId === 2000) return 'Movie';
         if (categoryId === 5000) return 'TV Show';
-
         for (const category of categories) {
-            const subcategory = category.subCategories.find(sub => sub.id === categoryId);
-            if (subcategory) {
-                const mainName = category.name;
-                const subName = subcategory.name.replace(`${mainName}/`, '');
-                return `${mainName} - ${subName}`;
-            }
+            const sub = category.subCategories.find(s => s.id === categoryId);
+            if (sub) return `${category.name} - ${sub.name.replace(`${category.name}/`, '')}`;
         }
         return 'Other';
     };
 
     const getCategoryBadge = (categoryIds: any[]) => {
-        if (!categoryIds || categoryIds.length === 0) return 'Unknown';
+        if (!categoryIds?.length) return 'Unknown';
         return getCategoryDisplayName(categoryIds[0].id);
     };
 
-    const handleIndexerSelect = async (indexerId: string) => {
-        if (indexerId === 'all') {
-            setSelectedIndexer(null);
-        } else {
-            setSelectedIndexer(parseInt(indexerId));
-        }
+    const handleIndexerSelect = (indexerId: string) => {
+        setSelectedIndexer(indexerId === 'all' ? null : parseInt(indexerId));
     };
 
-    const handleCategorySelect = async (categoryId: string) => {
+    const handleCategorySelect = (categoryId: string) => {
         if (categoryId === 'all') {
             setSelectedCategory(null);
             setSelectedCategoryName('All Categories');
@@ -494,8 +467,7 @@ const SearchScreen = () => {
         }
     };
 
-    // Initial loading
-    if (loadingData && indexers.length === 0 && !error) {
+    if (loadingData) {
         return (
             <SafeAreaView style={styles.container} edges={['top']}>
                 <LoadingState searchSource={searchSource} />
@@ -503,17 +475,10 @@ const SearchScreen = () => {
         );
     }
 
-    // Error state
-    if (error && indexers.length === 0) {
-        return (
-            <SafeAreaView style={styles.container} edges={['top']}>
-                <ErrorState error={error} onRetry={handleRetry} />
-            </SafeAreaView>
-        );
-    }
-
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
+            <StatusBar />
+            <BlurGradientBackground />
             <KeyboardAvoidingView
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
                 style={styles.keyboardAvoid}
@@ -534,12 +499,16 @@ const SearchScreen = () => {
                     <View style={styles.contentWrapper}>
                         <SearchHeader />
 
-                        <SourceSelector
-                            selectedSource={searchSource}
-                            onSourceChange={handleSourceChange}
-                        />
+                        {/* Only render SourceSelector when both sources are configured */}
+                        {availableSources.length > 1 && (
+                            <SourceSelector
+                                selectedSource={searchSource}
+                                onSourceChange={handleSourceChange}
+                                availableSources={availableSources}
+                            />
+                        )}
 
-                        {searchSource === 'prowlarr' && (
+                        {searchSource === 'prowlarr' && isProwlarrConfigured && (
                             <ProwlarrFilters
                                 indexers={indexers}
                                 categories={categories}
@@ -551,7 +520,7 @@ const SearchScreen = () => {
                             />
                         )}
 
-                        {searchSource === 'rss' && (
+                        {searchSource === 'rss' && isRssConfigured && (
                             <RSSFilters
                                 feeds={rssFeeds}
                                 selectedFeed={selectedRssFeed}
@@ -559,13 +528,15 @@ const SearchScreen = () => {
                             />
                         )}
 
-                        <SearchBar
-                            query={query}
-                            onQueryChange={setQuery}
-                            onClear={handleClear}
-                            onSubmit={handleSearch}
-                            searchSource={searchSource}
-                        />
+                        {(isProwlarrConfigured || isRssConfigured) && (
+                            <SearchBar
+                                query={query}
+                                onQueryChange={setQuery}
+                                onClear={handleClear}
+                                onSubmit={handleSearch}
+                                searchSource={searchSource}
+                            />
+                        )}
 
                         {loading && <LoadingState searchSource={searchSource} />}
 
@@ -574,6 +545,8 @@ const SearchScreen = () => {
                                 searchSource={searchSource}
                                 rssFeeds={rssFeeds}
                                 searched={searched}
+                                isProwlarrConfigured={isProwlarrConfigured}
+                                isRssConfigured={isRssConfigured}
                             />
                         )}
 
@@ -586,6 +559,8 @@ const SearchScreen = () => {
                                         searchSource={searchSource}
                                         rssFeeds={rssFeeds}
                                         searched={searched}
+                                        isProwlarrConfigured={isProwlarrConfigured}
+                                        isRssConfigured={isRssConfigured}
                                     />
                                 ) : (
                                     results.map((result, index) => {
@@ -638,15 +613,9 @@ const SearchScreen = () => {
 export default SearchScreen;
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    keyboardAvoid: {
-        flex: 1,
-    },
-    scrollContainer: {
-        flexGrow: 1,
-    },
+    container: { flex: 1 },
+    keyboardAvoid: { flex: 1 },
+    scrollContainer: { flexGrow: 1 },
     contentWrapper: {
         flex: 1,
         paddingHorizontal: 20,
@@ -655,7 +624,5 @@ const styles = StyleSheet.create({
         alignSelf: 'center',
         backgroundColor: 'transparent',
     },
-    resultsContainer: {
-        backgroundColor: 'transparent',
-    },
+    resultsContainer: { backgroundColor: 'transparent' },
 });

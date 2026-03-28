@@ -33,6 +33,20 @@ export const styles = StyleSheet.create({
         zIndex: 100,
     },
 
+    //Glass Effect
+    glassIcon: {
+        padding: 12,
+        borderRadius: 100
+    },
+    glassSlider: {
+        borderRadius: 100
+    },
+    glassTime: {
+        paddingHorizontal: 10,
+        paddingVertical: 8,
+        borderRadius: 100
+    },
+
     // Top Controls
     topControls: {
         position: 'absolute',
@@ -66,7 +80,9 @@ export const styles = StyleSheet.create({
     topRightControls: {
         flexDirection: 'row',
         alignItems: 'center',
-        marginRight: 10
+        marginRight: 10,
+        borderRadius: 25,
+        padding: 5
     },
 
     controlButton: {
@@ -84,17 +100,22 @@ export const styles = StyleSheet.create({
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: 'center',
-        zIndex: 100
+        zIndex: 100,
+        gap: 10
     },
 
     skipButton: {
-        padding: 20,
-        marginHorizontal: 20,
+        marginHorizontal: 30,
+        borderRadius: 25,
     },
 
     playButton: {
-        paddingHorizontal: 16,
-        marginHorizontal: 30,
+        borderRadius: 100,
+    },
+
+    bufferingButton: {
+        padding: 12,
+        borderRadius: 100,
     },
 
     disabledButton: {
@@ -106,39 +127,48 @@ export const styles = StyleSheet.create({
         position: 'absolute',
         bottom: 0,
         left: 0,
-        right: 0,        
+        right: 0,
         paddingTop: 20,
-        height: 100,
         marginHorizontal: '3%',
         zIndex: 100,
     },
 
     // Progress Bar
-    timeContainer: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-
     progressContainerWithMargin: {
-        marginBottom: 16,
+        marginBottom: 20,
         paddingVertical: 10,
     },
 
-    progressSlider: {
-        width: '100%',
-        height: 20,
+    glassContainer: {
+        paddingHorizontal: 10,
+        paddingVertical: 10,
+        borderRadius: 100
     },
+
+    sliderRow: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: 12,
+    },
+
+    progressSlider: {
+        flex: 1,
+        height: 20,
+        paddingHorizontal: 10,
+    },
+
     timeText: {
         color: 'white',
         fontSize: 14,
-        fontWeight: 500,
+        marginHorizontal: 5,
+        fontWeight: '500',
     },
 
     speedText: {
-        color: '#0A84FF',
+        color: '#535aff',
         fontSize: 14,
-        fontWeight: 500,
+        fontWeight: '500',
         marginLeft: 12,
     },
 
@@ -175,7 +205,7 @@ export const styles = StyleSheet.create({
     contentFitLabelText: {
         color: 'white',
         fontSize: 16,
-        fontWeight: '500',
+        fontWeight: '600',
         marginLeft: 8,
     },
 
@@ -192,7 +222,6 @@ export const styles = StyleSheet.create({
     artworkImage: {
         width: '100%',
         height: '100%',
-        opacity: 0.7
     },
 
     artworkOverlay: {
@@ -243,7 +272,7 @@ export const styles = StyleSheet.create({
 
     subtitleBackground: {
         maxWidth: '90%',
-        borderRadius: 6,
+        borderRadius: 8,
         overflow: 'hidden',
     },
 
@@ -259,9 +288,8 @@ export const styles = StyleSheet.create({
 
     subtitleText: {
         color: '#fff',
-        fontSize: 15,
-        fontWeight: '400',
-        letterSpacing: 0.05,
+        fontSize: 16,
+        letterSpacing: 0.3,
         textAlign: 'center',
     },
     // Error Display
@@ -276,7 +304,7 @@ export const styles = StyleSheet.create({
     errorTitle: {
         color: '#ff6b6b',
         fontSize: 24,
-        fontWeight: '500',
+        fontWeight: '600',
         marginTop: 16,
         marginBottom: 12,
         textAlign: 'center',
@@ -300,7 +328,7 @@ export const styles = StyleSheet.create({
     retryButtonText: {
         color: 'white',
         fontSize: 16,
-        fontWeight: '500',
+        fontWeight: '600',
     },
 
     errorBackButton: {
@@ -311,13 +339,13 @@ export const styles = StyleSheet.create({
         zIndex: 1,
     },
 
-    // Seek Feedback (VLC-specific)
+    // Seek Feedback
     seekFeedback: {
         position: 'absolute',
         top: '40%',
         zIndex: 15,
         backgroundColor: 'rgba(0, 0, 0, 0.8)',
-        borderRadius: 10,
+        borderRadius: 12,
         padding: 16,
     },
 
@@ -329,7 +357,7 @@ export const styles = StyleSheet.create({
     seekFeedbackText: {
         color: 'white',
         fontSize: 14,
-        fontWeight: '500',
+        fontWeight: '600',
         marginTop: 8,
     },
 
@@ -347,7 +375,7 @@ export const styles = StyleSheet.create({
 
     glassPanel: {
         backgroundColor: '#1a1a1af2',
-        borderRadius: 10,
+        borderRadius: 12,
         padding: 24,
         minWidth: 500,
         maxWidth: '90%',
@@ -367,7 +395,7 @@ export const styles = StyleSheet.create({
     panelTitle: {
         color: 'white',
         fontSize: 20,
-        fontWeight: '500',
+        fontWeight: '600',
         marginBottom: 20,
         textAlign: 'center',
     },
@@ -383,7 +411,7 @@ export const styles = StyleSheet.create({
         backgroundColor: 'rgba(142, 142, 142, 0.1)',
         paddingHorizontal: 16,
         paddingVertical: 12,
-        borderRadius: 10,
+        borderRadius: 12,
         marginBottom: 8,
         borderWidth: StyleSheet.hairlineWidth,
         borderColor: 'rgba(255, 255, 255, 0.1)',
@@ -411,7 +439,7 @@ export const styles = StyleSheet.create({
         backgroundColor: 'rgba(255, 255, 255, 0.1)',
         paddingHorizontal: 16,
         paddingVertical: 10,
-        borderRadius: 10,
+        borderRadius: 12,
         minWidth: 60,
         alignItems: 'center',
         borderWidth: 1,

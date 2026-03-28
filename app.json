@@ -12,7 +12,6 @@
       "web"
     ],
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
     "splash": {
       "image": "assets/images/splash.png",
       "resizeMode": "contain",
@@ -52,6 +51,7 @@
       "favicon": "assets/images/favicon.png"
     },
     "plugins": [
+      "./plugins/withKSPlayer",
       "expo-router",
       "expo-font",
       "expo-build-properties",

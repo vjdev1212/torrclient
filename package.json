@@ -26,39 +26,39 @@
     "@react-native-async-storage/async-storage": "2.2.0",
     "@react-native-menu/menu": "^2.0.0",
     "@react-navigation/native": "^7.0.0-rc.20",
-    "expo": "~54.0.29",
-    "expo-blur": "~15.0.8",
-    "expo-build-properties": "~1.0.10",
-    "expo-constants": "^18.0.10",
-    "expo-dev-client": "~6.0.20",
-    "expo-font": "~14.0.9",
-    "expo-linear-gradient": "~15.0.8",
-    "expo-linking": "~8.0.10",
-    "expo-router": "~6.0.19",
-    "expo-screen-orientation": "~9.0.8",
-    "expo-splash-screen": "~31.0.12",
-    "expo-status-bar": "~3.0.9",
-    "expo-system-ui": "~6.0.9",
-    "expo-updates": "~29.0.15",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
-    "react-native": "0.81.5",
-    "react-native-gesture-handler": "~2.28.0",
+    "expo": "~55.0.9",
+    "expo-blur": "~55.0.10",
+    "expo-build-properties": "~55.0.10",
+    "expo-constants": "~55.0.9",
+    "expo-dev-client": "~55.0.19",
+    "expo-font": "~55.0.4",
+    "expo-glass-effect": "^55.0.9-canary-20260328-2049187",
+    "expo-linear-gradient": "~55.0.9",
+    "expo-linking": "~55.0.9",
+    "expo-router": "~55.0.8",
+    "expo-screen-orientation": "~55.0.9",
+    "expo-splash-screen": "~55.0.13",
+    "expo-status-bar": "~55.0.4",
+    "expo-system-ui": "~55.0.11",
+    "expo-updates": "~55.0.16",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "react-native": "0.83.2",
+    "react-native-gesture-handler": "~2.30.0",
     "react-native-immersive-mode": "^2.0.2",
     "react-native-mmkv": "^4.0.1",
-    "react-native-reanimated": "~4.1.1",
+    "react-native-reanimated": "4.2.1",
     "react-native-safe-area-context": "~5.6.0",
-    "react-native-screens": "~4.16.0",
+    "react-native-screens": "~4.23.0",
     "react-native-video": "^6.18.0",
-    "react-native-vlc-media-player": "^1.0.96",
     "react-native-web": "^0.21.0",
-    "react-native-webview": "13.15.0",
-    "react-native-worklets": "0.5.1"
+    "react-native-webview": "13.16.0",
+    "react-native-worklets": "0.7.2"
   },
   "devDependencies": {
     "@babel/core": "^7.25.2",
     "@types/react": "~19.1.10",
-    "jest-expo": "~54.0.16",
+    "jest-expo": "^47.0.1",
     "react-test-renderer": "19.1.0",
     "typescript": "~5.9.2"
   },
@@ -67,9 +67,7 @@
     "doctor": {
       "reactNativeDirectoryCheck": {
         "listUnknownPackages": false,
-        "exclude": [
-          "react-native-vlc-media-player"
-        ]
+        "exclude": []
       }
     }
   }

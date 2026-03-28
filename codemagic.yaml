@@ -21,7 +21,6 @@ workflows:
           if [ -f "app.json" ]; then
             APP_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.version")
             APP_NAME=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.name.replace(/[^a-zA-Z0-9]/g, '')")
-            
             echo "📱 App Name: $APP_NAME"
             echo "📋 Version: $APP_VERSION"
             echo "APP_VERSION=$APP_VERSION" >> $CM_ENV
@@ -32,15 +31,32 @@ workflows:
             echo "APP_NAME=Torrclient" >> $CM_ENV
           fi
       
+      - name: Fix expo-updates
+        script: |
+          mkdir -p node_modules/expo-updates/scripts
+          cat > node_modules/expo-updates/scripts/create-manifest-ios.sh << 'EOF2'
+          #!/bin/bash
+          mkdir -p "${DERIVED_FILE_DIR}" 2>/dev/null || true
+          touch "${DERIVED_FILE_DIR}/EXUpdates.generated.m" 2>/dev/null || true
+          exit 0
+          EOF2
+          chmod +x node_modules/expo-updates/scripts/create-manifest-ios.sh
+      
       - name: Clean and generate iOS project
         script: |
           rm -rf ios android
           npx expo prebuild --clean --platform ios
-      
+
       - name: Install iOS dependencies
         script: |
           cd ios
-          pod install
+          pod install --repo-update
+
+      - name: Download Metal Toolchain
+        script: |
+          echo "⬇️ Downloading Metal Toolchain for KSPlayer shader compilation..."
+          xcodebuild -downloadComponent MetalToolchain
+          echo "✅ Metal Toolchain ready"
       
       - name: Build with Xcode (unsigned)
         script: |
@@ -63,19 +79,17 @@ workflows:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            DEVELOPMENT_TEAM=""
+            DEVELOPMENT_TEAM="" \
+            SWIFT_VERSION=5.0
 
           mkdir -p "build/Payload"
           cp -r "build/$SCHEME_NAME.xcarchive/Products/Applications/"*.app "build/Payload/"
 
           APP_BUNDLE=$(ls "build/Payload/" | head -1)
           BASE_NAME="${APP_BUNDLE%.app}"
-
           echo "📱 App bundle: $APP_BUNDLE"
 
-          # Create versioned IPA name
           IPA_NAME="${APP_NAME}_v${APP_VERSION}"
-          
           echo "📦 IPA name: $IPA_NAME"
 
           EXECUTABLE=$(plutil -extract CFBundleExecutable raw "build/Payload/$APP_BUNDLE/Info.plist" 2>/dev/null || echo "$BASE_NAME")
@@ -91,11 +105,7 @@ workflows:
           if [ -f "$IPA_NAME.ipa" ]; then
             echo "✅ IPA created successfully: $IPA_NAME.ipa"
             echo "📊 IPA size: $(ls -lh "$IPA_NAME.ipa" | awk '{print $5}')"
-            echo "🏷️  Full version info: $APP_NAME v$APP_VERSION"
-            
-            # Create a symlink with a simple name for easier access
             ln -sf "$IPA_NAME.ipa" "latest.ipa"
-            echo "🔗 Symlink created: latest.ipa -> $IPA_NAME.ipa"
           else
             echo "❌ Failed to create IPA"
             exit 1
@@ -142,7 +152,13 @@ workflows:
       - name: Install iOS dependencies
         script: |
           cd ios
-          pod install
+          pod install --repo-update
+
+      - name: Download Metal Toolchain
+        script: |
+          echo "⬇️ Downloading Metal Toolchain for KSPlayer shader compilation..."
+          xcodebuild -downloadComponent MetalToolchain
+          echo "✅ Metal Toolchain ready"
 
       - name: Build with Xcode (Debug, unsigned)
         script: |
@@ -161,7 +177,8 @@ workflows:
             CODE_SIGN_IDENTITY="" \
             CODE_SIGNING_REQUIRED=NO \
             CODE_SIGNING_ALLOWED=NO \
-            DEVELOPMENT_TEAM=""
+            DEVELOPMENT_TEAM="" \
+            SWIFT_VERSION=5.0
 
           mkdir -p build/Payload
           cp -r build/$SCHEME_NAME-dev.xcarchive/Products/Applications/*.app build/Payload/
@@ -183,6 +200,8 @@ workflows:
     artifacts:
       - ios/build/*.ipa
 
+  # ── Android workflows ────────────────────────────────────────────────────────
+
   torrclient-android-build:
     name: Torrclient Android Build
     environment:
@@ -200,7 +219,6 @@ workflows:
           if [ -f "app.json" ]; then
             APP_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.version")
             APP_NAME=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.name.replace(/[^a-zA-Z0-9]/g, '')")
-            
             echo "🤖 App Name: $APP_NAME"
             echo "📋 Version: $APP_VERSION"
             echo "APP_VERSION=$APP_VERSION" >> $CM_ENV
@@ -230,7 +248,6 @@ workflows:
       - name: Build Android release
         script: |
           cd android
-          
           if [ "$UNSIGNED_BUILD" = "true" ]; then
             echo "📦 Building unsigned release APK"
             ./gradlew assembleRelease -x configureCMakeRelease -Pandroid.overridePathCheck=true
@@ -250,13 +267,8 @@ workflows:
           if [ -f "$BUILD_OUTPUT/app-release.apk" ]; then
             APK_NAME="${APP_NAME}_v${APP_VERSION}_release.apk"
             cp "$BUILD_OUTPUT/app-release.apk" "../$APK_NAME"
-            
             echo "✅ Release APK created: $APK_NAME"
-            echo "📊 APK size: $(ls -lh "$APK_NAME" | awk '{print $5}')"
-            echo "🏷️  Full version info: $APP_NAME v$APP_VERSION"
-            
             ln -sf "$APK_NAME" "../latest-release.apk"
-            echo "🔗 Symlink created: latest-release.apk -> $APK_NAME"
           else
             echo "❌ Failed to create release APK"
             exit 1
@@ -265,15 +277,12 @@ workflows:
       - name: Build Android App Bundle
         script: |
           cd android
-          
           if [ "$UNSIGNED_BUILD" = "true" ]; then
-            echo "📦 Building unsigned App Bundle"
             ./gradlew bundleRelease -x configureCMakeRelease -Pandroid.overridePathCheck=true
           else
-            echo "📦 Building signed App Bundle"
             ./gradlew bundleRelease \
               -x configureCMakeRelease \
-              -Pcom.android.build.gradle.overridePathCheck=true \
+              -Pandroid.overridePathCheck=true \
               -Pandroid.injected.signing.store.file=$KEYSTORE_FILE \
               -Pandroid.injected.signing.store.password=$KEYSTORE_PASSWORD \
               -Pandroid.injected.signing.key.alias=$KEYSTORE_ALIAS \
@@ -283,12 +292,8 @@ workflows:
           if [ -f "app/build/outputs/bundle/release/app-release.aab" ]; then
             AAB_NAME="${APP_NAME}_v${APP_VERSION}_release.aab"
             cp "app/build/outputs/bundle/release/app-release.aab" "../$AAB_NAME"
-            
             echo "✅ App Bundle created: $AAB_NAME"
-            echo "📊 AAB size: $(ls -lh "$AAB_NAME" | awk '{print $5}')"
-            
             ln -sf "$AAB_NAME" "../latest-release.aab"
-            echo "🔗 Symlink created: latest-release.aab -> $AAB_NAME"
           else
             echo "❌ Failed to create App Bundle"
             exit 1
@@ -315,7 +320,6 @@ workflows:
           if [ -f "app.json" ]; then
             APP_VERSION=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.version")
             APP_NAME=$(node -p "JSON.parse(require('fs').readFileSync('app.json', 'utf8')).expo.name.replace(/[^a-zA-Z0-9]/g, '')")
-            
             echo "🤖 App Name: $APP_NAME"
             echo "📋 Version: $APP_VERSION"
             echo "APP_VERSION=$APP_VERSION" >> $CM_ENV
@@ -335,22 +339,15 @@ workflows:
       - name: Build Android debug APK
         script: |
           cd android
-          
-          echo "📦 Building debug APK"
           ./gradlew assembleDebug -x configureCMakeDebug -Pandroid.overridePathCheck=true
-          
+
           BUILD_OUTPUT="app/build/outputs/apk/debug"
-          
+
           if [ -f "$BUILD_OUTPUT/app-debug.apk" ]; then
             APK_NAME="${APP_NAME}_Dev_v${APP_VERSION}_debug.apk"
             cp "$BUILD_OUTPUT/app-debug.apk" "../$APK_NAME"
-            
             echo "✅ Debug APK created: $APK_NAME"
-            echo "📊 APK size: $(ls -lh "$APK_NAME" | awk '{print $5}')"
-            echo "🏷️  Full version info: $APP_NAME v$APP_VERSION (Debug)"
-            
             ln -sf "$APK_NAME" "../latest-debug.apk"
-            echo "🔗 Symlink created: latest-debug.apk -> $APK_NAME"
           else
             echo "❌ Failed to create debug APK"
             exit 1
