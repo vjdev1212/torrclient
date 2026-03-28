@@ -32,6 +32,7 @@
     "expo-constants": "^18.0.10",
     "expo-dev-client": "~6.0.20",
     "expo-font": "~14.0.9",
+    "expo-glass-effect": "^55.0.9-canary-20260328-2049187",
     "expo-linear-gradient": "~15.0.8",
     "expo-linking": "~8.0.10",
     "expo-router": "~6.0.19",
