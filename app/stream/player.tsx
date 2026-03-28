@@ -41,7 +41,7 @@ const MediaPlayerScreen: React.FC = () => {
   const [shouldManageOrientation, setShouldManageOrientation] = useState<boolean>(false);
 
   // Player fallback state
-  const [currentPlayerType, setCurrentPlayerType] = useState<"native" | "vlc">("native");
+  const [currentPlayerType, setCurrentPlayerType] = useState<"native" | "ksplayer">("native");
   const [hasTriedNative, setHasTriedNative] = useState(false);
 
   // Check if player is internal/default
@@ -173,7 +173,7 @@ const MediaPlayerScreen: React.FC = () => {
   }, [openSubtitlesClient]);
 
   useEffect(() => {
-    if (currentPlayerType === "vlc" && hasTriedNative) {
+    if (currentPlayerType === "ksplayer" && hasTriedNative) {
       console.log('Switching to VLC player');
       setIsLoadingStream(false);
     }
@@ -191,7 +191,7 @@ const MediaPlayerScreen: React.FC = () => {
       console.log('Native player failed, falling back to VLC');
 
       setHasTriedNative(true);
-      setCurrentPlayerType("vlc");
+      setCurrentPlayerType("ksplayer");
       setTimeout(() => {
         // Trigger re-load with current video URL
         // The player will re-render as VLC due to currentPlayerType change
@@ -200,7 +200,7 @@ const MediaPlayerScreen: React.FC = () => {
 
     } else {
       // Show error - either VLC also failed or no fallback available
-      const errorMessage = currentPlayerType === "vlc"
+      const errorMessage = currentPlayerType === "ksplayer"
         ? 'VLC player was unable to play this format. The video codec may not be supported.'
         : (event.error || 'Playback failed');
 
@@ -345,8 +345,8 @@ const MediaPlayerScreen: React.FC = () => {
       return require("../../components/nativeplayer").MediaPlayer;
     }
 
-    if (currentPlayerType === "vlc") {
-      return require("../../components/vlcplayer").MediaPlayer;
+    if (currentPlayerType === "ksplayer") {
+      return require("../../components/ksplayer").MediaPlayer;
     }
 
     return require("../../components/nativeplayer").MediaPlayer;
