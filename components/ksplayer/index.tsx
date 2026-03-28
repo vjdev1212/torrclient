@@ -655,7 +655,7 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
                                     style={{ zIndex: 1000 }}
                                     title="Audio Track"
                                     ref={audioMenuRef}
-                                    onPressAction={Platform.OS === 'web' ? handleWebAction : handleNativeAction}
+                                    onPressAction={handleNativeAction}
                                     actions={audioActions}
                                     shouldOpenOnLongPress={false}
                                     themeVariant="dark"
@@ -675,7 +675,7 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
                                     style={{ zIndex: 1000 }}
                                     title="Subtitles"
                                     ref={subtitleMenuRef}
-                                    onPressAction={Platform.OS === 'web' ? handleWebAction : handleNativeAction}
+                                    onPressAction={handleNativeAction}
                                     actions={subtitleActions}
                                     shouldOpenOnLongPress={false}
                                     themeVariant="dark"
@@ -694,7 +694,7 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
                                 style={{ zIndex: 1000 }}
                                 title="Settings"
                                 ref={settingsMenuRef}
-                                onPressAction={Platform.OS === 'web' ? handleWebAction : handleNativeAction}
+                                onPressAction={handleNativeAction}
                                 actions={settingsActions}
                                 shouldOpenOnLongPress={false}
                                 themeVariant="dark"
