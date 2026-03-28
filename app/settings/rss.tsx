@@ -18,7 +18,7 @@ interface RSSFeedConfig {
     name: string;
     url: string;
     enabled: boolean;
-    refreshInterval: number; // in minutes
+    refreshInterval: number;
 }
 
 const RSS_FEEDS_KEY = StorageKeys.RSS_FEEDS_KEY || 'TORRCLIENT_RSS_FEEDS_KEY';
@@ -36,7 +36,6 @@ const RSSFeedsScreen = () => {
     const loadRSSFeeds = async () => {
         try {
             const feedsJson = storageService.getItem(RSS_FEEDS_KEY);
-
             if (feedsJson) {
                 const loadedFeeds = JSON.parse(feedsJson);
                 setFeeds(loadedFeeds);
@@ -72,7 +71,6 @@ const RSSFeedsScreen = () => {
                     return;
                 }
             }
-
             storageService.setItem(RSS_FEEDS_KEY, JSON.stringify(feeds));
             showAlert('Saved', 'RSS feed configurations saved successfully.');
         } catch (error) {
@@ -96,11 +94,6 @@ const RSSFeedsScreen = () => {
     };
 
     const deleteFeed = async (id: string) => {
-        if (feeds.length === 1) {
-            showAlert('Cannot Delete', 'You must have at least one RSS feed configured.');
-            return;
-        }
-
         const confirmed = await confirmAction(
             'Delete Feed',
             'Are you sure you want to delete this RSS feed?',
@@ -112,7 +105,7 @@ const RSSFeedsScreen = () => {
         setFeeds(newFeeds);
 
         if (expandedFeedId === id) {
-            setExpandedFeedId(newFeeds[0].id);
+            setExpandedFeedId(newFeeds[0]?.id || '');
         }
     };
 
@@ -129,10 +122,7 @@ const RSSFeedsScreen = () => {
             showAlert('Invalid Feed', 'Please configure a URL for this feed first.');
             return;
         }
-        router.push({
-            pathname: '/(tabs)/search',
-            params: { feedId: feed.id }
-        });
+        router.push({ pathname: '/(tabs)/search', params: { feedId: feed.id } });
     };
 
     const renderFeed = (feed: RSSFeedConfig) => {
@@ -140,50 +130,29 @@ const RSSFeedsScreen = () => {
 
         return (
             <View key={feed.id} style={styles.feedCard}>
-                {/* Feed Header */}
                 <Pressable
                     onPress={() => toggleExpanded(feed.id)}
-                    style={({ pressed }) => [
-                        styles.feedHeader,
-                        pressed && styles.cellPressed
-                    ]}
+                    style={({ pressed }) => [styles.feedHeader, pressed && styles.cellPressed]}
                 >
                     <View style={styles.feedHeaderContent}>
                         <View style={styles.feedStatusIndicator}>
-                            <View style={[
-                                styles.statusDot,
-                                feed.enabled ? styles.statusDotActive : styles.statusDotInactive
-                            ]} />
+                            <View style={[styles.statusDot, feed.enabled ? styles.statusDotActive : styles.statusDotInactive]} />
                         </View>
                         <View style={styles.feedInfo}>
-                            <Text style={styles.feedName}>
-                                {feed.name || 'Unnamed Feed'}
-                            </Text>
+                            <Text style={styles.feedName}>{feed.name || 'Unnamed Feed'}</Text>
                             {feed.url ? (
-                                <Text style={styles.feedUrl} numberOfLines={1}>
-                                    {feed.url}
-                                </Text>
+                                <Text style={styles.feedUrl} numberOfLines={1}>{feed.url}</Text>
                             ) : null}
                         </View>
-                        <Pressable
-                            onPress={() => navigateToFeedViewer(feed)}
-                            style={styles.viewButton}
-                            hitSlop={8}
-                        >
+                        <Pressable onPress={() => navigateToFeedViewer(feed)} style={styles.viewButton} hitSlop={8}>
                             <Ionicons name="newspaper-outline" size={20} color="#007AFF" />
                         </Pressable>
-                        <Ionicons
-                            name={isExpanded ? "chevron-up" : "chevron-down"}
-                            size={20}
-                            color="#8E8E93"
-                        />
+                        <Ionicons name={isExpanded ? "chevron-up" : "chevron-down"} size={20} color="#8E8E93" />
                     </View>
                 </Pressable>
 
-                {/* Expanded Feed Config */}
                 {isExpanded && (
                     <View style={styles.feedDetails}>
-                        {/* Feed Name */}
                         <View style={styles.formRow}>
                             <Text style={styles.formLabel}>Name</Text>
                             <TextInput
@@ -195,10 +164,7 @@ const RSSFeedsScreen = () => {
                                 textAlign="right"
                             />
                         </View>
-
                         <View style={styles.rowSeparator} />
-
-                        {/* Feed URL */}
                         <View style={styles.formRow}>
                             <Text style={styles.formLabel}>URL</Text>
                             <TextInput
@@ -212,10 +178,7 @@ const RSSFeedsScreen = () => {
                                 textAlign="right"
                             />
                         </View>
-
                         <View style={styles.rowSeparator} />
-
-                        {/* Enabled Toggle */}
                         <View style={styles.formRow}>
                             <Text style={styles.formLabel}>Enabled</Text>
                             <Switch
@@ -225,20 +188,14 @@ const RSSFeedsScreen = () => {
                                 ios_backgroundColor="#E5E5EA"
                             />
                         </View>
-
                         <View style={styles.rowSeparator} />
-
-                        {/* Refresh Interval */}
                         <View style={styles.formRow}>
                             <Text style={styles.formLabel}>Refresh Interval</Text>
                             <View style={styles.intervalContainer}>
                                 <TextInput
                                     style={styles.intervalInput}
                                     value={feed.refreshInterval.toString()}
-                                    onChangeText={(text) => {
-                                        const num = parseInt(text) || 30;
-                                        updateFeed(feed.id, { refreshInterval: num });
-                                    }}
+                                    onChangeText={(text) => updateFeed(feed.id, { refreshInterval: parseInt(text) || 30 })}
                                     keyboardType="number-pad"
                                     placeholder="30"
                                     placeholderTextColor="#8E8E93"
@@ -247,21 +204,12 @@ const RSSFeedsScreen = () => {
                                 <Text style={styles.intervalUnit}>min</Text>
                             </View>
                         </View>
-
-                        {/* Delete Button */}
-                        {feeds.length > 1 && (
-                            <>
-                                <Pressable
-                                    onPress={() => deleteFeed(feed.id)}
-                                    style={({ pressed }) => [
-                                        styles.deleteButton,
-                                        pressed && styles.cellPressed
-                                    ]}
-                                >
-                                    <Text style={styles.deleteButtonText}>Delete Feed</Text>
-                                </Pressable>
-                            </>
-                        )}
+                        <Pressable
+                            onPress={() => deleteFeed(feed.id)}
+                            style={({ pressed }) => [styles.deleteButton, pressed && styles.cellPressed]}
+                        >
+                            <Text style={styles.deleteButtonText}>Delete Feed</Text>
+                        </Pressable>
                     </View>
                 )}
             </View>
@@ -271,56 +219,32 @@ const RSSFeedsScreen = () => {
     return (
         <SafeAreaView style={styles.container} edges={['top']}>
             <StatusBar />
-
-            {/* Header */}
             <View style={styles.header}>
                 <Text style={styles.headerTitle}>RSS Feeds</Text>
             </View>
-
-            <ScrollView
-                showsVerticalScrollIndicator={false}
-                contentContainerStyle={styles.content}
-            >
-                {/* Section Header */}
+            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.content}>
                 <View style={styles.sectionHeaderContainer}>
                     <Text style={styles.sectionHeader}>FEEDS</Text>
                 </View>
-
-                {/* Feeds Section */}
                 <View style={styles.section}>
                     {feeds.map(renderFeed)}
                 </View>
-
-                {/* Add Feed Button */}
                 <Pressable
                     onPress={addFeed}
-                    style={({ pressed }) => [
-                        styles.addFeedButton,
-                        pressed && styles.cellPressed
-                    ]}
+                    style={({ pressed }) => [styles.addFeedButton, pressed && styles.cellPressed]}
                 >
                     <Ionicons name="add-circle" size={22} color="#007AFF" />
                     <Text style={styles.addFeedText}>Add Feed</Text>
                 </Pressable>
-
-                {/* Footer Text */}
                 <Text style={styles.footerText}>
                     RSS feeds are automatically refreshed based on the configured interval. Tap the newspaper icon to view feed items.
                 </Text>
-
-                {/* Save Button */}
                 <Pressable
                     onPress={saveRSSFeeds}
                     disabled={saving}
-                    style={({ pressed }) => [
-                        styles.saveButton,
-                        pressed && !saving && styles.saveButtonPressed,
-                        saving && styles.saveButtonDisabled
-                    ]}
+                    style={({ pressed }) => [styles.saveButton, pressed && !saving && styles.saveButtonPressed, saving && styles.saveButtonDisabled]}
                 >
-                    <Text style={styles.saveButtonText}>
-                        {saving ? 'Saving...' : 'Save'}
-                    </Text>
+                    <Text style={styles.saveButtonText}>{saving ? 'Saving...' : 'Save'}</Text>
                 </Pressable>
             </ScrollView>
         </SafeAreaView>
@@ -328,194 +252,42 @@ const RSSFeedsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        marginTop: 30
-    },
-    header: {
-        paddingHorizontal: 20,
-        paddingTop: 8,
-        paddingBottom: 16,
-    },
-    headerTitle: {
-        fontSize: 34,
-        fontWeight: '700',
-        color: '#FFFFFF',
-        letterSpacing: 0.37,
-    },
-    content: {
-        paddingBottom: 40,
-    },
-    sectionHeaderContainer: {
-        paddingHorizontal: 20,
-        paddingTop: 22,
-        paddingBottom: 6,
-    },
-    sectionHeader: {
-        fontSize: 13,
-        fontWeight: '400',
-        color: '#8E8E93',
-    },
-    section: {
-        marginBottom: 35,
-    },
-    feedCard: {
-        backgroundColor: '#1C1C1E',
-        marginHorizontal: 20,
-        marginBottom: 20,
-        borderRadius: 10,
-        overflow: 'hidden',
-    },
-    feedHeader: {
-        paddingVertical: 11,
-        paddingHorizontal: 16,
-    },
-    feedHeaderContent: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 12,
-    },
-    cellPressed: {
-        backgroundColor: '#2C2C2E',
-    },
-    feedStatusIndicator: {
-        padding: 4,
-    },
-    statusDot: {
-        width: 10,
-        height: 10,
-        borderRadius: 5,
-    },
-    statusDotActive: {
-        backgroundColor: '#34C759',
-    },
-    statusDotInactive: {
-        backgroundColor: '#8E8E93',
-    },
-    feedInfo: {
-        flex: 1,
-    },
-    feedName: {
-        fontSize: 16,
-        fontWeight: '400',
-        color: '#FFFFFF',
-        letterSpacing: -0.41,
-    },
-    feedUrl: {
-        fontSize: 15,
-        color: '#8E8E93',
-        marginTop: 1,
-        letterSpacing: -0.24,
-    },
-    viewButton: {
-        padding: 4,
-    },
-    feedDetails: {
-        backgroundColor: '#1C1C1E',
-    },
-    formRow: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        paddingVertical: 11,
-        paddingHorizontal: 16,
-        minHeight: 44,
-    },
-    formLabel: {
-        fontSize: 16,
-        color: '#FFFFFF',
-        letterSpacing: -0.41,
-        marginRight: 16,
-    },
-    formInput: {
-        flex: 1,
-        fontSize: 16,
-        color: '#FFFFFF',
-        letterSpacing: -0.41,
-        paddingVertical: 0,
-    },
-    intervalContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 8,
-    },
-    intervalInput: {
-        fontSize: 16,
-        color: '#FFFFFF',
-        letterSpacing: -0.41,
-        textAlign: 'right',
-        minWidth: 50,
-    },
-    intervalUnit: {
-        fontSize: 16,
-        color: '#8E8E93',
-        letterSpacing: -0.41,
-    },
-    rowSeparator: {
-        height: 0.5,
-        backgroundColor: '#38383A',
-        marginLeft: 16,
-    },
-    sectionSeparator: {
-        height: 20,
-    },
-    deleteButton: {
-        paddingVertical: 11,
-        paddingHorizontal: 16,
-        alignItems: 'center',
-        backgroundColor: '#1C1C1E',
-    },
-    deleteButtonText: {
-        fontSize: 16,
-        fontWeight: '400',
-        color: '#FF453A',
-        letterSpacing: -0.41,
-    },
-    addFeedButton: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#1C1C1E',
-        marginHorizontal: 20,
-        paddingVertical: 11,
-        borderRadius: 10,
-        gap: 8,
-        marginBottom: 8,
-    },
-    addFeedText: {
-        fontSize: 16,
-        fontWeight: '400',
-        color: '#0A84FF',
-        letterSpacing: -0.41,
-    },
-    footerText: {
-        fontSize: 13,
-        color: '#8E8E93',
-        lineHeight: 18,
-        paddingHorizontal: 36,
-        paddingTop: 8,
-        paddingBottom: 24,
-        textAlign: 'left',
-    },
-    saveButton: {
-        backgroundColor: '#0A84FF',
-        marginHorizontal: 20,
-        paddingVertical: 14,
-        borderRadius: 10,
-        alignItems: 'center',
-    },
-    saveButtonPressed: {
-        backgroundColor: '#0066CC',
-    },
-    saveButtonDisabled: {
-        opacity: 0.5,
-    },
-    saveButtonText: {
-        color: '#FFFFFF',
-        fontSize: 16,
-        fontWeight: '500',
-        letterSpacing: -0.41,
-    },
+    container: { flex: 1, marginTop: 30 },
+    header: { paddingHorizontal: 20, paddingTop: 8, paddingBottom: 16 },
+    headerTitle: { fontSize: 34, fontWeight: '700', color: '#FFFFFF', letterSpacing: 0.37 },
+    content: { paddingBottom: 40 },
+    sectionHeaderContainer: { paddingHorizontal: 20, paddingTop: 22, paddingBottom: 6 },
+    sectionHeader: { fontSize: 13, fontWeight: '400', color: '#8E8E93' },
+    section: { marginBottom: 35 },
+    feedCard: { backgroundColor: '#1C1C1E', marginHorizontal: 20, marginBottom: 20, borderRadius: 10, overflow: 'hidden' },
+    feedHeader: { paddingVertical: 11, paddingHorizontal: 16 },
+    feedHeaderContent: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+    cellPressed: { backgroundColor: '#2C2C2E' },
+    feedStatusIndicator: { padding: 4 },
+    statusDot: { width: 10, height: 10, borderRadius: 5 },
+    statusDotActive: { backgroundColor: '#34C759' },
+    statusDotInactive: { backgroundColor: '#8E8E93' },
+    feedInfo: { flex: 1 },
+    feedName: { fontSize: 16, fontWeight: '400', color: '#FFFFFF', letterSpacing: -0.41 },
+    feedUrl: { fontSize: 15, color: '#8E8E93', marginTop: 1, letterSpacing: -0.24 },
+    viewButton: { padding: 4 },
+    feedDetails: { backgroundColor: '#1C1C1E' },
+    formRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingVertical: 11, paddingHorizontal: 16, minHeight: 44 },
+    formLabel: { fontSize: 16, color: '#FFFFFF', letterSpacing: -0.41, marginRight: 16 },
+    formInput: { flex: 1, fontSize: 16, color: '#FFFFFF', letterSpacing: -0.41, paddingVertical: 0 },
+    intervalContainer: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    intervalInput: { fontSize: 16, color: '#FFFFFF', letterSpacing: -0.41, textAlign: 'right', minWidth: 50 },
+    intervalUnit: { fontSize: 16, color: '#8E8E93', letterSpacing: -0.41 },
+    rowSeparator: { height: 0.5, backgroundColor: '#38383A', marginLeft: 16 },
+    deleteButton: { paddingVertical: 11, paddingHorizontal: 16, alignItems: 'center', backgroundColor: '#1C1C1E' },
+    deleteButtonText: { fontSize: 16, fontWeight: '400', color: '#FF453A', letterSpacing: -0.41 },
+    addFeedButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', backgroundColor: '#1C1C1E', marginHorizontal: 20, paddingVertical: 11, borderRadius: 10, gap: 8, marginBottom: 8 },
+    addFeedText: { fontSize: 16, fontWeight: '400', color: '#0A84FF', letterSpacing: -0.41 },
+    footerText: { fontSize: 13, color: '#8E8E93', lineHeight: 18, paddingHorizontal: 36, paddingTop: 8, paddingBottom: 24, textAlign: 'left' },
+    saveButton: { backgroundColor: '#0A84FF', marginHorizontal: 20, paddingVertical: 14, borderRadius: 10, alignItems: 'center' },
+    saveButtonPressed: { backgroundColor: '#0066CC' },
+    saveButtonDisabled: { opacity: 0.5 },
+    saveButtonText: { color: '#FFFFFF', fontSize: 16, fontWeight: '500', letterSpacing: -0.41 },
 });
 
 export default RSSFeedsScreen;
