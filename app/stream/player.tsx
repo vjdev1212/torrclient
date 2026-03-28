@@ -266,10 +266,7 @@ const MediaPlayerScreen: React.FC = () => {
   };
 
   function getPlayer() {
-    if (Platform.OS === "web") {
-      return require("../../components/nativeplayer").MediaPlayer;
-    }
-    if (currentPlayerType === "ksplayer") {
+    if (Platform.OS === "ios" && currentPlayerType === "ksplayer") {
       return require("../../components/ksplayer").MediaPlayer;
     }
     return require("../../components/nativeplayer").MediaPlayer;
