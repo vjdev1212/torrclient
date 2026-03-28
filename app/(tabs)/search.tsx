@@ -525,13 +525,15 @@ const SearchScreen = () => {
                             />
                         )}
 
-                        <SearchBar
-                            query={query}
-                            onQueryChange={setQuery}
-                            onClear={handleClear}
-                            onSubmit={handleSearch}
-                            searchSource={searchSource}
-                        />
+                        {(isProwlarrConfigured || isRssConfigured) && (
+                            <SearchBar
+                                query={query}
+                                onQueryChange={setQuery}
+                                onClear={handleClear}
+                                onSubmit={handleSearch}
+                                searchSource={searchSource}
+                            />
+                        )}
 
                         {loading && <LoadingState searchSource={searchSource} />}
 
