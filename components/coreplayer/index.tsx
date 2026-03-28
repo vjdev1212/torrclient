@@ -315,8 +315,7 @@ export const buildSubtitlePositionActions = (currentPosition: SubtitlePosition):
 };
 
 export const buildSubtitleDelayActions = (currentDelay: number): MenuAction[] => {
-    const delays = [-5000, -4000, -3000, -2000, -1500, -1000, -750, -500, -250, -100, 0, 100, 250, 500, 750, 1000, 1500, 2000, 3000, 4000, 5000];
-    return delays.map(delayMs => {
+    const delays = [-10000, -9000, -8000, -7000, -6000, -5000, -4000, -3000, -2000, -1500, -1000, -750, -500, -250, -100, 0, 100, 250, 500, 750, 1000, 1500, 2000, 3000, 4000, 5000, 6000, 7000, 8000, 9000, 10000]; return delays.map(delayMs => {
         const delaySec = delayMs / 1000;
         const isDefault = delayMs === 0;
         const prefix = delayMs > 0 ? '+' : '';
