@@ -1,4 +1,3 @@
-import { Colors } from "@/constants/theme";
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -167,7 +166,7 @@ export const styles = StyleSheet.create({
     },
 
     speedText: {
-        color: Colors.text,
+        color: '#535aff',
         fontSize: 14,
         fontWeight: '500',
         marginLeft: 12,
@@ -320,7 +319,7 @@ export const styles = StyleSheet.create({
     },
 
     retryButton: {
-        backgroundColor: Colors.primary,
+        backgroundColor: '#007AFF',
         paddingHorizontal: 24,
         paddingVertical: 12,
         borderRadius: 8,
@@ -375,7 +374,7 @@ export const styles = StyleSheet.create({
     },
 
     glassPanel: {
-        backgroundColor: Colors.backgroundCard,
+        backgroundColor: '#1a1a1af2',
         borderRadius: 12,
         padding: 24,
         minWidth: 500,
@@ -419,8 +418,8 @@ export const styles = StyleSheet.create({
     },
 
     settingOptionSelected: {
-        backgroundColor: Colors.primaryMuted,
-        borderColor: Colors.primaryBorder,
+        backgroundColor: 'rgba(0, 122, 255, 0.2)',
+        borderColor: 'rgba(0, 122, 255, 0.4)',
     },
 
     settingOptionText: {
@@ -448,8 +447,8 @@ export const styles = StyleSheet.create({
     },
 
     speedOptionSelected: {
-        backgroundColor: Colors.primaryMuted,
-        borderColor: Colors.primaryBorder,
+        backgroundColor: 'rgba(0, 122, 255, 0.3)',
+        borderColor: 'rgba(0, 122, 255, 0.5)',
     },
 
     speedOptionText: {
@@ -460,7 +459,7 @@ export const styles = StyleSheet.create({
 
     speedOptionTextSelected: {
         fontWeight: '700',
-        color: Colors.primary,
+        color: '#007AFF',
     },
 
     loadingContainer: {

@@ -20,9 +20,7 @@ import {
     buildSettingsActions,
     buildSubtitleActions,
     buildAudioActions,
-    buildStreamActions,
     calculateSliderValues,
-    ArtworkBackground,
     WaitingLobby,
     SubtitleDisplay,
     CenterControls,
@@ -619,12 +617,6 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
                 onAudioTracks={handleAudioTracks}
                 onTextTracks={handleTextTracks}
                 onSubtitleText={handleSubtitleText}
-            />
-
-            <ArtworkBackground
-                artwork={artwork}
-                isBuffering={playerState.isBuffering}
-                hasStartedPlaying={playerState.isReady}
             />
 
             <WaitingLobby hasStartedPlaying={playerState.isReady} opacity={bufferOpacity} />

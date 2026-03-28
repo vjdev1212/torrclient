@@ -7,13 +7,11 @@ import { parseSubtitleFile } from './subtitle';
 import { styles } from './styles';
 import { formatTime } from './utils';
 import { MediaPlayerProps } from './models';
-import { extractAudioCodec, extractHDR, extractQuality, extractSize, extractSource, extractVideoCodec } from '@/utils/StreamItem';
 import { MenuAction } from '@react-native-menu/menu';
 import { LinearGradient } from 'expo-linear-gradient';
 import { BlurView } from 'expo-blur';
 import { ResizeMode } from 'react-native-video';
 import { GlassView } from 'expo-glass-effect';
-import { useTheme } from '@/context/ThemeContext';
 
 // ==================== CONSTANTS ====================
 export const CONSTANTS = {
@@ -462,42 +460,6 @@ export const buildSubtitleActionsLegacy = (
     ];
 };
 
-export const buildStreamActions = (streams: Stream[], currentIndex: number): MenuAction[] => {
-    return streams.map((stream, index) => {
-        const name = stream.name || "";
-        const title = stream.title || stream.description || "";
-        const quality = extractQuality(name, title);
-        const size = extractSize(title);
-        const source = extractSource(title);
-        const videoCodec = extractVideoCodec(title);
-        const audioCodec = extractAudioCodec(title);
-        const hdr = extractHDR(title);
-        const audioChannels = extractAudioCodec(title);
-
-        const parts: string[] = [];
-        if (quality) parts.push(quality);
-        if (size) parts.push(size);
-        if (hdr) parts.push(hdr);
-        if (audioCodec) parts.push(audioCodec);
-        if (audioChannels) parts.push(audioChannels);
-        if (source) parts.push(source);
-        if (videoCodec) parts.push(videoCodec);
-
-        const displayName = parts.length > 0 ? parts.join(" • ") : name;
-
-        return {
-            id: `stream-${index}`,
-            title: displayName,
-            subtitle: name,
-            titleColor: '#ffffff',
-            image: Platform.select({ ios: 'play.circle', default: undefined }),
-            imageColor: '#ffffff',
-            state: index === currentIndex ? ('on' as const) : 'off',
-            attributes: { disabled: false },
-        };
-    });
-};
-
 export const buildAudioActions = (audioTracks: any[], selectedTrackId: number) => {
     return audioTracks.map((track) => ({
         id: `audio-${track.id}`,
@@ -514,35 +476,17 @@ export const WaitingLobby: React.FC<{
     opacity: Animated.Value;
     error?: boolean;
 }> = ({ hasStartedPlaying, opacity, error }) => {
-    const { colors } = useTheme();
     if (hasStartedPlaying || error) return null;
     return (
-        <Animated.View style={[styles.bufferingContainer, { opacity }]} pointerEvents="none">
-            <ActivityIndicator size="large" color={colors.primary} />
-            <Text style={styles.bufferingText}>{"Loading..."}</Text>
+        <Animated.View
+            style={[styles.bufferingContainer, { opacity }]}
+            pointerEvents="none"
+        >
+            <ActivityIndicator size="large" color="#0A84FF" />
+            <Text style={styles.bufferingText}>
+                {"Loading..."}
+            </Text>
         </Animated.View>
-    );
-};
-
-export const ArtworkBackground: React.FC<{
-    artwork?: string;
-    isBuffering: boolean;
-    hasStartedPlaying?: boolean;
-    error?: boolean;
-}> = ({ artwork, isBuffering, hasStartedPlaying = true, error }) => {
-    const { colors } = useTheme();
-    if (!artwork || hasStartedPlaying || error) return null;
-    return (
-        <View style={styles.artworkContainer}>
-            <Image source={{ uri: artwork }} style={styles.artworkImage} resizeMode="cover" />
-            <View style={styles.artworkOverlay} />
-            {isBuffering && (
-                <View style={styles.artworkLoadingOverlay}>
-                    <ActivityIndicator size="large" color={colors.primary} />
-                    <Text style={styles.bufferingText}>Loading...</Text>
-                </View>
-            )}
-        </View>
     );
 };
 
@@ -629,7 +573,6 @@ export const ProgressBar: React.FC<{
     showSpeed?: boolean;
     playbackSpeed?: number;
 }> = ({ currentTime, duration, sliderValue, isReady, onValueChange, onSlidingStart, onSlidingComplete }) => {
-    const { colors } = useTheme();
     return (
         <View style={styles.bottomControls}>
             <View style={styles.progressContainerWithMargin}>
@@ -644,7 +587,7 @@ export const ProgressBar: React.FC<{
                             onValueChange={onValueChange}
                             onSlidingStart={onSlidingStart}
                             onSlidingComplete={onSlidingComplete}
-                            minimumTrackTintColor={colors.primary}
+                            minimumTrackTintColor="rgba(83, 90, 255, 0.9)"
                             maximumTrackTintColor="rgba(255, 255, 255, 0.3)"
                             thumbTintColor="#fff"
                             thumbSize={20}

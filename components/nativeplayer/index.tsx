@@ -21,9 +21,7 @@ import {
     buildSettingsActions,
     buildSubtitleActionsLegacy,   // ← use the legacy version that keeps offset-index ids
     buildAudioActions,
-    buildStreamActions,
     calculateSliderValues,
-    ArtworkBackground,
     WaitingLobby,
     SubtitleDisplay,
     CenterControls,
@@ -668,12 +666,6 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
                 allowsExternalPlayback={true}
                 onFullscreenPlayerWillPresent={() => setIsFullscreen(true)}
                 onFullscreenPlayerWillDismiss={() => setIsFullscreen(false)}
-            />
-
-            <ArtworkBackground
-                artwork={artwork}
-                isBuffering={playerState.isBuffering}
-                hasStartedPlaying={playerState.isReady}
             />
 
             <WaitingLobby
