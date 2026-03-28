@@ -61,7 +61,11 @@ const RSS_FEEDS_KEY = StorageKeys.RSS_FEEDS_KEY || 'TORRCLIENT_RSS_FEEDS_KEY';
 const SearchScreen = () => {
     const router = useRouter();
 
-    // Search state
+    // Configured sources
+    const [isProwlarrConfigured, setIsProwlarrConfigured] = useState(false);
+    const [isRssConfigured, setIsRssConfigured] = useState(false);
+
+    // Search state — default source will be set after we know what's configured
     const [searchSource, setSearchSource] = useState<SearchSource>('prowlarr');
     const [query, setQuery] = useState('');
     const [loading, setLoading] = useState(false);
@@ -109,7 +113,12 @@ const SearchScreen = () => {
         try {
             const client = new ProwlarrClient();
             const initialized = await client.initialize();
-            if (!initialized) return; // Not configured yet — silently skip
+            if (!initialized) {
+                setIsProwlarrConfigured(false);
+                // If prowlarr is not configured and rss is, switch to rss
+                setSearchSource(prev => prev === 'prowlarr' ? 'rss' : prev);
+                return;
+            }
 
             const [fetchedIndexers, fetchedCategories] = await Promise.all([
                 client.getIndexers(),
@@ -122,9 +131,13 @@ const SearchScreen = () => {
             if (fetchedCategories && Array.isArray(fetchedCategories)) {
                 setCategories(fetchedCategories.filter(c => c.id === 2000 || c.id === 5000));
             }
+
+            setIsProwlarrConfigured(true);
         } catch (err) {
             // Prowlarr unreachable — not an error worth surfacing at load time
             console.warn('Could not load Prowlarr indexers:', err instanceof Error ? err.message : err);
+            setIsProwlarrConfigured(false);
+            setSearchSource(prev => prev === 'prowlarr' ? 'rss' : prev);
         }
     };
 
@@ -133,12 +146,29 @@ const SearchScreen = () => {
             const feedsJson = storageService.getItem(RSS_FEEDS_KEY);
             if (feedsJson) {
                 const loadedFeeds: RSSFeedConfig[] = JSON.parse(feedsJson);
+                const enabledFeeds = loadedFeeds.filter(f => f.enabled !== false);
                 setRssFeeds(loadedFeeds);
+                const hasFeeds = enabledFeeds.length > 0;
+                setIsRssConfigured(hasFeeds);
+                // If rss is not configured and we're currently on rss, switch to prowlarr
+                if (!hasFeeds) {
+                    setSearchSource(prev => prev === 'rss' ? 'prowlarr' : prev);
+                }
+            } else {
+                setIsRssConfigured(false);
+                setSearchSource(prev => prev === 'rss' ? 'prowlarr' : prev);
             }
         } catch (error) {
             console.error('Failed to load RSS feeds:', error);
+            setIsRssConfigured(false);
         }
     };
+
+    // Derive the list of available sources to pass to SourceSelector
+    const availableSources: SearchSource[] = [
+        ...(isProwlarrConfigured ? (['prowlarr'] as SearchSource[]) : []),
+        ...(isRssConfigured ? (['rss'] as SearchSource[]) : []),
+    ];
 
     const handleSearch = async () => {
         if (searchSource === 'prowlarr') {
@@ -466,12 +496,16 @@ const SearchScreen = () => {
                     <View style={styles.contentWrapper}>
                         <SearchHeader />
 
-                        <SourceSelector
-                            selectedSource={searchSource}
-                            onSourceChange={handleSourceChange}
-                        />
+                        {/* Only render SourceSelector when both sources are configured */}
+                        {availableSources.length > 1 && (
+                            <SourceSelector
+                                selectedSource={searchSource}
+                                onSourceChange={handleSourceChange}
+                                availableSources={availableSources}
+                            />
+                        )}
 
-                        {searchSource === 'prowlarr' && (
+                        {searchSource === 'prowlarr' && isProwlarrConfigured && (
                             <ProwlarrFilters
                                 indexers={indexers}
                                 categories={categories}
@@ -483,7 +517,7 @@ const SearchScreen = () => {
                             />
                         )}
 
-                        {searchSource === 'rss' && (
+                        {searchSource === 'rss' && isRssConfigured && (
                             <RSSFilters
                                 feeds={rssFeeds}
                                 selectedFeed={selectedRssFeed}
@@ -506,6 +540,8 @@ const SearchScreen = () => {
                                 searchSource={searchSource}
                                 rssFeeds={rssFeeds}
                                 searched={searched}
+                                isProwlarrConfigured={isProwlarrConfigured}
+                                isRssConfigured={isRssConfigured}
                             />
                         )}
 
@@ -518,6 +554,8 @@ const SearchScreen = () => {
                                         searchSource={searchSource}
                                         rssFeeds={rssFeeds}
                                         searched={searched}
+                                        isProwlarrConfigured={isProwlarrConfigured}
+                                        isRssConfigured={isRssConfigured}
                                     />
                                 ) : (
                                     results.map((result, index) => {

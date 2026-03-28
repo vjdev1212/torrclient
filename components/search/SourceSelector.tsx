@@ -9,26 +9,26 @@ type SearchSource = 'prowlarr' | 'rss';
 interface SourceSelectorProps {
     selectedSource: SearchSource;
     onSourceChange: (source: SearchSource) => void;
+    availableSources: SearchSource[];
 }
+
+const SOURCE_LABELS: Record<SearchSource, string> = {
+    prowlarr: 'Prowlarr',
+    rss: 'RSS Feeds',
+};
 
 export const SourceSelector: React.FC<SourceSelectorProps> = ({
     selectedSource,
     onSourceChange,
+    availableSources,
 }) => {
-    const getSourceMenuActions = () => [
-        {
-            id: 'prowlarr',
-            title: 'Prowlarr',
-            state: selectedSource === 'prowlarr' ? ('on' as const) : ('off' as const),
-            titleColor: selectedSource === 'prowlarr' ? '#007AFF' : undefined,
-        },
-        {
-            id: 'rss',
-            title: 'RSS Feeds',
-            state: selectedSource === 'rss' ? ('on' as const) : ('off' as const),
-            titleColor: selectedSource === 'rss' ? '#007AFF' : undefined,
-        },
-    ];
+    const getSourceMenuActions = () =>
+        availableSources.map(source => ({
+            id: source,
+            title: SOURCE_LABELS[source],
+            state: selectedSource === source ? ('on' as const) : ('off' as const),
+            titleColor: selectedSource === source ? '#007AFF' : undefined,
+        }));
 
     return (
         <MenuView
@@ -42,7 +42,7 @@ export const SourceSelector: React.FC<SourceSelectorProps> = ({
             <View style={styles.sourceSelector}>
                 <Ionicons name="layers-outline" size={18} color="#8E8E93" />
                 <Text style={styles.sourceSelectorText} numberOfLines={1}>
-                    {selectedSource === 'prowlarr' ? 'Prowlarr' : 'RSS Feeds'}
+                    {SOURCE_LABELS[selectedSource]}
                 </Text>
                 <Ionicons name="chevron-down" size={16} color="#8E8E93" />
             </View>

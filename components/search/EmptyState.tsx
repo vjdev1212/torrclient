@@ -9,12 +9,16 @@ interface EmptyStateProps {
     searchSource: SearchSource;
     rssFeeds: any[];
     searched: boolean;
+    isProwlarrConfigured: boolean;
+    isRssConfigured: boolean;
 }
 
 export const EmptyState: React.FC<EmptyStateProps> = ({
     searchSource,
     rssFeeds,
     searched,
+    isProwlarrConfigured,
+    isRssConfigured,
 }) => {
     const getEmptyStateContent = () => {
         if (searched) {
@@ -22,6 +26,14 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
                 icon: 'search-outline' as const,
                 title: 'No Results',
                 subtitle: 'Try adjusting your search or filters',
+            };
+        }
+
+        if (!isProwlarrConfigured && !isRssConfigured) {
+            return {
+                icon: 'settings-outline' as const,
+                title: 'Nothing Configured',
+                subtitle: 'Add a Prowlarr instance or RSS feed in Settings to get started',
             };
         }
 
@@ -33,12 +45,20 @@ export const EmptyState: React.FC<EmptyStateProps> = ({
             };
         }
 
+        if (searchSource === 'rss') {
+            return {
+                icon: 'newspaper-outline' as const,
+                title: 'Select RSS Feed',
+                subtitle: rssFeeds.length === 0
+                    ? 'No RSS feeds configured. Add feeds in Settings.'
+                    : 'Choose a feed from the selector above',
+            };
+        }
+
         return {
-            icon: 'newspaper-outline' as const,
-            title: 'Select RSS Feed',
-            subtitle: rssFeeds.length === 0
-                ? 'No RSS feeds configured. Add feeds in settings.'
-                : 'Choose a feed from the selector above',
+            icon: 'search-outline' as const,
+            title: 'Search Torrents',
+            subtitle: 'Enter a name to search',
         };
     };
 
