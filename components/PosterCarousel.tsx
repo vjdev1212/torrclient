@@ -151,7 +151,7 @@ export default function PosterCarousel({
                 >
                     <ImageBackground
                         key={`${item.id}-${index}`}
-                        source={{ uri: item.poster }}
+                        source={item.poster ? { uri: item.poster } : undefined}
                         style={styles.backdropImage}
                         resizeMode="cover"
                     >
