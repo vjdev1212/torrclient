@@ -17,8 +17,8 @@ Or download directly from [GitHub Releases](https://github.com/vjdev1212/torrcli
 ## Features
 - Modern UI for an OTT-like experience.
 - Support for multiple instances.
-- Built-In Media Player (both Native and VLC).
-- External media player support.
+- Built-In Media Player (Native and KSPlayer).
+- External media players support.
 - Prowlarr integration for instant search.
 - RSS feeds support.
 - Instant streaming without adding torrents to TorrServer.
