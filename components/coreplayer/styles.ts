@@ -68,13 +68,20 @@ export const styles = StyleSheet.create({
 
     titleContainer: {
         flex: 1,
-        marginRight: 8,
+        marginRight: '2%',
     },
 
     titleText: {
         color: 'white',
         fontSize: 18,
-        fontWeight: 500,
+        fontWeight: '500',
+    },
+
+    fileNameText: {
+        color: 'rgba(255,255,255,0.55)',
+        fontSize: 12,
+        fontWeight: '400',
+        marginTop: 2,
     },
 
     topRightControls: {

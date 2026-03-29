@@ -36,7 +36,7 @@ import { View, Text } from "../Themed";
 import { GlassView } from 'expo-glass-effect';
 
 // Menu wrapper component - uses WebMenu on web, MenuView on native
-const MenuWrapper: React.FC<any> = (props) => {    
+const MenuWrapper: React.FC<any> = (props) => {
     return <MenuView {...props} />;
 };
 
@@ -44,6 +44,7 @@ const MenuWrapper: React.FC<any> = (props) => {
 export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
     videoUrl,
     title,
+    filename,
     back: onBack,
     progress,
     artwork,
@@ -691,6 +692,7 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
 
                         <View style={styles.titleContainer}>
                             <Text style={styles.titleText} numberOfLines={1}>{title}</Text>
+                            <Text style={styles.fileNameText} numberOfLines={1}>{filename}</Text>
                         </View>
 
                         <GlassView glassEffectStyle="clear" style={styles.topRightControls}>
@@ -700,7 +702,7 @@ export const MediaPlayer: React.FC<ExtendedMediaPlayerProps> = ({
                                     <MaterialIcons name="switch-video" size={22} color="white" />
                                 </TouchableOpacity>
                             )}
-                            
+
                             <TouchableOpacity style={styles.controlButton} onPress={handleMuteToggle}>
                                 <Ionicons name={settings.isMuted ? "volume-mute" : "volume-high"} size={24} color="white" />
                             </TouchableOpacity>

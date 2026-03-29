@@ -37,6 +37,7 @@ export interface ErrorResponse {
 export interface MediaPlayerProps {
     videoUrl: string;
     title: string;
+    filename?: string;
     audioTracks?: AudioTrack[];
     back: (event: BackEvent) => void;
     progress?: number;

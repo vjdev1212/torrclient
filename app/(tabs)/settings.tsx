@@ -6,6 +6,7 @@ import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Constants from 'expo-constants';
 import BlurGradientBackground from '@/components/BlurGradientBackground';
+import BottomSpacing from '@/components/BottomSpacing';
 
 const SettingsScreen = () => {
   const router = useRouter();
@@ -19,6 +20,15 @@ const SettingsScreen = () => {
   const integrationsList: { title: string, route: string, icon: keyof typeof Ionicons.glyphMap, description?: string }[] = [
     { title: 'Prowlarr', route: '/settings/prowlarr', icon: 'search-outline', description: 'Manage Prowlarr configurations' },
     { title: 'RSS Feeds', route: '/settings/rss', icon: 'logo-rss', description: 'Configure your RSS Feeds' },
+  ];
+
+  const contactList: { title: string, route: string, icon: keyof typeof Ionicons.glyphMap, description?: string }[] = [
+    { title: 'Contact', route: '/settings/contact', icon: 'mail-outline', description: 'Get in touch with us' },
+    { title: 'Donate', route: '/settings/donate', icon: 'heart-outline', description: 'Support this project' },
+  ];
+
+  const resourcesList: { title: string, route: string, icon: keyof typeof Ionicons.glyphMap, description?: string }[] = [
+    { title: 'Downloads', route: '/settings/downloads', icon: 'download-outline', description: 'Manage your downloads' },
   ];
 
   // SettingItem Component
@@ -110,6 +120,44 @@ const SettingsScreen = () => {
           </View>
         </View>
 
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>RESOURCES</Text>
+          <View style={styles.settingsGroup}>
+            {resourcesList.map((item, index) => (
+              <React.Fragment key={index}>
+                <SettingItem
+                  title={item.title}
+                  icon={item.icon}
+                  description={item.description}
+                  onPress={() => onSettingsItemPress(item)}
+                />
+                {index < resourcesList.length - 1 && (
+                  <View style={styles.separator} />
+                )}
+              </React.Fragment>
+            ))}
+          </View>
+        </View>
+
+        <View style={styles.section}>
+          <Text style={styles.sectionHeader}>CONTACT</Text>
+          <View style={styles.settingsGroup}>
+            {contactList.map((item, index) => (
+              <React.Fragment key={index}>
+                <SettingItem
+                  title={item.title}
+                  icon={item.icon}
+                  description={item.description}
+                  onPress={() => onSettingsItemPress(item)}
+                />
+                {index < contactList.length - 1 && (
+                  <View style={styles.separator} />
+                )}
+              </React.Fragment>
+            ))}
+          </View>
+        </View>
+
         {/* App Info Section */}
         <View style={styles.section}>
           <Text style={styles.sectionHeader}>ABOUT</Text>
@@ -120,6 +168,7 @@ const SettingsScreen = () => {
             </View>
           </View>
         </View>
+        <BottomSpacing space={80} />
       </ScrollView>
     </SafeAreaView>
   );

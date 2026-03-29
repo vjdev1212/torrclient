@@ -463,15 +463,10 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     backgroundColor: '#0A84FF',
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderRadius: 14,
     alignItems: 'center',
-    marginTop: 8,
-    shadowColor: '#0A84FF',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 4,
+    marginTop: 10
   },
   submitButtonDisabled: {
     opacity: 0.5,

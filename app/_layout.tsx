@@ -125,12 +125,15 @@ function RootLayoutNav() {
                 contentStyle: styles.modalContent,
               }}
             />
-            <Stack.Screen name="torrent/add"         options={transparentScreen} />
-            <Stack.Screen name="torrent/details"     options={transparentScreen} />
+            <Stack.Screen name="torrent/add" options={transparentScreen} />
+            <Stack.Screen name="torrent/details" options={transparentScreen} />
             <Stack.Screen name="settings/torrserver" options={transparentScreen} />
             <Stack.Screen name="settings/mediaplayer" options={transparentScreen} />
-            <Stack.Screen name="settings/prowlarr"   options={transparentScreen} />
-            <Stack.Screen name="settings/rss"        options={transparentScreen} />
+            <Stack.Screen name="settings/prowlarr" options={transparentScreen} />
+            <Stack.Screen name="settings/rss" options={transparentScreen} />
+            <Stack.Screen name="settings/downloads" options={transparentScreen} />
+            <Stack.Screen name="settings/contact" options={transparentScreen} />
+            <Stack.Screen name="settings/donate" options={transparentScreen} />
             <Stack.Screen
               name="stream/player"
               options={{
